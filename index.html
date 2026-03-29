@@ -569,8 +569,8 @@
 <header>
   <div class="logo">Crosslift <span>Blacksheep</span></div>
   <div class="header-meta">
-    <div class="last-update" id="last-update">✔ Nenhum dado carregado</div>
-    <button class="btn-update" onclick="simularAtualizacao()">↻ Atualizar Dados</button>
+    <div class="last-update" id="last-update">⏱ Nenhum dado carregado</div>
+    <button class="btn-update" onclick="simularAtualizacao()">⤴ Atualizar Dados</button>
   </div>
 </header>
 
@@ -641,7 +641,7 @@
     <div class="section-title">Unidades</div>
     <div class="units-grid" id="units-grid">
       <div class="empty-state" style="grid-column:1/-1">
-        <div class="empty-icon">🏋️</div>
+        <div class="empty-icon">💪</div>
         <div class="empty-title">Aguardando dados</div>
         <div class="empty-text">Clique em "Atualizar Dados" para carregar as informações<br>de todas as 6 unidades automaticamente.</div>
       </div>
@@ -979,7 +979,7 @@ function renderDashboard(data) {
     <div class="insight-card">
       <div class="insight-type action"><div class="insight-dot"></div>Recomendações</div>
       <div class="insight-items">
-        ${deficits.length ? `<div class="insight-item">🏨 Revisar despesas em <strong>${deficits.map(f=>f.unidade).join(', ')}</strong></div>` : ''}
+        ${deficits.length ? `<div class="insight-item">🏋️ Revisar despesas em <strong>${deficits.map(f=>f.unidade).join(', ')}</strong></div>` : ''}
         ${altaEvasao.length ? `<div class="insight-item">📞 Ação de retenção urgente em <strong>${piorEvasao.unidade}</strong></div>` : ''}
         <div class="insight-item">💡 Unidade com menor Wellhub: expandir divulgação do convênio</div>
       </div>
@@ -1121,7 +1121,7 @@ async function simularAtualizacao() {
     {
       "nome": "Aline Cabral",
       "unidade": "Moema",
-      "aulas": 11,
+      "aulas": 12,
       "val_aula": 45,
       "personal": 0,
       "bonus": 0
@@ -1145,7 +1145,7 @@ async function simularAtualizacao() {
     {
       "nome": "César Moreira",
       "unidade": "Moema",
-      "aulas": 90,
+      "aulas": 95,
       "val_aula": 45,
       "personal": 0,
       "bonus": 0
@@ -1153,7 +1153,7 @@ async function simularAtualizacao() {
     {
       "nome": "Ezequias Oliveira",
       "unidade": "Itaim",
-      "aulas": 31,
+      "aulas": 34,
       "val_aula": 30,
       "personal": 0,
       "bonus": 0
@@ -1169,7 +1169,7 @@ async function simularAtualizacao() {
     {
       "nome": "Gabriel Power Rangers",
       "unidade": "Itaim",
-      "aulas": 63,
+      "aulas": 64,
       "val_aula": 30,
       "personal": 0,
       "bonus": 0
@@ -1193,7 +1193,7 @@ async function simularAtualizacao() {
     {
       "nome": "Hebert Rezende",
       "unidade": "Pinheiros",
-      "aulas": 80,
+      "aulas": 83,
       "val_aula": 45,
       "personal": 0,
       "bonus": 0
@@ -1201,7 +1201,7 @@ async function simularAtualizacao() {
     {
       "nome": "Higor Novaes",
       "unidade": "Pinheiros",
-      "aulas": 41,
+      "aulas": 47,
       "val_aula": 45,
       "personal": 0,
       "bonus": 0
@@ -1209,7 +1209,7 @@ async function simularAtualizacao() {
     {
       "nome": "Leo",
       "unidade": "Pinheiros",
-      "aulas": 73,
+      "aulas": 76,
       "val_aula": 45,
       "personal": 0,
       "bonus": 0
@@ -1217,7 +1217,7 @@ async function simularAtualizacao() {
     {
       "nome": "Luis Bonini",
       "unidade": "Alphaville",
-      "aulas": 78,
+      "aulas": 82,
       "val_aula": 45,
       "personal": 0,
       "bonus": 0
@@ -1233,7 +1233,7 @@ async function simularAtualizacao() {
     {
       "nome": "Marcelo Oliveira",
       "unidade": "Alphaville",
-      "aulas": 8,
+      "aulas": 11,
       "val_aula": 45,
       "personal": 0,
       "bonus": 0
@@ -1241,7 +1241,7 @@ async function simularAtualizacao() {
     {
       "nome": "NAKA",
       "unidade": "Moema",
-      "aulas": 57,
+      "aulas": 61,
       "val_aula": 45,
       "personal": 0,
       "bonus": 0
@@ -1249,7 +1249,7 @@ async function simularAtualizacao() {
     {
       "nome": "Serafim",
       "unidade": "Itaim",
-      "aulas": 57,
+      "aulas": 63,
       "val_aula": 45,
       "personal": 0,
       "bonus": 0
@@ -1257,7 +1257,7 @@ async function simularAtualizacao() {
     {
       "nome": "Silas Andrade",
       "unidade": "Berrini",
-      "aulas": 76,
+      "aulas": 81,
       "val_aula": 45,
       "personal": 0,
       "bonus": 0
@@ -1265,7 +1265,7 @@ async function simularAtualizacao() {
     {
       "nome": "Thiago Pinheiro",
       "unidade": "Berrini",
-      "aulas": 28,
+      "aulas": 34,
       "val_aula": 30,
       "personal": 0,
       "bonus": 0
@@ -1273,7 +1273,7 @@ async function simularAtualizacao() {
     {
       "nome": "Vitor Leles",
       "unidade": "Berrini",
-      "aulas": 52,
+      "aulas": 53,
       "val_aula": 30,
       "personal": 0,
       "bonus": 0
@@ -1424,7 +1424,7 @@ async function simularAtualizacao() {
   const now = new Date();
   const mesRef = now.toLocaleString('pt-BR', {month:'long', year:'numeric'});
   document.getElementById('last-update').textContent =
-    '⬤ Atualizado ' + now.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+    '⏱ Atualizado ' + now.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
   document.getElementById('mes-ref').textContent =
     'REF: ' + mesRef.toUpperCase();
 
