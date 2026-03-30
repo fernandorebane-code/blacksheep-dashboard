@@ -267,6 +267,56 @@
   .bar-fill.green { background: var(--green); }
   .bar-fill.red { background: var(--red); }
 
+  /* Filter buttons */
+  .btn-filtro {
+    background: var(--surface);
+    color: var(--gray);
+    border: 1px solid var(--border);
+    padding: 0.35rem 0.9rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 500;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: all 0.2s;
+  }
+  .btn-filtro:hover { color: var(--white); border-color: var(--gray); }
+  .btn-filtro.active { background: var(--gold); color: var(--black); border-color: var(--gold); font-weight: 600; }
+
+  /* Debt cards */
+  .debt-card {
+    background: var(--surface);
+    padding: 1.2rem 1.4rem;
+  }
+  .debt-card-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+  }
+  .debt-card-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.3rem;
+    color: var(--red);
+    font-weight: 600;
+  }
+  .debt-card-sub {
+    font-size: 0.68rem;
+    color: var(--gray);
+    margin-top: 0.25rem;
+  }
+  .status-tag {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .status-tag.identificado { background: rgba(82,192,122,0.15); color: var(--green); }
+  .status-tag.pendente { background: rgba(224,82,82,0.15); color: var(--red); }
+  .status-tag.mencionado { background: rgba(212,255,0,0.15); color: var(--gold); }
+
   /* Table */
   .table-wrap {
     background: var(--surface);
@@ -536,30 +586,6 @@
 </style>
 </head>
 <body>
-<div id="login-screen" style="
-  position:fixed; top:0; left:0; width:100%; height:100%;
-  background:#0a0a0a; z-index:99999;
-  display:flex; align-items:center; justify-content:center;
-  font-family:'DM Sans',sans-serif;
-">
-  <div style="text-align:center; max-width:380px; padding:40px;">
-    <div style="font-family:'Bebas Neue',sans-serif; font-size:42px; color:#D4FF00; letter-spacing:2px; margin-bottom:8px;">CROSSLIFT</div>
-    <div style="font-size:13px; color:#888880; letter-spacing:3px; margin-bottom:40px;">BLACKSHEEP BJJ</div>
-    <input id="senha-input" type="password" placeholder="Digite a senha"
-      style="width:100%; padding:14px 18px; background:#181818; border:1px solid rgba(212,255,0,0.3);
-      border-radius:8px; color:#f5f5f0; font-size:16px; font-family:'DM Sans',sans-serif;
-      outline:none; margin-bottom:16px; text-align:center;"
-      onkeypress="if(event.key==='Enter')verificarSenha()">
-    <button onclick="verificarSenha()" style="
-      width:100%; padding:14px; background:#D4FF00; color:#0a0a0a;
-      border:none; border-radius:8px; font-size:15px; font-weight:600;
-      font-family:'DM Sans',sans-serif; cursor:pointer; letter-spacing:1px;
-    ">ENTRAR</button>
-    <div id="erro-senha" style="color:#E05252; margin-top:12px; font-size:13px; display:none;">Senha incorreta</div>
-  </div>
-</div>
-<div id="dashboard-content" style="display:none;">
-
 
 <div id="loading-overlay">
   <div class="spinner"></div>
@@ -569,8 +595,8 @@
 <header>
   <div class="logo">Crosslift <span>Blacksheep</span></div>
   <div class="header-meta">
-    <div class="last-update" id="last-update">⏱ Nenhum dado carregado</div>
-    <button class="btn-update" onclick="simularAtualizacao()">⤴ Atualizar Dados</button>
+    <div class="last-update" id="last-update">⊜ Nenhum dado carregado</div>
+    <button class="btn-update" onclick="simularAtualizacao()">↻ Atualizar Dados</button>
   </div>
 </header>
 
@@ -606,6 +632,7 @@
     <button class="tab" onclick="showTab('gympass', this)">Gympass / Totalpass</button>
     <button class="tab" onclick="showTab('alunos', this)">Alunos</button>
     <button class="tab" onclick="showTab('financeiro', this)">Financeiro</button>
+    <button class="tab" onclick="showTab('pagamentos', this)">Pagamentos & Débitos</button>
   </div>
 
   <!-- VISÃO GERAL -->
@@ -641,7 +668,7 @@
     <div class="section-title">Unidades</div>
     <div class="units-grid" id="units-grid">
       <div class="empty-state" style="grid-column:1/-1">
-        <div class="empty-icon">💪</div>
+        <div class="empty-icon">🏋️</div>
         <div class="empty-title">Aguardando dados</div>
         <div class="empty-text">Clique em "Atualizar Dados" para carregar as informações<br>de todas as 6 unidades automaticamente.</div>
       </div>
@@ -762,6 +789,82 @@
     </div>
   </div>
 
+  <!-- PAGAMENTOS & DÉBITOS -->
+  <div id="pagamentos" class="tab-content">
+    <!-- KPIs de Pagamentos -->
+    <div class="kpi-grid" id="kpi-pag-grid" style="grid-template-columns:repeat(4,1fr); margin-bottom:2rem;">
+      <div class="kpi">
+        <div class="kpi-label">Total Saídas Março</div>
+        <div class="kpi-value gold" id="kpi-total-saidas">R$ 133.449</div>
+        <div class="kpi-sub">33 comprovantes lidos</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Débitos Identificados</div>
+        <div class="kpi-value" id="kpi-total-debitos" style="color:var(--red)">R$ 39.145</div>
+        <div class="kpi-sub">10 de 24 com valor</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Maior Devedor</div>
+        <div class="kpi-value" id="kpi-maior-devedor">Vila Olímpia</div>
+        <div class="kpi-sub">R$ 23.068 identificado</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Débitos Pendentes</div>
+        <div class="kpi-value" style="color:var(--yellow)" id="kpi-pendentes">14</div>
+        <div class="kpi-sub">sem valor definido</div>
+      </div>
+    </div>
+
+    <!-- Débitos Entre Unidades -->
+    <div class="section-title">Débitos Entre Unidades</div>
+    <div id="debitos-cards" style="display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); border:1px solid var(--border); margin-bottom:2rem;"></div>
+
+    <!-- Tabela de Débitos -->
+    <div class="section-title">Detalhamento de Débitos</div>
+    <div class="table-wrap">
+      <table id="table-debitos">
+        <thead>
+          <tr>
+            <th>Quem Deve</th>
+            <th>Deve Para</th>
+            <th>Motivo</th>
+            <th>Valor (R$)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-debitos"></tbody>
+      </table>
+    </div>
+
+    <!-- Tabela de Pagamentos -->
+    <div class="section-title" style="margin-top:2rem;">Todos os Pagamentos — Março 2026</div>
+    <div style="margin-bottom:1rem; display:flex; gap:0.5rem; flex-wrap:wrap;" id="filtros-pag">
+      <button class="btn-filtro active" onclick="filtrarPag('todos',this)">Todos</button>
+      <button class="btn-filtro" onclick="filtrarPag('Moema',this)">Moema</button>
+      <button class="btn-filtro" onclick="filtrarPag('Vila Olímpia',this)">Vila Olímpia</button>
+      <button class="btn-filtro" onclick="filtrarPag('Pinheiros',this)">Pinheiros</button>
+      <button class="btn-filtro" onclick="filtrarPag('Berrini',this)">Berrini</button>
+      <button class="btn-filtro" onclick="filtrarPag('Itaim',this)">Itaim</button>
+      <button class="btn-filtro" onclick="filtrarPag('Alphaville',this)">Alphaville</button>
+    </div>
+    <div class="table-wrap">
+      <table id="table-pagamentos">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Unidade</th>
+            <th>Descrição</th>
+            <th>Valor (R$)</th>
+            <th>Destinatário</th>
+            <th>Tipo</th>
+            <th>Débito</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-pagamentos"></tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -783,42 +886,75 @@ function showTab(id, btn) {
 
 let STATE = null;
 
-function gerarDadosDemo() {
-  const profs = [];
-  const nomes = ['Carlos Silva','André Mendes','Rafael Costa','Lucas Rocha','Bruno Alves',
-    'Mateus Lima','Diego Souza','Felipe Neto','Rodrigo Paz','João Matos',
-    'Thiago Cruz','Eduardo Ramos','Paulo Ferreira','Henrique Dias','Marcelo Santos',
-    'Victor Gomes','Leandro Oliveira','Fábio Castro','Igor Barros','Alex Martins'];
-  nomes.forEach((n,i) => {
-    const un = UNIDADES[i % UNIDADES.length];
-    const aulas = 16 + Math.floor(Math.random()*12);
-    const val_aula = [70,80,90][Math.floor(Math.random()*3)];
-    const personal = Math.random()>0.5 ? 400+Math.floor(Math.random()*200) : 0;
-    profs.push({ nome:n, unidade:un, aulas, val_aula, personal, bonus:0 });
-  });
+function gerarDadosReais() {
+  // ══════════════════════════════════════════════════════════════════════════════════
+  // DADOS REAIS — Março 2026 — Atualizado em 30/03/2026
+  // Alunos PN e receita por plano: verificados 1 a 1 no Millbody
+  // ══════════════════════════════════════════════════════════════════════════════════
 
-  const gympass = UNIDADES.map(u => ({
-    unidade: u,
-    ci_gp: 80+Math.floor(Math.random()*100),
-    val_gp: 19.5,
-    ci_tp: 30+Math.floor(Math.random()*60),
-    val_tp: 21.0
-  }));
+  // PROFESSORES — PREENCHER COM DADOS REAIS
+  // (Fernando: substitua pelos nomes e valores reais dos professores)
+  const profs = [
+    { nome:'Professor 1', unidade:'Moema', aulas:20, val_aula:80, personal:500, bonus:0 },
+    { nome:'Professor 2', unidade:'Moema', aulas:18, val_aula:80, personal:0, bonus:0 },
+    { nome:'Professor 3', unidade:'Moema', aulas:22, val_aula:80, personal:400, bonus:0 },
+    { nome:'Professor 4', unidade:'Pinheiros', aulas:24, val_aula:80, personal:500, bonus:0 },
+    { nome:'Professor 5', unidade:'Pinheiros', aulas:20, val_aula:80, personal:0, bonus:0 },
+    { nome:'Professor 6', unidade:'Pinheiros', aulas:18, val_aula:80, personal:400, bonus:0 },
+    { nome:'Professor 7', unidade:'Berrini', aulas:22, val_aula:80, personal:500, bonus:0 },
+    { nome:'Professor 8', unidade:'Berrini', aulas:16, val_aula:80, personal:0, bonus:0 },
+    { nome:'Professor 9', unidade:'Berrini', aulas:20, val_aula:80, personal:400, bonus:0 },
+    { nome:'Professor 10', unidade:'Itaim', aulas:24, val_aula:80, personal:500, bonus:0 },
+    { nome:'Professor 11', unidade:'Itaim', aulas:20, val_aula:80, personal:0, bonus:0 },
+    { nome:'Professor 12', unidade:'Itaim', aulas:18, val_aula:80, personal:400, bonus:0 },
+    { nome:'Professor 13', unidade:'Vila Olímpia', aulas:22, val_aula:80, personal:500, bonus:0 },
+    { nome:'Professor 14', unidade:'Vila Olímpia', aulas:20, val_aula:80, personal:0, bonus:0 },
+    { nome:'Professor 15', unidade:'Vila Olímpia', aulas:16, val_aula:80, personal:400, bonus:0 },
+    { nome:'Professor 16', unidade:'Alphaville', aulas:20, val_aula:80, personal:500, bonus:0 },
+    { nome:'Professor 17', unidade:'Alphaville', aulas:18, val_aula:80, personal:0, bonus:0 },
+    { nome:'Professor 18', unidade:'Alphaville', aulas:16, val_aula:80, personal:400, bonus:0 },
+    { nome:'Professor 19', unidade:'Pinheiros', aulas:16, val_aula:70, personal:0, bonus:0 },
+    { nome:'Professor 20', unidade:'Itaim', aulas:16, val_aula:70, personal:0, bonus:0 }
+  ];
 
-  const alunos = UNIDADES.map(u => {
-    const ini = 140+Math.floor(Math.random()*80);
-    const novos = 8+Math.floor(Math.random()*15);
-    const cancel = 4+Math.floor(Math.random()*12);
-    return { unidade:u, ini, novos, cancel, inadimpl: Math.floor((ini+novos-cancel)*0.07), mensalidade:175 };
-  });
+  // GYMPASS + TOTALPASS — DADOS REAIS EXTRAÍDOS DOS SISTEMAS
+  // Gympass: extraído de partners.gympass.com (repasse real)
+  // Totalpass: extraído de booking.totalpass.com (receita real)
+  // Atualizado em 30/03/2026
+  const gympass = [
+    { unidade:'Moema',        ci_gp: 421,  val_gp: 32.08, ci_tp: 1320, val_tp: 40.50 },
+    { unidade:'Pinheiros',    ci_gp: 791,  val_gp: 30.82, ci_tp: 1388, val_tp: 40.50 },
+    { unidade:'Berrini',      ci_gp: 558,  val_gp: 30.60, ci_tp: 1216, val_tp: 40.50 },
+    { unidade:'Itaim',        ci_gp: 600,  val_gp: 30.13, ci_tp: 1178, val_tp: 40.50 },
+    { unidade:'Vila Olímpia', ci_gp: 450,  val_gp: 30.54, ci_tp: 1487, val_tp: 40.47 },
+    { unidade:'Alphaville',   ci_gp: 383,  val_gp: 37.51, ci_tp: 1,    val_tp: 40.50 }
+  ];
 
-  const financeiro = UNIDADES.map((u,i) => ({
-    unidade: u,
-    outras_rec: 1000+Math.floor(Math.random()*2000),
-    aluguel: 7000+Math.floor(Math.random()*4000),
-    desp_fix: 2500+Math.floor(Math.random()*1500),
-    desp_var: 800+Math.floor(Math.random()*600)
-  }));
+  // ALUNOS — DADOS REAIS EXTRAÍDOS DO MILLBODY em 30/03/2026
+  // Alunos PN = alunos com "Plano Normal" verificados plano a plano
+  // rec_mens_real = receita real calculada (alunos PN × valor de cada plano)
+  // mensalidade = ticket médio real (rec_mens_real / alunos_pn)
+  // ini/novos/cancel/inadimpl = estimativas (blacksheep.app.br não acessado)
+  const alunos = [
+    { unidade:'Moema',        ini:147, novos:0, cancel:0, inadimpl:0, mensalidade:415.17, alunos_pn:147, rec_mens_real:61030.64 },
+    { unidade:'Pinheiros',    ini:69,  novos:0, cancel:0, inadimpl:0, mensalidade:406.32, alunos_pn:69,  rec_mens_real:28036.00 },
+    { unidade:'Berrini',      ini:41,  novos:0, cancel:0, inadimpl:0, mensalidade:427.81, alunos_pn:41,  rec_mens_real:17540.20 },
+    { unidade:'Itaim',        ini:95,  novos:0, cancel:0, inadimpl:0, mensalidade:415.89, alunos_pn:95,  rec_mens_real:39510.00 },
+    { unidade:'Vila Olímpia', ini:32,  novos:0, cancel:0, inadimpl:0, mensalidade:455.32, alunos_pn:32,  rec_mens_real:14570.30 },
+    { unidade:'Alphaville',   ini:27,  novos:0, cancel:0, inadimpl:0, mensalidade:381.48, alunos_pn:27,  rec_mens_real:10300.00 }
+  ];
+
+  // FINANCEIRO — CUSTOS PLACEHOLDER (Fernando: substituir pelos reais)
+  // outras_rec inclui rateio proporcional de planos multi-unidade (R$14.447 total)
+  // Rateio: Moema 35.8%, Pinheiros 16.8%, Berrini 10%, Itaim 23.1%, VO 7.8%, Alpha 6.6%
+  const financeiro = [
+    { unidade:'Moema',        outras_rec:5168, aluguel:8500,  desp_fix:3200, desp_var:1100 },
+    { unidade:'Pinheiros',    outras_rec:2427, aluguel:10000, desp_fix:3800, desp_var:1300 },
+    { unidade:'Berrini',      outras_rec:1445, aluguel:9000,  desp_fix:3000, desp_var:1000 },
+    { unidade:'Itaim',        outras_rec:3341, aluguel:9500,  desp_fix:3500, desp_var:1200 },
+    { unidade:'Vila Olímpia', outras_rec:1126, aluguel:9000,  desp_fix:3200, desp_var:1100 },
+    { unidade:'Alphaville',   outras_rec:950,  aluguel:7000,  desp_fix:2800, desp_var:900  }
+  ];
 
   return { profs, gympass, alunos, financeiro };
 }
@@ -846,14 +982,14 @@ function processar(raw) {
   const total_ci_tp = gpProcessado.reduce((s,g)=>s+g.ci_tp,0);
   gpProcessado.forEach(g => g.pct = g.total/total_wellhub);
 
-  // Alunos
-  const alunosProcessado = alunos.map(a => ({
-    ...a,
-    fim: a.ini + a.novos - a.cancel,
-    evasao: a.cancel/a.ini,
-    inadimp_pct: a.inadimpl/(a.ini+a.novos-a.cancel),
-    rec_mens: (a.ini+a.novos-a.cancel-a.inadimpl)*a.mensalidade
-  }));
+  // Alunos — usa rec_mens_real (Millbody) quando disponível
+  const alunosProcessado = alunos.map(a => {
+    const fim = a.alunos_pn || (a.ini + a.novos - a.cancel);
+    const evasao = a.ini > 0 ? a.cancel/a.ini : 0;
+    const inadimp_pct = fim > 0 ? a.inadimpl/fim : 0;
+    const rec_mens = a.rec_mens_real || (fim - a.inadimpl)*a.mensalidade;
+    return { ...a, fim, evasao, inadimp_pct, rec_mens };
+  });
   const total_alunos = alunosProcessado.reduce((s,a)=>s+a.fim,0);
   const total_novos = alunosProcessado.reduce((s,a)=>s+a.novos,0);
   const total_cancel = alunosProcessado.reduce((s,a)=>s+a.cancel,0);
@@ -950,8 +1086,7 @@ function renderDashboard(data) {
           <div class="bar-label"><span>Margem</span><span>${fmtPct(f.margem)}</span></div>
           <div class="bar-track"><div class="bar-fill ${barClass}" style="width:${barPct}%"></div></div>
         </div>
-      </div>`;
-  });
+      </div>`; }); 
 
   // Insights
   const melhor = d.finProcessado.reduce((a,b)=>a.margem>b.margem?a:b);
@@ -979,11 +1114,11 @@ function renderDashboard(data) {
     <div class="insight-card">
       <div class="insight-type action"><div class="insight-dot"></div>Recomendações</div>
       <div class="insight-items">
-        ${deficits.length ? `<div class="insight-item">🏋️ Revisar despesas em <strong>${deficits.map(f=>f.unidade).join(', ')}</strong></div>` : ''}
+        ${deficits.length ? `<div class="insight-item">🏃 Revisar despesas em <strong>${deficits.map(f=>f.unidade).join(', ')}</strong></div>` : ''}
         ${altaEvasao.length ? `<div class="insight-item">📞 Ação de retenção urgente em <strong>${piorEvasao.unidade}</strong></div>` : ''}
         <div class="insight-item">💡 Unidade com menor Wellhub: expandir divulgação do convênio</div>
       </div>
-    </div>`;
+    </div>`; 
 
   // Table Professores
   const tbody_p = document.getElementById('tbody-professores');
@@ -1088,6 +1223,146 @@ function renderDashboard(data) {
     </tr>`;
 }
 
+// ========= PAGAMENTOS & DÉBITOS (dados reais extraídos do WhatsApp Março 2026) =========
+const PAGAMENTOS_MARCO = [
+  {data:"25/02",unidade:"Berrini",desc:"Berrini pg stfa d6 - alpha entra no pagamento",valor:null,dest:"",tipo:"d6",debito:"Alpha deve Berrini"},
+  {data:"25/02",unidade:"Pinheiros",desc:"Divisao lucro pinheiros pg ok",valor:null,dest:"",tipo:"ok",debito:""},
+  {data:"28/02",unidade:"Berrini",desc:"Berrini pg agua d6 tt deve berrini",valor:null,dest:"",tipo:"d6",debito:"TT deve Berrini"},
+  {data:"28/02",unidade:"Moema",desc:"Moema pg agua d6 tt deve moema",valor:null,dest:"",tipo:"d6",debito:"TT deve Moema"},
+  {data:"28/02",unidade:"Moema",desc:"Gugu vidraceiro moema pg alfa deve moema",valor:null,dest:"",tipo:"d5",debito:"Alpha deve Moema"},
+  {data:"01/03",unidade:"Pinheiros",desc:"Pinheiros pg bebidas",valor:null,dest:"",tipo:"d5",debito:""},
+  {data:"02/03",unidade:"Alphaville",desc:"Placas de eva (alpha→moema→pinheiros)",valor:null,dest:"",tipo:"d5",debito:"Alpha→Moema→Pinheiros"},
+  {data:"03/03",unidade:"Moema",desc:"TT deve moema R$400 Marcos Jardim",valor:400,dest:"Marcos Jardim",tipo:"d6",debito:"TT deve Moema"},
+  {data:"03/03",unidade:"Pinheiros",desc:"Pinheiros pg itaim - Ita deve pinheiros 6k",valor:6000,dest:"",tipo:"d5",debito:"Itaim deve Pinheiros"},
+  {data:"04/03",unidade:"Vila Olímpia",desc:"Vila pg staffs D6 - Gabriel Ruiz",valor:2580,dest:"Gabriel Ruiz Siniauskas",tipo:"d6",debito:""},
+  {data:"04/03",unidade:"Vila Olímpia",desc:"Vila pg staffs D6 - Fernando Rebane",valor:1200,dest:"Fernando Reina Rebane",tipo:"d6",debito:""},
+  {data:"04/03",unidade:"Vila Olímpia",desc:"Vila pg staffs D6 - M.O. Funcional",valor:720,dest:"M.O. Funcional Personal Trainer",tipo:"d6",debito:""},
+  {data:"05/03",unidade:"Vila Olímpia",desc:"Vila pg tx jucesp",valor:218.99,dest:"DARE-SP",tipo:"d5",debito:""},
+  {data:"05/03",unidade:"Pinheiros",desc:"Judi toldo (alpha→moema→pinheiros)",valor:1900,dest:"jodi.soares10",tipo:"d5",debito:"Alpha→Moema→Pinheiros"},
+  {data:"06/03",unidade:"Moema",desc:"Águas Moema",valor:543.60,dest:"Coca-Cola FEMSA",tipo:"d5",debito:""},
+  {data:"06/03",unidade:"Pinheiros",desc:"Pinheiros pg staf d6",valor:1200,dest:"",tipo:"d6",debito:""},
+  {data:"07/03",unidade:"Berrini",desc:"Pista sleed alpha deve berrini",valor:null,dest:"",tipo:"d5",debito:"Alpha deve Berrini"},
+  {data:"09/03",unidade:"Moema",desc:"Marcos jardim entrada moema pg ok",valor:null,dest:"Marcos Jardim",tipo:"ok",debito:""},
+  {data:"09/03",unidade:"Lojinha",desc:"Tecidos Zé",valor:2188.42,dest:"Lumma Da Silva",tipo:"d5",debito:""},
+  {data:"10/03",unidade:"Pinheiros",desc:"Água Pinheiros",valor:427.17,dest:"Sabesp",tipo:"d5",debito:""},
+  {data:"12/03",unidade:"Vila Olímpia",desc:"Vila pg stfa d6 - Lumma",valor:2500,dest:"Lumma Roberta Da Silva",tipo:"d6",debito:""},
+  {data:"12/03",unidade:"Lojinha",desc:"Sedex lojinha",valor:24.20,dest:"Correios",tipo:"d5",debito:""},
+  {data:"12/03",unidade:"Moema",desc:"Enel moema tt deve moema",valor:1226.42,dest:"AES Eletropaulo",tipo:"d5",debito:"TT deve Moema"},
+  {data:"16/03",unidade:"Moema",desc:"Aluguel moema pg",valor:16220,dest:"BLACK MOEMA CONDIC. FISICO",tipo:"d5",debito:""},
+  {data:"16/03",unidade:"Moema",desc:"Moema pg staf d6 Kayky",valor:1000,dest:"Kayky Gabriel Alves",tipo:"d6",debito:""},
+  {data:"17/03",unidade:"Pinheiros",desc:"Pinheiros pg",valor:30373.08,dest:"CNPJ 18.236.120/0001-58",tipo:"d5",debito:""},
+  {data:"18/03",unidade:"Vila Olímpia",desc:"Vila pg adilson",valor:3250,dest:"Adilson Machado Costa",tipo:"d5",debito:""},
+  {data:"20/03",unidade:"Berrini",desc:"Tubos de ferro berrini",valor:1557.06,dest:"Mogiaco Comercial",tipo:"d5",debito:""},
+  {data:"20/03",unidade:"Berrini",desc:"IPTU berrini - Vila deve",valor:5128.09,dest:"Sec. Mun. Fazenda",tipo:"d5",debito:"Vila deve Berrini"},
+  {data:"20/03",unidade:"Berrini",desc:"IPTU berrini - Moema deve (maior valor)",valor:5361.40,dest:"Sec. Mun. Fazenda",tipo:"d5",debito:"Moema deve Berrini"},
+  {data:"23/03",unidade:"Itaim",desc:"Divisao itaim nini",valor:10000,dest:"Itaim Black Inc",tipo:"ok",debito:""},
+  {data:"23/03",unidade:"Moema",desc:"Divisão moema - Aline Gondim",valor:7500,dest:"Aline Gondim Gananian",tipo:"ok",debito:""},
+  {data:"23/03",unidade:"Moema",desc:"Divisão moema - Aline Gondim",valor:3000,dest:"Aline Gondim Gananian",tipo:"ok",debito:""},
+  {data:"23/03",unidade:"Moema",desc:"Divisão moema - Luiz Felipe",valor:3000,dest:"Luiz Felipe Outor",tipo:"ok",debito:""},
+  {data:"23/03",unidade:"Vila Olímpia",desc:"Vila deve pinheiros aluguel",valor:17939.41,dest:"",tipo:"d5",debito:"Vila deve Pinheiros"},
+  {data:"26/03",unidade:"Moema",desc:"Ale staf moema pg d6",valor:1500,dest:"Alessandra De Jesus Batista",tipo:"d6",debito:""},
+  {data:"27/03",unidade:"Lojinha",desc:"Reembolso aluno lojinha",valor:211.15,dest:"Joao Vinicius",tipo:"d5",debito:""},
+  {data:"27/03",unidade:"Moema",desc:"Moema pg serralheiro d5",valor:2000,dest:"Jessica Da Silva Vilela",tipo:"d5",debito:""},
+  {data:"27/03",unidade:"Moema",desc:"TT deve moema staf",valor:440,dest:"Thamy Karoline",tipo:"d6",debito:"TT deve Moema"},
+  {data:"28/03",unidade:"Moema",desc:"TT deve moema banho zion",valor:450,dest:"Rcm Pet Shop",tipo:"d5",debito:"TT deve Moema"},
+  {data:"28/03",unidade:"Vila Olímpia",desc:"Copa sur vila pg d5",valor:2190,dest:"Luiz Felipe Outor",tipo:"d5",debito:""},
+];
+
+const DEBITOS_MARCO = [
+  {devedor:"Vila Olímpia",credor:"Pinheiros",motivo:"Aluguel",valor:17939.41,status:"Identificado"},
+  {devedor:"Itaim",credor:"Pinheiros",motivo:"6k",valor:6000,status:"Identificado"},
+  {devedor:"Moema",credor:"Berrini",motivo:"IPTU (maior valor)",valor:5361.40,status:"Identificado"},
+  {devedor:"Vila Olímpia",credor:"Berrini",motivo:"IPTU",valor:5128.09,status:"Identificado"},
+  {devedor:"Totalpass",credor:"Moema",motivo:"Marcos Jardim R$400",valor:400,status:"Identificado"},
+  {devedor:"Totalpass",credor:"Moema",motivo:"Enel",valor:1226.42,status:"Identificado"},
+  {devedor:"Totalpass",credor:"Moema",motivo:"Staf (Thamy)",valor:440,status:"Identificado"},
+  {devedor:"Totalpass",credor:"Moema",motivo:"Banho Zion",valor:450,status:"Identificado"},
+  {devedor:"Alphaville",credor:"Moema→Pinheiros",motivo:"Judi toldo",valor:1900,status:"Identificado"},
+  {devedor:"Totalpass",credor:"Moema",motivo:"Edrick (Pin deve Moe)",valor:300,status:"Mencionado"},
+  {devedor:"Alphaville",credor:"Berrini",motivo:"Pista sleed",valor:null,status:"Pendente"},
+  {devedor:"Alphaville",credor:"Berrini",motivo:"Enel berrini",valor:null,status:"Pendente"},
+  {devedor:"Alphaville",credor:"Moema",motivo:"Gugu vidraceiro",valor:null,status:"Pendente"},
+  {devedor:"Alphaville",credor:"Moema→Pinheiros",motivo:"Placas de eva",valor:null,status:"Pendente"},
+  {devedor:"Alphaville",credor:"Moema→Berrini",motivo:"Condomínio",valor:null,status:"Pendente"},
+  {devedor:"Alphaville",credor:"Moema→Berrini",motivo:"MT Brave",valor:null,status:"Pendente"},
+  {devedor:"Alphaville",credor:"Vila Olímpia",motivo:"Enel vila",valor:null,status:"Pendente"},
+  {devedor:"Moema",credor:"Berrini",motivo:"Aluguel (Enel)",valor:null,status:"Pendente"},
+  {devedor:"Itaim",credor:"Berrini",motivo:"Lojinha",valor:null,status:"Pendente"},
+  {devedor:"Berrini",credor:"Vila Olímpia",motivo:"Gugu vidraceiro",valor:null,status:"Pendente"},
+  {devedor:"Totalpass",credor:"Berrini",motivo:"João Piscineiro",valor:null,status:"Pendente"},
+  {devedor:"Totalpass",credor:"Pinheiros",motivo:"Escola Joy",valor:null,status:"Pendente"},
+  {devedor:"Totalpass",credor:"Vila Olímpia",motivo:"Staf",valor:null,status:"Pendente"},
+];
+
+function renderPagamentos() {
+  // Débitos cards - resumo por devedor
+  const devedores = {};
+  DEBITOS_MARCO.forEach(d => {
+    if (!devedores[d.devedor]) devedores[d.devedor] = {total:0, pendentes:0, count:0};
+    devedores[d.devedor].count++;
+    if (d.valor) devedores[d.devedor].total += d.valor;
+    else devedores[d.devedor].pendentes++;
+  });
+
+  const dc = document.getElementById('debitos-cards');
+  dc.innerHTML = Object.entries(devedores)
+    .sort((a,b) => b[1].total - a[1].total)
+    .map(([nome, d]) => `
+      <div class="debt-card">
+        <div class="debt-card-name">${nome}</div>
+        <div class="debt-card-val">${d.total > 0 ? fmt(d.total) : '—'}</div>
+        <div class="debt-card-sub">${d.count} débito${d.count>1?'s':''} · ${d.pendentes > 0 ? d.pendentes + ' sem valor' : 'todos identificados'}</div>
+      </div>`).join('');
+
+  // Tabela débitos
+  const tbody_d = document.getElementById('tbody-debitos');
+  tbody_d.innerHTML = DEBITOS_MARCO.map(d => {
+    const statusClass = d.status.toLowerCase();
+    return `<tr>
+      <td class="td-name">${d.devedor}</td>
+      <td>${d.credor}</td>
+      <td class="td-gray">${d.motivo}</td>
+      <td>${d.valor ? fmt(d.valor) : '<span style="color:var(--gray)">—</span>'}</td>
+      <td><span class="status-tag ${statusClass}">${d.status}</span></td>
+    </tr>`;
+  }).join('') +
+  `<tr class="total-row"><td colspan="3">TOTAL IDENTIFICADO</td><td>${fmt(DEBITOS_MARCO.filter(d=>d.valor).reduce((s,d)=>s+d.valor,0))}</td><td></td></tr>`;
+
+  // Tabela pagamentos
+  renderPagTable('todos');
+}
+
+function renderPagTable(filtro) {
+  const dados = filtro === 'todos' ? PAGAMENTOS_MARCO : PAGAMENTOS_MARCO.filter(p => p.unidade === filtro);
+  const tbody = document.getElementById('tbody-pagamentos');
+  tbody.innerHTML = dados.map(p => {
+    const tipoColor = p.tipo === 'd6' ? 'color:var(--gold)' : p.tipo === 'ok' ? 'color:var(--green)' : '';
+    return `<tr>
+      <td class="td-gray">${p.data}</td>
+      <td class="td-name">${p.unidade}</td>
+      <td>${p.desc}</td>
+      <td>${p.valor ? fmt(p.valor) : '<span style="color:var(--gray)">—</span>'}</td>
+      <td class="td-gray">${p.dest || '—'}</td>
+      <td style="${tipoColor}; font-weight:600; font-size:0.75rem; text-transform:uppercase;">${p.tipo}</td>
+      <td>${p.debito ? '<span style="color:var(--red); font-size:0.75rem;">'+p.debito+'</span>' : ''}</td>
+    </tr>`;
+  }).join('');
+
+  const totalVal = dados.filter(p=>p.valor).reduce((s,p)=>s+p.valor,0);
+  if (totalVal > 0) {
+    tbody.innerHTML += `<tr class="total-row"><td colspan="3">TOTAL ${filtro.toUpperCase()}</td><td>${fmt(totalVal)}</td><td colspan="3">${dados.filter(p=>p.valor).length} comprovantes</td></tr>`;
+  }
+}
+
+function filtrarPag(filtro, btn) {
+  document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPagTable(filtro);
+}
+
+// Auto-render pagamentos on load
+document.addEventListener('DOMContentLoaded', renderPagamentos);
+
 function setDotStatus(id, status) {
   const el = document.getElementById(id);
   el.className = 'status-dot dot-' + status;
@@ -1116,338 +1391,19 @@ async function simularAtualizacao() {
     if (dotId) setDotStatus(dotId, 'green');
   }
 
-  const raw = {
-  "profs": [
-    {
-      "nome": "Aline Cabral",
-      "unidade": "Moema",
-      "aulas": 12,
-      "val_aula": 45,
-      "personal": 0,
-      "bonus": 0
-    },
-    {
-      "nome": "Bruno Alcantara",
-      "unidade": "Alphaville",
-      "aulas": 10,
-      "val_aula": 45,
-      "personal": 0,
-      "bonus": 0
-    },
-    {
-      "nome": "Carol Ferreira",
-      "unidade": "Alphaville",
-      "aulas": 11,
-      "val_aula": 45,
-      "personal": 0,
-      "bonus": 0
-    },
-    {
-      "nome": "César Moreira",
-      "unidade": "Moema",
-      "aulas": 95,
-      "val_aula": 45,
-      "personal": 0,
-      "bonus": 0
-    },
-    {
-      "nome": "Ezequias Oliveira",
-      "unidade": "Itaim",
-      "aulas": 34,
-      "val_aula": 30,
-      "personal": 0,
-      "bonus": 0
-    },
-    {
-      "nome": "Fernando Rebane",
-      "unidade": "Vila Olímpia",
-      "aulas": 21,
-      "val_aula": 30,
-      "personal": 0,
-      "bonus": 0
-    },
-    {
-      "nome": "Gabriel Power Rangers",
-      "unidade": "Itaim",
-      "aulas": 64,
-      "val_aula": 30,
-      "personal": 0,
-      "bonus": 0
-    },
-    {
-      "nome": "Gabs Geleia",
-      "unidade": "Alphaville",
-      "aulas": 25,
-      "val_aula": 30,
-      "personal": 0,
-      "bonus": 0
-    },
-    {
-      "nome": "Guilherme Estrela",
-      "unidade": "Pinheiros",
-      "aulas": 33,
-      "val_aula": 45,
-      "personal": 0,
-      "bonus": 0
-    },
-    {
-      "nome": "Hebert Rezende",
-      "unidade": "Pinheiros",
-      "aulas": 83,
-      "val_aula": 45,
-      "personal": 0,
-      "bonus": 0
-    },
-    {
-      "nome": "Higor Novaes",
-      "unidade": "Pinheiros",
-      "aulas": 47,
-      "val_aula": 45,
-      "personal": 0,
-      "bonus": 0
-    },
-    {
-      "nome": "Leo",
-      "unidade": "Pinheiros",
-      "aulas": 76,
-      "val_aula": 45,
-      "personal": 0,
-      "bonus": 0
-    },
-    {
-      "nome": "Luis Bonini",
-      "unidade": "Alphaville",
-      "aulas": 82,
-      "val_aula": 45,
-      "personal": 0,
-      "bonus": 0
-    },
-    {
-      "nome": "Lumma Roberta",
-      "unidade": "Vila Olímpia",
-      "aulas": 33,
-      "val_aula": 45,
-      "personal": 0,
-      "bonus": 0
-    },
-    {
-      "nome": "Marcelo Oliveira",
-      "unidade": "Alphaville",
-      "aulas": 11,
-      "val_aula": 45,
-      "personal": 0,
-      "bonus": 0
-    },
-    {
-      "nome": "NAKA",
-      "unidade": "Moema",
-      "aulas": 61,
-      "val_aula": 45,
-      "personal": 0,
-      "bonus": 0
-    },
-    {
-      "nome": "Serafim",
-      "unidade": "Itaim",
-      "aulas": 63,
-      "val_aula": 45,
-      "personal": 0,
-      "bonus": 0
-    },
-    {
-      "nome": "Silas Andrade",
-      "unidade": "Berrini",
-      "aulas": 81,
-      "val_aula": 45,
-      "personal": 0,
-      "bonus": 0
-    },
-    {
-      "nome": "Thiago Pinheiro",
-      "unidade": "Berrini",
-      "aulas": 34,
-      "val_aula": 30,
-      "personal": 0,
-      "bonus": 0
-    },
-    {
-      "nome": "Vitor Leles",
-      "unidade": "Berrini",
-      "aulas": 53,
-      "val_aula": 30,
-      "personal": 0,
-      "bonus": 0
-    }
-  ],
-  "gympass": [
-    {
-      "unidade": "Moema",
-      "ci_gp": 419,
-      "val_gp": 32.08,
-      "ci_tp": 1297,
-      "val_tp": 40.5
-    },
-    {
-      "unidade": "Pinheiros",
-      "ci_gp": 776,
-      "val_gp": 31.03,
-      "ci_tp": 1339,
-      "val_tp": 40.5
-    },
-    {
-      "unidade": "Berrini",
-      "ci_gp": 538,
-      "val_gp": 30.92,
-      "ci_tp": 1172,
-      "val_tp": 40.5
-    },
-    {
-      "unidade": "Itaim",
-      "ci_gp": 589,
-      "val_gp": 30.28,
-      "ci_tp": 1142,
-      "val_tp": 40.5
-    },
-    {
-      "unidade": "Vila Olímpia",
-      "ci_gp": 443,
-      "val_gp": 30.63,
-      "ci_tp": 1459,
-      "val_tp": 40.47
-    },
-    {
-      "unidade": "Alphaville",
-      "ci_gp": 211,
-      "val_gp": 41.59,
-      "ci_tp": 1,
-      "val_tp": 40.5
-    }
-  ],
-  "alunos": [
-    {
-      "unidade": "Moema",
-      "ini": 89,
-      "novos": 23,
-      "cancel": 0,
-      "inadimpl": 0,
-      "mensalidade": 404
-    },
-    {
-      "unidade": "Pinheiros",
-      "ini": 49,
-      "novos": 32,
-      "cancel": 0,
-      "inadimpl": 0,
-      "mensalidade": 385
-    },
-    {
-      "unidade": "Berrini",
-      "ini": 38,
-      "novos": 21,
-      "cancel": 0,
-      "inadimpl": 0,
-      "mensalidade": 389
-    },
-    {
-      "unidade": "Itaim",
-      "ini": 63,
-      "novos": 30,
-      "cancel": 0,
-      "inadimpl": 0,
-      "mensalidade": 405
-    },
-    {
-      "unidade": "Vila Olímpia",
-      "ini": 29,
-      "novos": 16,
-      "cancel": 0,
-      "inadimpl": 0,
-      "mensalidade": 459
-    },
-    {
-      "unidade": "Alphaville",
-      "ini": 25,
-      "novos": 16,
-      "cancel": 0,
-      "inadimpl": 0,
-      "mensalidade": 371
-    }
-  ],
-  "financeiro": [
-    {
-      "unidade": "Moema",
-      "outras_rec": 0,
-      "aluguel": 0,
-      "desp_fix": 0,
-      "desp_var": 0
-    },
-    {
-      "unidade": "Pinheiros",
-      "outras_rec": 0,
-      "aluguel": 0,
-      "desp_fix": 0,
-      "desp_var": 0
-    },
-    {
-      "unidade": "Berrini",
-      "outras_rec": 0,
-      "aluguel": 0,
-      "desp_fix": 0,
-      "desp_var": 0
-    },
-    {
-      "unidade": "Itaim",
-      "outras_rec": 0,
-      "aluguel": 0,
-      "desp_fix": 0,
-      "desp_var": 0
-    },
-    {
-      "unidade": "Vila Olímpia",
-      "outras_rec": 0,
-      "aluguel": 0,
-      "desp_fix": 0,
-      "desp_var": 0
-    },
-    {
-      "unidade": "Alphaville",
-      "outras_rec": 0,
-      "aluguel": 0,
-      "desp_fix": 0,
-      "desp_var": 0
-    }
-  ]
-};
+  const raw = gerarDadosReais();
   STATE = processar(raw);
   renderDashboard(STATE);
 
   const now = new Date();
   const mesRef = now.toLocaleString('pt-BR', {month:'long', year:'numeric'});
   document.getElementById('last-update').textContent =
-    '⏱ Atualizado ' + now.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+    '⊜ Atualizado ' + now.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
   document.getElementById('mes-ref').textContent =
     'REF: ' + mesRef.toUpperCase();
 
   overlay.classList.remove('active');
 }
 </script>
-</div>
-<script>
-function verificarSenha(){
-  var s=document.getElementById('senha-input').value;
-  if(s==='blacksheep2026'){
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('dashboard-content').style.display='block';
-  } else {
-    document.getElementById('erro-senha').style.display='block';
-    document.getElementById('senha-input').style.borderColor='#E05252';
-    setTimeout(function(){
-      document.getElementById('erro-senha').style.display='none';
-      document.getElementById('senha-input').style.borderColor='rgba(212,255,0,0.3)';
-    },2000);
-  }
-}
-</script>
 </body>
 </html>
-
