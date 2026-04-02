@@ -889,12 +889,12 @@ function gerarDadosReais() {
   // rec_mens_real = receita real calculada (alunos PN Ã valor de cada plano)
   // mensalidade = ticket mÃ©dio real (rec_mens_real / alunos_pn)
   // ini/novos/cancel/inadimpl = estimativas (blacksheep.app.br nÃ£o acessado)
-  const alunos = [];
+  const alunos = [{unidade:'N/A',ativos:0,novos:0,cancelados:0,plano_medio:0}];
 
   // FINANCEIRO â CUSTOS PLACEHOLDER (Fernando: substituir pelos reais)
   // outras_rec inclui rateio proporcional de planos multi-unidade (R$14.447 total)
   // Rateio: Moema 35.8%, Pinheiros 16.8%, Berrini 10%, Itaim 23.1%, VO 7.8%, Alpha 6.6%
-  const financeiro = [];
+  const financeiro = [{unidade:'N/A',receita:0,despesas:0,resultado:0}];
 
   return { profs, gympass, alunos, financeiro };
 }
@@ -1302,10 +1302,12 @@ function filtrarPag(filtro, btn) {
 
 // Auto-render pagamentos on load
 document.addEventListener('DOMContentLoaded', function() {
-  const raw = gerarDadosReais();
-  STATE = processar(raw);
-  renderDashboard(STATE);
-  renderPagamentos();
+  try {
+    const raw = gerarDadosReais();
+    STATE = processar(raw);
+    renderDashboard(STATE);
+    renderPagamentos();
+  } catch(e) { console.warn('Init error:', e); }
 });
 
 function setDotStatus(id, status) {
