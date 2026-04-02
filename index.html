@@ -630,8 +630,6 @@
     <button class="tab active" onclick="showTab('visao-geral', this)">VisÃ£o Geral</button>
     <button class="tab" onclick="showTab('professores', this)">Professores</button>
     <button class="tab" onclick="showTab('gympass', this)">Gympass / Totalpass</button>
-    <button class="tab" onclick="showTab('alunos', this)">Alunos</button>
-    <button class="tab" onclick="showTab('financeiro', this)">Financeiro</button>
     <button class="tab" onclick="showTab('pagamentos', this)">Pagamentos & DÃ©bitos</button>
   </div>
 
@@ -740,54 +738,6 @@
   <!-- ALUNOS -->
   <div id="alunos" class="tab-content">
     <div class="section-title">GestÃ£o de Alunos</div>
-    <div class="table-wrap">
-      <table id="table-alunos">
-        <thead>
-          <tr>
-            <th>Unidade</th>
-            <th>Alunos InÃ­cio</th>
-            <th>Novos</th>
-            <th>Cancelamentos</th>
-            <th>Alunos Fim</th>
-            <th>Inadimplentes</th>
-            <th>Taxa EvasÃ£o</th>
-            <th>Taxa Inadimp.</th>
-            <th>Receita Mensalidades</th>
-          </tr>
-        </thead>
-        <tbody id="tbody-alunos">
-          <tr><td colspan="9" style="text-align:center; color:var(--gray); padding:3rem;">Nenhum dado carregado</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- FINANCEIRO -->
-  <div id="financeiro" class="tab-content">
-    <div class="section-title">DRE por Unidade</div>
-    <div class="table-wrap">
-      <table id="table-financeiro">
-        <thead>
-          <tr>
-            <th>Unidade</th>
-            <th>Receita Mensalidades</th>
-            <th>Receita Wellhub</th>
-            <th>Outras Receitas</th>
-            <th>Receita Total</th>
-            <th>Despesas Fixas</th>
-            <th>Pag. Professores</th>
-            <th>Desp. VariÃ¡veis</th>
-            <th>Despesa Total</th>
-            <th>Resultado</th>
-            <th>Margem</th>
-          </tr>
-        </thead>
-        <tbody id="tbody-financeiro">
-          <tr><td colspan="11" style="text-align:center; color:var(--gray); padding:3rem;">Nenhum dado carregado</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
 
   <!-- PAGAMENTOS & DÃBITOS -->
   <div id="pagamentos" class="tab-content">
@@ -939,26 +889,12 @@ function gerarDadosReais() {
   // rec_mens_real = receita real calculada (alunos PN Ã valor de cada plano)
   // mensalidade = ticket mÃ©dio real (rec_mens_real / alunos_pn)
   // ini/novos/cancel/inadimpl = estimativas (blacksheep.app.br nÃ£o acessado)
-  const alunos = [
-    { unidade:'Moema',        ini:147, novos:0, cancel:0, inadimpl:0, mensalidade:415.17, alunos_pn:147, rec_mens_real:61030.64 },
-    { unidade:'Pinheiros',    ini:69,  novos:0, cancel:0, inadimpl:0, mensalidade:406.32, alunos_pn:69,  rec_mens_real:28036.00 },
-    { unidade:'Berrini',      ini:41,  novos:0, cancel:0, inadimpl:0, mensalidade:427.81, alunos_pn:41,  rec_mens_real:17540.20 },
-    { unidade:'Itaim',        ini:95,  novos:0, cancel:0, inadimpl:0, mensalidade:415.89, alunos_pn:95,  rec_mens_real:39510.00 },
-    { unidade:'Vila OlÃ­mpia', ini:32,  novos:0, cancel:0, inadimpl:0, mensalidade:455.32, alunos_pn:32,  rec_mens_real:14570.30 },
-    { unidade:'Alphaville',   ini:27,  novos:0, cancel:0, inadimpl:0, mensalidade:381.48, alunos_pn:27,  rec_mens_real:10300.00 }
-  ];
+  const alunos = [];
 
   // FINANCEIRO â CUSTOS PLACEHOLDER (Fernando: substituir pelos reais)
   // outras_rec inclui rateio proporcional de planos multi-unidade (R$14.447 total)
   // Rateio: Moema 35.8%, Pinheiros 16.8%, Berrini 10%, Itaim 23.1%, VO 7.8%, Alpha 6.6%
-  const financeiro = [
-    { unidade:'Moema',        outras_rec:5168, aluguel:8500,  desp_fix:3200, desp_var:1100 },
-    { unidade:'Pinheiros',    outras_rec:2427, aluguel:10000, desp_fix:3800, desp_var:1300 },
-    { unidade:'Berrini',      outras_rec:1445, aluguel:9000,  desp_fix:3000, desp_var:1000 },
-    { unidade:'Itaim',        outras_rec:3341, aluguel:9500,  desp_fix:3500, desp_var:1200 },
-    { unidade:'Vila OlÃ­mpia', outras_rec:1126, aluguel:9000,  desp_fix:3200, desp_var:1100 },
-    { unidade:'Alphaville',   outras_rec:950,  aluguel:7000,  desp_fix:2800, desp_var:900  }
-  ];
+  const financeiro = [];
 
   return { profs, gympass, alunos, financeiro };
 }
