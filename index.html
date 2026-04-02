@@ -644,10 +644,12 @@
         <div class="kpi-value" id="kpi-wellhub">—</div>
         <div class="kpi-sub" id="kpi-wellhub-receita">receita —</div>
       </div>
+<div id="visao-resumo" style="margin-top:1.5rem;"></div>
+
       <div class="kpi">
         <div class="kpi-label">Professores Pagos</div>
         <div class="kpi-value" id="kpi-profs">—</div>
-        <div class="kpi-sub" id="kpi-profs-total">total pago —</div>
+        
       </div>
     </div>
 
@@ -1257,6 +1259,34 @@ async function simularAtualizacao() {
 document.addEventListener("DOMContentLoaded", function() {
   var ig = document.getElementById("insights-grid");
   if (ig && ig.parentElement) ig.parentElement.style.display = "none";
+});
+
+document.addEventListener("DOMContentLoaded", function() {
+  try {
+    var ig = document.getElementById("insights-grid");
+    if (ig && ig.parentElement) ig.parentElement.style.display = "none";
+    if (typeof STATE === "undefined" || !STATE) return;
+    var resumo = document.getElementById("visao-resumo");
+    if (!resumo || !STATE.gympass) return;
+    var unidades = ["Moema","Pinheiros","Berrini","Itaim","Vila Olimpia","Alphaville"];
+    var html = "<h3 style=\"color:var(--accent);margin-bottom:1rem;font-size:0.85rem;text-transform:uppercase;letter-spacing:1px;\">Resumo por Unidade</h3>";
+    html += "<div style=\"display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);\">";
+    unidades.forEach(function(u) {
+      var gym = STATE.gympass.find(function(g) { return g.unidade === u; });
+      var totalGym = gym ? (gym.receita_gympass || 0) + (gym.receita_totalpass || 0) : 0;
+      var checksGym = gym ? (gym.checkins_gympass || 0) + (gym.checkins_totalpass || 0) : 0;
+      var profsCost = 0, profsCount = 0;
+      if (STATE.profs) { STATE.profs.forEach(function(p) { if (p.unidade === u) { profsCost += p.total; profsCount++; } }); }
+      html += "<div style=\"background:var(--card);padding:1rem;\">";
+      html += "<div style=\"font-size:0.75rem;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.5rem;\">" + u + "</div>";
+      html += "<div style=\"font-size:1.2rem;font-weight:700;color:var(--text);\">R$ " + totalGym.toLocaleString("pt-BR") + "</div>";
+      html += "<div style=\"font-size:0.7rem;color:var(--muted);margin-top:0.25rem;\">" + checksGym.toLocaleString("pt-BR") + " check-ins</div>";
+      html += "<div style=\"font-size:0.7rem;color:var(--muted);\">" + profsCount + " profs | R$ " + profsCost.toLocaleString("pt-BR") + "</div>";
+      html += "</div>";
+    });
+    html += "</div>";
+    resumo.innerHTML = html;
+  } catch(e) { console.warn("resumo error:", e); }
 });
 </script>
 </body>
