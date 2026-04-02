@@ -638,18 +638,18 @@
     <div class="kpi-grid" id="kpi-grid">
       <div class="kpi">
         
-        <div class="kpi-value gold" id="kpi-receita">—</div>
+        
         <div class="kpi-sub">todas as 6 unidades</div>
       </div>
       <div class="kpi">
         
-        <div class="kpi-value" id="kpi-resultado">—</div>
-        <div class="kpi-sub" id="kpi-margem">margem —</div>
+        
+        
       </div>
       <div class="kpi">
         
-        <div class="kpi-value" id="kpi-alunos">—</div>
-        <div class="kpi-sub" id="kpi-alunos-delta">crescimento —</div>
+        
+        
       </div>
       <div class="kpi">
         <div class="kpi-label">Check-ins Wellhub</div>
@@ -664,20 +664,10 @@
     </div>
 
     <div class="section-title">Unidades</div>
-    <div class="units-grid" id="units-grid">
-      <div class="empty-state" style="grid-column:1/-1">
-        <div class="empty-icon">ðï¸</div>
-        <div class="empty-title">Aguardando dados</div>
-        <div class="empty-text">Clique em "Atualizar Dados" para carregar as informações<br>de todas as 6 unidades automaticamente.</div>
-      </div>
-    </div>
+    
 
     
-    <div class="insights-grid" id="insights-grid">
-      <div class="empty-state" style="grid-column:1/-1; padding:2rem;">
-        <div class="empty-text">Os insights aparecerão após a atualização dos dados.</div>
-      </div>
-    </div>
+    
   </div>
 
   <!-- PROFESSORES -->
@@ -736,86 +726,7 @@
   </div>
 
   <!-- ALUNOS -->
-  <div id="alunos" class="tab-content">
-    
-
-  <!-- PAGAMENTOS & DÉBITOS -->
-  <div id="pagamentos" class="tab-content">
-    <!-- KPIs de Pagamentos -->
-    <div class="kpi-grid" id="kpi-pag-grid" style="grid-template-columns:repeat(4,1fr); margin-bottom:2rem;">
-      <div class="kpi">
-        <div class="kpi-label">Total Saídas Março</div>
-        <div class="kpi-value gold" id="kpi-total-saidas">R$ 133.449</div>
-        <div class="kpi-sub">33 comprovantes lidos</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Débitos Identificados</div>
-        <div class="kpi-value" id="kpi-total-debitos" style="color:var(--red)">R$ 39.145</div>
-        <div class="kpi-sub">10 de 24 com valor</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Maior Devedor</div>
-        <div class="kpi-value" id="kpi-maior-devedor">Vila Olímpia</div>
-        <div class="kpi-sub">R$ 23.068 identificado</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Débitos Pendentes</div>
-        <div class="kpi-value" style="color:var(--yellow)" id="kpi-pendentes">14</div>
-        <div class="kpi-sub">sem valor definido</div>
-      </div>
-    </div>
-
-    <!-- Débitos Entre Unidades -->
-    <div class="section-title">Débitos Entre Unidades</div>
-    <div id="debitos-cards" style="display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); border:1px solid var(--border); margin-bottom:2rem;"></div>
-
-    <!-- Tabela de Débitos -->
-    <div class="section-title">Detalhamento de Débitos</div>
-    <div class="table-wrap">
-      <table id="table-debitos">
-        <thead>
-          <tr>
-            <th>Quem Deve</th>
-            <th>Deve Para</th>
-            <th>Motivo</th>
-            <th>Valor (R$)</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="tbody-debitos"></tbody>
-      </table>
-    </div>
-
-    <!-- Tabela de Pagamentos -->
-    <div class="section-title" style="margin-top:2rem;">Todos os Pagamentos — Março 2026</div>
-    <div style="margin-bottom:1rem; display:flex; gap:0.5rem; flex-wrap:wrap;" id="filtros-pag">
-      <button class="btn-filtro active" onclick="filtrarPag('todos',this)">Todos</button>
-      <button class="btn-filtro" onclick="filtrarPag('Moema',this)">Moema</button>
-      <button class="btn-filtro" onclick="filtrarPag('Vila Olímpia',this)">Vila Olímpia</button>
-      <button class="btn-filtro" onclick="filtrarPag('Pinheiros',this)">Pinheiros</button>
-      <button class="btn-filtro" onclick="filtrarPag('Berrini',this)">Berrini</button>
-      <button class="btn-filtro" onclick="filtrarPag('Itaim',this)">Itaim</button>
-      <button class="btn-filtro" onclick="filtrarPag('Alphaville',this)">Alphaville</button>
-    </div>
-    <div class="table-wrap">
-      <table id="table-pagamentos">
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Unidade</th>
-            <th>Descrição</th>
-            <th>Valor (R$)</th>
-            <th>Destinatário</th>
-            <th>Tipo</th>
-            <th>Débito</th>
-          </tr>
-        </thead>
-        <tbody id="tbody-pagamentos"></tbody>
-      </table>
-    </div>
-  </div>
-
-</div>
+  
 
 <script>
 function safeEl(id){var e=document.getElementById(id);return e||{innerHTML:"",textContent:"",style:{},classList:{add:function(){},remove:function(){}},querySelector:function(){return null},querySelectorAll:function(){return[]}}}
@@ -976,13 +887,13 @@ function renderDashboard(data) {
   const d = data;
 
   // KPIs
-  document.getElementById('kpi-receita').textContent = fmt(d.total_receita);
-  const resEl = document.getElementById('kpi-resultado');
+  safeEl('kpi-receita').textContent = fmt(d.total_receita);
+  const resEl = safeEl('kpi-resultado');
   resEl.textContent = fmt(d.total_resultado);
   resEl.style.color = d.total_resultado >= 0 ? 'var(--green)' : 'var(--red)';
-  document.getElementById('kpi-margem').textContent = 'margem ' + fmtPct(d.margem_rede);
-  document.getElementById('kpi-alunos').textContent = d.total_alunos;
-  document.getElementById('kpi-alunos-delta').textContent =
+  safeEl('kpi-margem').textContent = 'margem ' + fmtPct(d.margem_rede);
+  safeEl('kpi-alunos').textContent = d.total_alunos;
+  safeEl('kpi-alunos-delta').textContent =
     '+' + d.total_novos + ' novos, -' + d.total_cancel + ' cancel.';
   document.getElementById('kpi-wellhub').textContent = (d.total_ci_gp + d.total_ci_tp) + ' check-ins';
   document.getElementById('kpi-wellhub-receita').textContent = 'receita ' + fmt(d.total_wellhub);
@@ -990,7 +901,7 @@ function renderDashboard(data) {
   document.getElementById('kpi-profs-total').textContent = 'total ' + fmt(d.total_profs);
 
   // Units grid
-  const ug = document.getElementById('units-grid');
+  const ug = safeEl('units-grid');
   ug.innerHTML = '';
   d.finProcessado.forEach((f, i) => {
     const a = d.alunosProcessado[i];
@@ -1037,7 +948,7 @@ function renderDashboard(data) {
   const deficits = d.finProcessado.filter(f=>f.resultado<0);
   const altaEvasao = d.alunosProcessado.filter(a=>a.evasao>0.05);
 
-  document.getElementById('insights-grid').innerHTML = `
+  safeEl('insights-grid').innerHTML = `
     <div class="insight-card">
       <div class="insight-type positive"><div class="insight-dot"></div>Destaques Positivos</div>
       <div class="insight-items">
@@ -1123,7 +1034,7 @@ function renderDashboard(data) {
     `<tr class="total-row"><td>TOTAL REDE</td><td>${d.total_ci_gp}</td><td>—</td><td>${d.total_ci_tp}</td><td>—</td><td>${fmt(d.total_wellhub)}</td><td>100%</td></tr>`;
 
   // Table Alunos
-  const tbody_a = document.getElementById('tbody-alunos');
+  const tbody_a = safeEl('tbody-alunos');
   tbody_a.innerHTML = d.alunosProcessado.map(a=>`
     <tr>
       <td class="td-name">${a.unidade}</td>
@@ -1139,7 +1050,7 @@ function renderDashboard(data) {
     `<tr class="total-row"><td>TOTAL REDE</td><td>—</td><td>+${d.total_novos}</td><td>-${d.total_cancel}</td><td>${d.total_alunos}</td><td colspan="3">—</td><td>${fmt(d.alunosProcessado.reduce((s,a)=>s+a.rec_mens,0))}</td></tr>`;
 
   // Table Financeiro
-  const tbody_f = document.getElementById('tbody-financeiro');
+  const tbody_f = safeEl('tbody-financeiro');
   tbody_f.innerHTML = d.finProcessado.map(f=>`
     <tr>
       <td class="td-name">${f.unidade}</td>
