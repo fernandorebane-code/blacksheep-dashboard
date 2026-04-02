@@ -1365,7 +1365,12 @@ function filtrarPag(filtro, btn) {
 }
 
 // Auto-render pagamentos on load
-document.addEventListener('DOMContentLoaded', renderPagamentos);
+document.addEventListener('DOMContentLoaded', function() {
+  const raw = gerarDadosReais();
+  STATE = processar(raw);
+  renderDashboard(STATE);
+  renderPagamentos();
+});
 
 function setDotStatus(id, status) {
   const el = document.getElementById(id);
