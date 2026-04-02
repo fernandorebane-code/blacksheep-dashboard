@@ -110,7 +110,7 @@
   /* KPI Grid */
   .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 1px;
     background: var(--border);
     border: 1px solid var(--border);
@@ -584,10 +584,7 @@
     .wellhub-cards { grid-template-columns: repeat(2, 1fr); }
   }
 
-/* Hide NaN KPI cards and removed sections */
-#kpi-grid > div:nth-child(1), #kpi-grid > div:nth-child(2), #kpi-grid > div:nth-child(3) { display: none !important; }
-#units-grid { display: none !important; }
-#insights-grid, #insights-grid + div, .insights-section { display: none !important; }
+
 </style>
 </head>
 <body>
@@ -641,21 +638,7 @@
   <!-- VISÃO GERAL -->
   <div id="visao-geral" class="tab-content active">
     <div class="kpi-grid" id="kpi-grid">
-      <div class="kpi">
-        
-        
-        <div class="kpi-sub">todas as 6 unidades</div>
-      </div>
-      <div class="kpi">
-        
-        
-        
-      </div>
-      <div class="kpi">
-        
-        
-        
-      </div>
+      
       <div class="kpi">
         <div class="kpi-label">Check-ins Wellhub</div>
         <div class="kpi-value" id="kpi-wellhub">—</div>
