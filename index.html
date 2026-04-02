@@ -583,6 +583,11 @@
     .insights-grid { grid-template-columns: 1fr; }
     .wellhub-cards { grid-template-columns: repeat(2, 1fr); }
   }
+
+/* Hide NaN KPI cards and removed sections */
+#kpi-grid > div:nth-child(1), #kpi-grid > div:nth-child(2), #kpi-grid > div:nth-child(3) { display: none !important; }
+#units-grid { display: none !important; }
+#insights-grid, #insights-grid + div, .insights-section { display: none !important; }
 </style>
 </head>
 <body>
@@ -1264,6 +1269,12 @@ async function simularAtualizacao() {
 
   overlay.classList.remove('active');
 }
+
+// Hide insights section parent
+document.addEventListener("DOMContentLoaded", function() {
+  var ig = document.getElementById("insights-grid");
+  if (ig && ig.parentElement) ig.parentElement.style.display = "none";
+});
 </script>
 </body>
 </html>
