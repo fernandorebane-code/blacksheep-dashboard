@@ -881,10 +881,10 @@ function renderDashboard(data) {
   safeEl('kpi-alunos').textContent = d.total_alunos;
   safeEl('kpi-alunos-delta').textContent =
     '+' + d.total_novos + ' novos, -' + d.total_cancel + ' cancel.';
-  document.getElementById('kpi-wellhub').textContent = (d.total_ci_gp + d.total_ci_tp) + ' check-ins';
-  document.getElementById('kpi-wellhub-receita').textContent = 'receita ' + fmt(d.total_wellhub);
-  document.getElementById('kpi-profs').textContent = d.profsProcessado.length;
-  document.getElementById('kpi-profs-total').textContent = 'total ' + fmt(d.total_profs);
+  safeEl('kpi-wellhub').textContent = (d.total_ci_gp + d.total_ci_tp) + ' check-ins';
+  safeEl('kpi-wellhub-receita').textContent = 'receita ' + fmt(d.total_wellhub);
+  safeEl('kpi-profs').textContent = d.profsProcessado.length;
+  safeEl('kpi-profs-total').textContent = 'total ' + fmt(d.total_profs);
 
   // Units grid
   const ug = safeEl('units-grid');
@@ -960,7 +960,7 @@ function renderDashboard(data) {
     </div>`; 
 
   // Table Professores
-  const tbody_p = document.getElementById('tbody-professores');
+  const tbody_p = safeEl('tbody-professores');
   tbody_p.innerHTML = d.profsProcessado.map(p=>`
     <tr>
       <td class="td-name">${p.nome}</td>
@@ -976,7 +976,7 @@ function renderDashboard(data) {
 
   // Wellhub cards por unidade
   const maxTotal = Math.max(...d.gpProcessado.map(g=>g.total));
-  const wc = document.getElementById('wellhub-cards');
+  const wc = safeEl('wellhub-cards');
   wc.innerHTML = d.gpProcessado.map(g => `
     <div class="wellhub-card">
       <div class="wellhub-card-name">${g.unidade}</div>
@@ -1006,7 +1006,7 @@ function renderDashboard(data) {
     </div>`).join('');
 
   // Table Gympass
-  const tbody_g = document.getElementById('tbody-gympass');
+  const tbody_g = safeEl('tbody-gympass');
   tbody_g.innerHTML = d.gpProcessado.map(g=>`
     <tr>
       <td class="td-name">${g.unidade}</td>
@@ -1143,7 +1143,7 @@ function renderPagamentos() {
     else devedores[d.devedor].pendentes++;
   });
 
-  const dc = document.getElementById('debitos-cards');
+  const dc = safeEl('debitos-cards');
   dc.innerHTML = Object.entries(devedores)
     .sort((a,b) => b[1].total - a[1].total)
     .map(([nome, d]) => `
@@ -1154,7 +1154,7 @@ function renderPagamentos() {
       </div>`).join('');
 
   // Tabela débitos
-  const tbody_d = document.getElementById('tbody-debitos');
+  const tbody_d = safeEl('tbody-debitos');
   tbody_d.innerHTML = DEBITOS_MARCO.map(d => {
     const statusClass = d.status.toLowerCase();
     return `<tr>
@@ -1173,7 +1173,7 @@ function renderPagamentos() {
 
 function renderPagTable(filtro) {
   const dados = filtro === 'todos' ? PAGAMENTOS_MARCO : PAGAMENTOS_MARCO.filter(p => p.unidade === filtro);
-  const tbody = document.getElementById('tbody-pagamentos');
+  const tbody = safeEl('tbody-pagamentos');
   tbody.innerHTML = dados.map(p => {
     const tipoColor = p.tipo === 'd6' ? 'color:var(--gold)' : p.tipo === 'ok' ? 'color:var(--green)' : '';
     return `<tr>
@@ -1200,49 +1200,58 @@ function filtrarPag(filtro, btn) {
 }
 
 // Auto-render pagamentos on load
-document.addEventListener("DOMContentLoaded", function() {
+function simularAtualizacao() {
   try {
-    if (typeof STATE === "undefined" || !STATE) return;
-    var UNITS = ["Moema","Pinheiros","Berrini","Itaim","Vila Olimpia","Alphaville"];
-    var totalReceita = 0, totalCustoProf = 0;
-    if (STATE.gympass) STATE.gympass.forEach(function(g) { totalReceita += (g.receita_gp||0) + (g.receita_tp||0); });
-    if (STATE.profs) STATE.profs.forEach(function(p) { totalCustoProf += (p.aulas*p.val_aula) + (p.personal||0) + (p.bonus||0); });
-    var e1 = document.getElementById("kpi-receita-total");
-    if (e1) e1.textContent = "R$ " + totalReceita.toLocaleString("pt-BR");
-    var e2 = document.getElementById("kpi-profs-custo");
-    if (e2) e2.textContent = "custo total R$ " + totalCustoProf.toLocaleString("pt-BR");
-    var margem = totalReceita > 0 ? ((totalReceita - totalCustoProf) / totalReceita * 100).toFixed(1) : 0;
-    var e3 = document.getElementById("kpi-margem-liq");
-    if (e3) e3.textContent = "margem sobre professores " + margem + "%";
-    var resumo = document.getElementById("visao-resumo");
-    if (!resumo) return;
-    var h = "<h3 style=\"color:var(--accent);margin-bottom:1rem;font-size:1.1rem\">Resumo por Unidade - Mar/2026</h3>";
-    h += "<div style=\"display:grid;grid-template-columns:repeat(3,1fr);gap:12px\">";
-    UNITS.forEach(function(u) {
-      var gD = STATE.gympass ? STATE.gympass.filter(function(g){ return g.unidade===u; }) : [];
+    var raw = gerarDadosReais();
+    var st = processar(raw);
+    window.STATE = st;
+    try { renderDashboard(st); } catch(e) {}
+    fillVisaoGeral(st);
+    safeEl("last-update").textContent = "\u2705 Atualizado " + new Date().toLocaleString("pt-BR");
+  } catch(e) { console.warn("update error:", e); }
+}
+
+function fillVisaoGeral(st) {
+  try {
+    var UNITS=["Moema","Pinheiros","Berrini","Itaim","Vila Olimpia","Alphaville"];
+    var totalRec=0;
+    st.gpProcessado.forEach(function(g){totalRec+=(g.rec_gp||0)+(g.rec_tp||0);});
+    safeEl("kpi-receita-total").textContent="R$ "+totalRec.toLocaleString("pt-BR");
+    safeEl("kpi-profs-custo").textContent="custo total R$ "+st.total_profs.toLocaleString("pt-BR");
+    var margem=totalRec>0?((totalRec-st.total_profs)/totalRec*100).toFixed(1):0;
+    safeEl("kpi-margem-liq").textContent="margem sobre professores "+margem+"%";
+    var resumo=document.getElementById("visao-resumo");
+    if(!resumo)return;
+    var h="<h3 style='color:var(--accent);margin-bottom:1rem;font-size:1.1rem'>Resumo por Unidade - Mar/2026</h3>";
+    h+="<div style='display:grid;grid-template-columns:repeat(3,1fr);gap:12px'>";
+    UNITS.forEach(function(u){
+      var gD=st.gpProcessado.filter(function(g){return g.unidade===u;});
       var rGP=0,rTP=0,cGP=0,cTP=0;
-      gD.forEach(function(g){ rGP+=g.receita_gp||0; rTP+=g.receita_tp||0; cGP+=g.ci_gp||0; cTP+=g.ci_tp||0; });
-      var pD = STATE.profs ? STATE.profs.filter(function(p){ return p.unidade===u; }) : [];
+      gD.forEach(function(g){rGP+=g.rec_gp||0;rTP+=g.rec_tp||0;cGP+=g.ci_gp||0;cTP+=g.ci_tp||0;});
+      var pD=st.profsProcessado.filter(function(p){return p.unidade===u;});
       var cP=0;
-      pD.forEach(function(p){ cP+=(p.aulas*p.val_aula)+(p.personal||0)+(p.bonus||0); });
-      var rT=rGP+rTP, saldo=rT-cP;
+      pD.forEach(function(p){cP+=p.total||0;});
+      var rT=rGP+rTP,saldo=rT-cP;
       var sC=saldo>=0?"#00e676":"#ff5252";
-      h+="<div style=\"background:var(--card);border-radius:10px;padding:1rem;border:1px solid rgba(255,255,255,0.06)\">";
-      h+="<div style=\"font-weight:700;color:var(--accent);margin-bottom:8px;font-size:0.95rem\">"+u+"</div>";
-      h+="<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:0.82rem\">";
-      h+="<div style=\"color:#aaa\">Wellhub</div><div style=\"text-align:right;color:#fff\">R$ "+rGP.toLocaleString("pt-BR")+"</div>";
-      h+="<div style=\"color:#aaa\">Totalpass</div><div style=\"text-align:right;color:#fff\">R$ "+rTP.toLocaleString("pt-BR")+"</div>";
-      h+="<div style=\"color:#aaa\">Check-ins</div><div style=\"text-align:right;color:#fff\">"+(cGP+cTP)+"</div>";
-      h+="<div style=\"color:#aaa\">Professores</div><div style=\"text-align:right;color:#fff\">"+pD.length+" (R$ "+cP.toLocaleString("pt-BR")+")</div>";
-      h+="<div style=\"color:#aaa;border-top:1px solid rgba(255,255,255,0.1);padding-top:4px;margin-top:4px\">Saldo</div>";
-      h+="<div style=\"text-align:right;font-weight:700;color:"+sC+";border-top:1px solid rgba(255,255,255,0.1);padding-top:4px;margin-top:4px\">R$ "+saldo.toLocaleString("pt-BR")+"</div>";
+      h+="<div style='background:var(--card);border-radius:10px;padding:1rem;border:1px solid rgba(255,255,255,0.06)'>";
+      h+="<div style='font-weight:700;color:var(--accent);margin-bottom:8px;font-size:0.95rem'>"+u+"</div>";
+      h+="<div style='display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:0.82rem'>";
+      h+="<div style='color:#aaa'>Wellhub</div><div style='text-align:right;color:#fff'>R$ "+rGP.toLocaleString("pt-BR")+"</div>";
+      h+="<div style='color:#aaa'>Totalpass</div><div style='text-align:right;color:#fff'>R$ "+rTP.toLocaleString("pt-BR")+"</div>";
+      h+="<div style='color:#aaa'>Check-ins</div><div style='text-align:right;color:#fff'>"+(cGP+cTP)+"</div>";
+      h+="<div style='color:#aaa'>Professores</div><div style='text-align:right;color:#fff'>"+pD.length+" (R$ "+cP.toLocaleString("pt-BR")+")</div>";
+      h+="<div style='color:#aaa;border-top:1px solid rgba(255,255,255,0.1);padding-top:4px;margin-top:4px'>Saldo</div>";
+      h+="<div style='text-align:right;font-weight:700;color:"+sC+";border-top:1px solid rgba(255,255,255,0.1);padding-top:4px;margin-top:4px'>R$ "+saldo.toLocaleString("pt-BR")+"</div>";
       h+="</div></div>";
     });
     h+="</div>";
     resumo.innerHTML=h;
-  } catch(e){ console.warn("resumo error:",e); }
-});
+  } catch(e){console.warn("fillVisaoGeral error:",e);}
+}
 
+document.addEventListener("DOMContentLoaded",function(){
+  try { simularAtualizacao(); } catch(e){ console.warn("auto-load error:",e); }
+});
 </script>
 </body>
 </html>
