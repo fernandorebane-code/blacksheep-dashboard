@@ -597,8 +597,8 @@
 <header>
   <div class="logo">Crosslift <span>Blacksheep</span></div>
   <div class="header-meta">
-    <div class="last-update" id="last-update">â Nenhum dado carregado</div>
-    <button class="btn-update" onclick="simularAtualizacao()">â» Atualizar Dados</button>
+    <div class="last-update" id="last-update">⚠ Nenhum dado carregado</div>
+    <button class="btn-update" onclick="simularAtualizacao()">↻ Atualizar Dados</button>
   </div>
 </header>
 
@@ -637,31 +637,27 @@
 
   <!-- VISÃO GERAL -->
   <div id="visao-geral" class="tab-content active">
-    <div class="kpi-grid" id="kpi-grid">
-      
-      <div class="kpi">
-        <div class="kpi-label">Check-ins Wellhub</div>
-        <div class="kpi-value" id="kpi-wellhub">—</div>
-        <div class="kpi-sub" id="kpi-wellhub-receita">receita —</div>
-      </div>
-<div id="visao-resumo" style="margin-top:1.5rem;"></div>
-
-      <div class="kpi">
-        <div class="kpi-label">Professores Pagos</div>
-        <div class="kpi-value" id="kpi-profs">—</div>
-        
-      </div>
+  <div id="kpi-grid" class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="kpi">
+      <div class="kpi-label">Check-ins Wellhub</div>
+      <div class="kpi-value" id="kpi-wellhub">—</div>
+      <div class="kpi-sub" id="kpi-wellhub-receita">receita —</div>
     </div>
-
-    <div class="section-title">Unidades</div>
-    
-
-    
-    
+    <div class="kpi">
+      <div class="kpi-label">Professores Pagos</div>
+      <div class="kpi-value" id="kpi-profs">—</div>
+      <div class="kpi-sub" id="kpi-profs-custo">custo total —</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Receita Wellhub + Totalpass</div>
+      <div class="kpi-value" id="kpi-receita-total">—</div>
+      <div class="kpi-sub" id="kpi-margem-liq">margem sobre professores —</div>
+    </div>
   </div>
+  <div id="visao-resumo" style="margin-top:1.5rem"></div>
+</div>
 
-  <!-- PROFESSORES -->
-  <div id="professores" class="tab-content">
+<div id="professores" class="tab-content">
     <div class="section-title">Pagamento de Professores</div>
     <div class="table-wrap">
       <table id="table-professores">
@@ -1204,90 +1200,49 @@ function filtrarPag(filtro, btn) {
 }
 
 // Auto-render pagamentos on load
-document.addEventListener('DOMContentLoaded', function() {
-  try {
-    const raw = gerarDadosReais();
-    STATE = processar(raw);
-    renderDashboard(STATE);
-    renderPagamentos();
-  } catch(e) { console.warn('Init error:', e); }
-});
-
-function setDotStatus(id, status) {
-  const el = document.getElementById(id);
-  el.className = 'status-dot dot-' + status;
-}
-
-async function simularAtualizacao() {
-  const overlay = document.getElementById('loading-overlay');
-  const txt = document.getElementById('loading-text');
-  overlay.classList.add('active');
-
-  const steps = [
-    ['dot-sheets', 'Conectando ao Google Sheets...', 600],
-    ['dot-gympass', 'Buscando dados Gympass/Wellhub...', 700],
-    ['dot-totalpass', 'Buscando dados Totalpass...', 600],
-    ['dot-app', 'Sincronizando Blacksheep App...', 700],
-    [null, 'Processando cálculos...', 800],
-    [null, 'Gerando insights...', 500],
-  ];
-
-  // Reset dots
-  ['dot-sheets','dot-gympass','dot-totalpass','dot-app'].forEach(id => setDotStatus(id, 'yellow'));
-
-  for (const [dotId, msg, delay] of steps) {
-    txt.textContent = msg;
-    await new Promise(r => setTimeout(r, delay));
-    if (dotId) setDotStatus(dotId, 'green');
-  }
-
-  const raw = gerarDadosReais();
-  STATE = processar(raw);
-  renderDashboard(STATE);
-
-  const now = new Date();
-  const mesRef = now.toLocaleString('pt-BR', {month:'long', year:'numeric'});
-  document.getElementById('last-update').textContent =
-    'â Atualizado ' + now.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
-  document.getElementById('mes-ref').textContent =
-    'REF: ' + mesRef.toUpperCase();
-
-  overlay.classList.remove('active');
-}
-
-// Hide insights section parent
-document.addEventListener("DOMContentLoaded", function() {
-  var ig = document.getElementById("insights-grid");
-  if (ig && ig.parentElement) ig.parentElement.style.display = "none";
-});
-
 document.addEventListener("DOMContentLoaded", function() {
   try {
-    var ig = document.getElementById("insights-grid");
-    if (ig && ig.parentElement) ig.parentElement.style.display = "none";
     if (typeof STATE === "undefined" || !STATE) return;
+    var UNITS = ["Moema","Pinheiros","Berrini","Itaim","Vila Olimpia","Alphaville"];
+    var totalReceita = 0, totalCustoProf = 0;
+    if (STATE.gympass) STATE.gympass.forEach(function(g) { totalReceita += (g.receita_gp||0) + (g.receita_tp||0); });
+    if (STATE.profs) STATE.profs.forEach(function(p) { totalCustoProf += (p.aulas*p.val_aula) + (p.personal||0) + (p.bonus||0); });
+    var e1 = document.getElementById("kpi-receita-total");
+    if (e1) e1.textContent = "R$ " + totalReceita.toLocaleString("pt-BR");
+    var e2 = document.getElementById("kpi-profs-custo");
+    if (e2) e2.textContent = "custo total R$ " + totalCustoProf.toLocaleString("pt-BR");
+    var margem = totalReceita > 0 ? ((totalReceita - totalCustoProf) / totalReceita * 100).toFixed(1) : 0;
+    var e3 = document.getElementById("kpi-margem-liq");
+    if (e3) e3.textContent = "margem sobre professores " + margem + "%";
     var resumo = document.getElementById("visao-resumo");
-    if (!resumo || !STATE.gympass) return;
-    var unidades = ["Moema","Pinheiros","Berrini","Itaim","Vila Olimpia","Alphaville"];
-    var html = "<h3 style=\"color:var(--accent);margin-bottom:1rem;font-size:0.85rem;text-transform:uppercase;letter-spacing:1px;\">Resumo por Unidade</h3>";
-    html += "<div style=\"display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);\">";
-    unidades.forEach(function(u) {
-      var gym = STATE.gympass.find(function(g) { return g.unidade === u; });
-      var totalGym = gym ? (gym.receita_gympass || 0) + (gym.receita_totalpass || 0) : 0;
-      var checksGym = gym ? (gym.checkins_gympass || 0) + (gym.checkins_totalpass || 0) : 0;
-      var profsCost = 0, profsCount = 0;
-      if (STATE.profs) { STATE.profs.forEach(function(p) { if (p.unidade === u) { profsCost += p.total; profsCount++; } }); }
-      html += "<div style=\"background:var(--card);padding:1rem;\">";
-      html += "<div style=\"font-size:0.75rem;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.5rem;\">" + u + "</div>";
-      html += "<div style=\"font-size:1.2rem;font-weight:700;color:var(--text);\">R$ " + totalGym.toLocaleString("pt-BR") + "</div>";
-      html += "<div style=\"font-size:0.7rem;color:var(--muted);margin-top:0.25rem;\">" + checksGym.toLocaleString("pt-BR") + " check-ins</div>";
-      html += "<div style=\"font-size:0.7rem;color:var(--muted);\">" + profsCount + " profs | R$ " + profsCost.toLocaleString("pt-BR") + "</div>";
-      html += "</div>";
+    if (!resumo) return;
+    var h = "<h3 style=\"color:var(--accent);margin-bottom:1rem;font-size:1.1rem\">Resumo por Unidade - Mar/2026</h3>";
+    h += "<div style=\"display:grid;grid-template-columns:repeat(3,1fr);gap:12px\">";
+    UNITS.forEach(function(u) {
+      var gD = STATE.gympass ? STATE.gympass.filter(function(g){ return g.unidade===u; }) : [];
+      var rGP=0,rTP=0,cGP=0,cTP=0;
+      gD.forEach(function(g){ rGP+=g.receita_gp||0; rTP+=g.receita_tp||0; cGP+=g.ci_gp||0; cTP+=g.ci_tp||0; });
+      var pD = STATE.profs ? STATE.profs.filter(function(p){ return p.unidade===u; }) : [];
+      var cP=0;
+      pD.forEach(function(p){ cP+=(p.aulas*p.val_aula)+(p.personal||0)+(p.bonus||0); });
+      var rT=rGP+rTP, saldo=rT-cP;
+      var sC=saldo>=0?"#00e676":"#ff5252";
+      h+="<div style=\"background:var(--card);border-radius:10px;padding:1rem;border:1px solid rgba(255,255,255,0.06)\">";
+      h+="<div style=\"font-weight:700;color:var(--accent);margin-bottom:8px;font-size:0.95rem\">"+u+"</div>";
+      h+="<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:0.82rem\">";
+      h+="<div style=\"color:#aaa\">Wellhub</div><div style=\"text-align:right;color:#fff\">R$ "+rGP.toLocaleString("pt-BR")+"</div>";
+      h+="<div style=\"color:#aaa\">Totalpass</div><div style=\"text-align:right;color:#fff\">R$ "+rTP.toLocaleString("pt-BR")+"</div>";
+      h+="<div style=\"color:#aaa\">Check-ins</div><div style=\"text-align:right;color:#fff\">"+(cGP+cTP)+"</div>";
+      h+="<div style=\"color:#aaa\">Professores</div><div style=\"text-align:right;color:#fff\">"+pD.length+" (R$ "+cP.toLocaleString("pt-BR")+")</div>";
+      h+="<div style=\"color:#aaa;border-top:1px solid rgba(255,255,255,0.1);padding-top:4px;margin-top:4px\">Saldo</div>";
+      h+="<div style=\"text-align:right;font-weight:700;color:"+sC+";border-top:1px solid rgba(255,255,255,0.1);padding-top:4px;margin-top:4px\">R$ "+saldo.toLocaleString("pt-BR")+"</div>";
+      h+="</div></div>";
     });
-    html += "</div>";
-    resumo.innerHTML = html;
-  } catch(e) { console.warn("resumo error:", e); }
+    h+="</div>";
+    resumo.innerHTML=h;
+  } catch(e){ console.warn("resumo error:",e); }
 });
+
 </script>
 </body>
 </html>
