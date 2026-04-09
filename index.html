@@ -696,7 +696,6 @@
             <th>Outras Receitas</th>
             <th>Receita Total</th>
             <th>Despesas Fixas</th>
-            <th>Pag. Professores</th>
             <th>Desp. Variáveis</th>
             <th>Despesa Total</th>
             <th>Resultado</th>
@@ -704,7 +703,7 @@
           </tr>
         </thead>
         <tbody id="tbody-financeiro">
-          <tr><td colspan="11" style="text-align:center; color:var(--gray); padding:3rem;">Nenhum dado carregado</td></tr>
+          <tr><td colspan="10" style="text-align:center; color:var(--gray); padding:3rem;">Nenhum dado carregado</td></tr>
         </tbody>
       </table>
     </div>
@@ -774,14 +773,6 @@ function gerarDadosDemo() {
 function processar(raw) {
   const { profs, gympass, alunos, financeiro } = raw;
 
-  // Professores
-  const profsProcessado = profs.map(p => ({
-    ...p,
-    sub_aulas: p.aulas * p.val_aula,
-    total: p.aulas * p.val_aula + p.personal + p.bonus
-  }));
-  const total_profs = profsProcessado.reduce((s,p)=>s+p.total,0);
-
   // Gympass — usa rec_gp/rec_tp direto se disponível (quando checkins=0 mas receita existe)
   const gpProcessado = gympass.map(g => {
     const rec_gp = g.rec_gp != null ? g.rec_gp : g.ci_gp * g.val_gp;
@@ -806,28 +797,22 @@ function processar(raw) {
   const total_cancel = alunosProcessado.reduce((s,a)=>s+a.cancel,0);
 
   // Financeiro
-  const pagProf_por_unidade = {};
-  UNIDADES.forEach(u => {
-    pagProf_por_unidade[u] = profsProcessado.filter(p=>p.unidade===u).reduce((s,p)=>s+p.total,0);
-  });
   const finProcessado = financeiro.map((f,i) => {
     const a = alunosProcessado[i];
     const g = gpProcessado[i];
     const rec_mens = a.rec_mens;
     const rec_wp = g.total;
     const rec_total = rec_mens + rec_wp + f.outras_rec;
-    const pag_prof = pagProf_por_unidade[f.unidade]||0;
-    const desp_total = f.aluguel + f.desp_fix + pag_prof + f.desp_var;
+    const desp_total = f.aluguel + f.desp_fix + f.desp_var;
     const resultado = rec_total - desp_total;
     const margem = rec_total>0 ? resultado/rec_total : 0;
-    return { ...f, rec_mens, rec_wp, rec_total, pag_prof, desp_total, resultado, margem };
+    return { ...f, rec_mens, rec_wp, rec_total, desp_total, resultado, margem };
   });
   const total_receita = finProcessado.reduce((s,f)=>s+f.rec_total,0);
   const total_resultado = finProcessado.reduce((s,f)=>s+f.resultado,0);
   const margem_rede = total_receita>0 ? total_resultado/total_receita : 0;
 
   return {
-    profsProcessado, total_profs,
     gpProcessado, total_wellhub, total_ci_gp, total_ci_tp,
     alunosProcessado, total_alunos, total_novos, total_cancel,
     finProcessado, total_receita, total_resultado, margem_rede
@@ -1004,7 +989,6 @@ function renderDashboard(data) {
       <td class="td-gray">${fmt(f.outras_rec)}</td>
       <td class="td-gold">${fmt(f.rec_total)}</td>
       <td class="td-gray">${fmt(f.aluguel + f.desp_fix)}</td>
-      <td class="td-gray">${fmt(f.pag_prof)}</td>
       <td class="td-gray">${fmt(f.desp_var)}</td>
       <td class="td-red">(${fmt(f.desp_total)})</td>
       <td class="${f.resultado>=0?'td-green':'td-red'}">${fmt(f.resultado)}</td>
@@ -1014,7 +998,7 @@ function renderDashboard(data) {
       <td>CONSOLIDADO REDE</td>
       <td colspan="3">—</td>
       <td>${fmt(d.total_receita)}</td>
-      <td colspan="3">—</td>
+      <td colspan="2">—</td>
       <td>(${fmt(d.finProcessado.reduce((s,f)=>s+f.desp_total,0))})</td>
       <td>${fmt(d.total_resultado)}</td>
       <td>${fmtPct(d.margem_rede)}</td>
