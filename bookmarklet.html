@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BlackSheep - Bookmarklets de Extração</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0a0a; color: #e0e0e0; padding: 2rem; max-width: 800px; margin: 0 auto; }
+    h1 { color: #4ade80; margin-bottom: 0.5rem; }
+    .subtitle { color: #888; margin-bottom: 2rem; }
+    .card { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .card h2 { color: #4ade80; margin-bottom: 0.5rem; }
+    .card p { color: #aaa; margin-bottom: 1rem; line-height: 1.5; }
+    .bookmarklet-link { display: inline-block; background: #4ade80; color: #000; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 1.1rem; cursor: grab; transition: background 0.2s; }
+    .bookmarklet-link:hover { background: #22c55e; }
+    .instructions { background: #111; border: 1px solid #2a2a2a; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
+    .instructions li { margin-bottom: 0.5rem; color: #ccc; }
+    .instructions strong { color: #4ade80; }
+    code { background: #222; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; color: #f0f0f0; }
+    .badge { display: inline-block; background: #22c55e22; color: #4ade80; border: 1px solid #4ade8044; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; margin-left: 8px; }
+    .badge.new { background: #3b82f622; color: #60a5fa; border-color: #3b82f644; }
+    a[style] { color: #4ade80; }
+    .warning { color: #fbbf24; font-size: 0.9em; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>BlackSheep Extração</h1>
+  <p class="subtitle">Bookmarklets para extrair dados do Gympass, Totalpass e WhatsApp — execute todo domingo</p>
+
+  <!-- GYMPASS -->
+  <div class="card">
+    <h2>Gympass / Wellhub <span class="badge">v2</span></h2>
+    <p>Extrai receita e check-ins de <strong>todas as unidades</strong> do login atual automaticamente. Percorre o dropdown de unidades, coleta dados de Finanças de cada uma e envia tudo pro Firebase.</p>
+    <p><a class="bookmarklet-link" id="gympass-bm" href="#">Extrair Gympass</a></p>
+    <div class="instructions">
+      <p><strong>Como usar:</strong></p>
+      <ol>
+        <li>Arraste o botão verde para a <strong>barra de favoritos</strong> do Chrome</li>
+        <li>Acesse <a href="https://partners.gympass.com" style="color:#4ade80">partners.gympass.com</a> e faça login</li>
+        <li>Vá até <strong>Finanças</strong> (menu lateral)</li>
+        <li>Clique no bookmarklet — ele percorre todas as unidades do dropdown</li>
+        <li><strong>Repita para cada conta</strong> (são 3 logins: Berrini/Itaim/VO, Pinheiros/Alphaville, Moema)</li>
+      </ol>
+      <p class="warning">⚠ Não mude de aba enquanto o bookmarklet estiver rodando!</p>
+    </div>
+  </div>
+
+  <!-- TOTALPASS -->
+  <div class="card">
+    <h2>Totalpass <span class="badge">v2</span></h2>
+    <p>Extrai receita, check-ins e previsão de todas as unidades do portal Totalpass.</p>
+    <p><a class="bookmarklet-link" id="totalpass-bm" href="#">Extrair Totalpass</a></p>
+    <div class="instructions">
+      <p><strong>Como usar:</strong></p>
+      <ol>
+        <li>Arraste o botão verde para a <strong>barra de favoritos</strong></li>
+        <li>Acesse <a href="https://booking.totalpass.com/br/dashboard" style="color:#4ade80">booking.totalpass.com</a> e faça login</li>
+        <li>Na página do <strong>Dashboard</strong> ou <strong>Financeiro</strong>, clique no bookmarklet</li>
+        <li>Aguarde — ele percorre todas as unidades e envia pro Firebase</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- WHATSAPP -->
+  <div class="card">
+    <h2>WhatsApp - Planos <span class="badge new">NOVO</span></h2>
+    <p>Extrai os planos vendidos do grupo <strong>"Planos BLACKSHEEP"</strong> no WhatsApp Web. Usa a busca interna pra pegar mensagens do mês atual.</p>
+    <p><a class="bookmarklet-link" id="whatsapp-bm" href="#">Extrair Planos</a></p>
+    <div class="instructions">
+      <p><strong>Como usar:</strong></p>
+      <ol>
+        <li>Arraste o botão verde para a <strong>barra de favoritos</strong></li>
+        <li>Abra <a href="https://web.whatsapp.com" style="color:#4ade80">web.whatsapp.com</a></li>
+        <li>Abra o grupo <strong>"Planos BLACKSHEEP"</strong></li>
+        <li>Clique no bookmarklet — ele extrai o texto visível e envia pra parsing por IA</li>
+      </ol>
+      <p class="warning">⚠ Para pegar mensagens antigas: abra a busca do grupo (lupa), pesquise "mensal", e depois rode o bookmarklet</p>
+    </div>
+  </div>
+
+  <div class="card" style="border-color: #4ade8044;">
+    <h2 style="font-size: 1rem;">Checklist Semanal (Domingo)</h2>
+    <ol class="instructions" style="border:none; padding:0;">
+      <li>Gympass conta 1 (tatabbm@me.com → Berrini, Itaim, Vila Olímpia)</li>
+      <li>Gympass conta 2 (rebane@bjjblacksheepfit.com → Pinheiros, Alphaville)</li>
+      <li>Gympass conta 3 (blacksheepmoema@gmail.com → Moema)</li>
+      <li>Totalpass (rebane@crossfitblacksheep.com.br)</li>
+      <li>WhatsApp grupo "Planos BLACKSHEEP"</li>
+    </ol>
+  </div>
+
+  <script>
+// ══════════════════════════════════════════════════════════════════════════════
+// HELPER: Overlay UI compartilhado
+// ══════════════════════════════════════════════════════════════════════════════
+const OVERLAY_FN = `
+function bsOverlay(title) {
+  if (document.getElementById('bs-overlay')) document.getElementById('bs-overlay').remove();
+  const ov = document.createElement('div');
+  ov.id = 'bs-overlay';
+  ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:999999;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:monospace,sans-serif;color:white;';
+  ov.innerHTML = '<div style="font-size:22px;font-weight:bold;color:#4ade80;margin-bottom:12px;">' + title + '</div>'
+    + '<div id="bs-status" style="font-size:16px;margin-bottom:8px;">Iniciando...</div>'
+    + '<div id="bs-progress" style="width:400px;height:6px;background:#333;border-radius:3px;overflow:hidden;margin-bottom:12px;"><div id="bs-bar" style="width:0%;height:100%;background:#4ade80;transition:width 0.3s;"></div></div>'
+    + '<div id="bs-log" style="margin-top:8px;max-height:350px;overflow:auto;font-size:12px;color:#888;white-space:pre-line;text-align:left;max-width:550px;width:100%;padding:0 20px;"></div>'
+    + '<button id="bs-close" style="position:absolute;top:16px;right:16px;background:none;border:1px solid #555;color:#888;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;">Fechar</button>';
+  document.body.appendChild(ov);
+  document.getElementById('bs-close').onclick = () => ov.remove();
+  const statusEl = document.getElementById('bs-status');
+  const logEl = document.getElementById('bs-log');
+  const barEl = document.getElementById('bs-bar');
+  return {
+    log(msg) { logEl.textContent += msg + '\\n'; logEl.scrollTop = logEl.scrollHeight; },
+    status(msg) { statusEl.textContent = msg; },
+    progress(pct) { barEl.style.width = pct + '%'; },
+    success(msg) { statusEl.textContent = msg; statusEl.style.color = '#4ade80'; barEl.style.width = '100%'; },
+    error(msg) { statusEl.textContent = msg; statusEl.style.color = '#ef4444'; },
+    close(ms) { setTimeout(() => { if (document.getElementById('bs-overlay')) document.getElementById('bs-overlay').remove(); }, ms || 8000); }
+  };
+}`;
+
+const SEND_FN = `
+async function bsSend(source, data, periodo) {
+  const ENDPOINT = 'https://us-central1-bjj-blacksheep.cloudfunctions.net/receberDados';
+  const SECRET = 'bs2025admin';
+  const res = await fetch(ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ secret: SECRET, source, data, periodo })
+  });
+  return res.json();
+}`;
+
+const HELPERS = OVERLAY_FN + '\n' + SEND_FN;
+
+// ══════════════════════════════════════════════════════════════════════════════
+// GYMPASS BOOKMARKLET v2
+// Percorre TODAS as unidades do dropdown, extrai dados de Finanças de cada uma
+// ══════════════════════════════════════════════════════════════════════════════
+const gympassCode = `
+(async function() {
+  ${HELPERS}
+
+  const ui = bsOverlay('BlackSheep - Gympass');
+
+  try {
+    // Verificar se estamos no portal certo
+    if (!location.hostname.includes('gympass.com') && !location.hostname.includes('wellhub.com')) {
+      ui.error('Abra em partners.gympass.com!');
+      ui.close(3000);
+      return;
+    }
+
+    // Navegar para finance se necessario
+    if (!location.pathname.includes('finance')) {
+      ui.status('Redirecionando para Finanças...');
+      location.href = '/new/finance';
+      return;
+    }
+
+    ui.status('Detectando unidades...');
+    ui.log('URL: ' + location.href);
+    await new Promise(r => setTimeout(r, 2000)); // esperar SPA carregar
+
+    // Normalizar nome da unidade
+    const UNIT_MAP = {
+      'berrini': 'Berrini', 'itaim': 'Itaim',
+      'vila olimpia': 'Vila Olímpia', 'vila olímpia': 'Vila Olímpia',
+      'moema': 'Moema', 'pinheiros': 'Pinheiros', 'alphaville': 'Alphaville'
+    };
+    function normUnit(name) {
+      const lower = (name || '').toLowerCase().trim();
+      for (const [k, v] of Object.entries(UNIT_MAP)) {
+        if (lower.includes(k)) return v;
+      }
+      return name;
+    }
+
+    function parseReais(str) {
+      if (!str) return 0;
+      return parseFloat(str.replace(/[R$\\s.]/g, '').replace(',', '.')) || 0;
+    }
+
+    // Encontrar dropdown de unidade — no Gympass portal, geralmente eh um <select> ou
+    // um botão que abre um menu. Vamos tentar varias estrategias.
+    let unitOptions = [];
+
+    // Estrategia 1: <select> element
+    const selects = document.querySelectorAll('select');
+    for (const sel of selects) {
+      const opts = Array.from(sel.options).filter(o => o.value && o.textContent.trim());
+      const matchingOpts = opts.filter(o => {
+        const t = o.textContent.toLowerCase();
+        return ['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep','black sheep'].some(k => t.includes(k));
+      });
+      if (matchingOpts.length > 0) {
+        unitOptions = matchingOpts.map(o => ({ text: o.textContent.trim(), value: o.value, select: sel }));
+        ui.log('Dropdown <select> encontrado com ' + unitOptions.length + ' unidades');
+        break;
+      }
+    }
+
+    // Estrategia 2: Botao dropdown customizado (React)
+    if (unitOptions.length === 0) {
+      // Procurar botao que contem nome de unidade
+      const allButtons = document.querySelectorAll('button, [role="button"], [class*="dropdown"], [class*="select"]');
+      let dropdownBtn = null;
+      for (const btn of allButtons) {
+        const t = btn.textContent.toLowerCase();
+        if (['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep'].some(k => t.includes(k))) {
+          if (btn.offsetHeight < 100) { // provavelmente eh o botao do dropdown, nao um card
+            dropdownBtn = btn;
+            break;
+          }
+        }
+      }
+
+      if (dropdownBtn) {
+        ui.log('Botao dropdown encontrado: ' + dropdownBtn.textContent.trim().substring(0, 50));
+        dropdownBtn.click();
+        await new Promise(r => setTimeout(r, 1000));
+
+        // Pegar opcoes do menu aberto
+        const menuItems = document.querySelectorAll('[role="option"], [role="menuitem"], [class*="option"], [class*="menu-item"], li');
+        const items = Array.from(menuItems).filter(el => {
+          const t = el.textContent.toLowerCase();
+          return ['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep','black sheep'].some(k => t.includes(k));
+        });
+
+        if (items.length > 0) {
+          unitOptions = items.map(el => ({ text: el.textContent.trim(), element: el }));
+          ui.log('Menu dropdown com ' + unitOptions.length + ' opcoes');
+          // Fechar o dropdown antes de comecar
+          dropdownBtn.click();
+          await new Promise(r => setTimeout(r, 500));
+        }
+      }
+    }
+
+    // Se nao encontrou dropdown, extrair apenas a unidade atual
+    if (unitOptions.length === 0) {
+      ui.log('Nenhum dropdown encontrado — extraindo unidade atual');
+      unitOptions = [{ text: 'Unidade Atual', current: true }];
+    }
+
+    ui.log('Unidades detectadas: ' + unitOptions.map(u => u.text).join(', '));
+
+    // Iterar por cada unidade
+    const allUnits = [];
+    for (let i = 0; i < unitOptions.length; i++) {
+      const opt = unitOptions[i];
+      const pct = Math.round(((i + 1) / unitOptions.length) * 100);
+      ui.progress(pct);
+      ui.status('(' + (i+1) + '/' + unitOptions.length + ') ' + opt.text);
+
+      // Selecionar unidade
+      if (!opt.current) {
+        if (opt.select) {
+          // <select> element
+          opt.select.value = opt.value;
+          opt.select.dispatchEvent(new Event('change', { bubbles: true }));
+        } else if (opt.element) {
+          // Abrir dropdown, clicar na opcao
+          const allBtns = document.querySelectorAll('button, [role="button"], [class*="dropdown"], [class*="select"]');
+          for (const btn of allBtns) {
+            const t = btn.textContent.toLowerCase();
+            if (['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep'].some(k => t.includes(k)) && btn.offsetHeight < 100) {
+              btn.click();
+              break;
+            }
+          }
+          await new Promise(r => setTimeout(r, 800));
+
+          // Clicar na opcao via JavaScript (mais confiavel que click por coord)
+          const items = document.querySelectorAll('[role="option"], [role="menuitem"], [class*="option"], li');
+          for (const item of items) {
+            if (item.textContent.trim() === opt.text) {
+              item.click();
+              break;
+            }
+          }
+        }
+
+        await new Promise(r => setTimeout(r, 3000)); // esperar dados carregarem
+      }
+
+      // Extrair dados da pagina
+      const mainText = (document.querySelector('main') || document.querySelector('[class*="content"]') || document.body).innerText;
+
+      // Tentar extrair tabelas
+      const tables = [];
+      document.querySelectorAll('table').forEach(t => {
+        const rows = [];
+        t.querySelectorAll('tr').forEach(tr => {
+          const cells = [];
+          tr.querySelectorAll('td, th').forEach(td => cells.push(td.innerText.trim()));
+          if (cells.length) rows.push(cells);
+        });
+        if (rows.length) tables.push(rows);
+      });
+
+      // Tentar parsear valores de receita do texto
+      const reaisMatches = mainText.match(/R\\$\\s*[\\d.,]+/g) || [];
+      const reaisValues = reaisMatches.map(parseReais).filter(v => v > 0);
+
+      allUnits.push({
+        nome: normUnit(opt.text),
+        raw_text: mainText.substring(0, 8000),
+        tables: tables,
+        reais_found: reaisValues,
+        url: location.href
+      });
+
+      ui.log('  ' + normUnit(opt.text) + ': ' + reaisMatches.length + ' valores encontrados');
+    }
+
+    // Montar payload — enviar como raw pra AI parsing fazer a magica
+    const now = new Date();
+    const periodo = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+
+    const rawPages = allUnits.map(u => ({
+      url: u.url,
+      title: 'Gympass Finance - ' + u.nome,
+      text: 'UNIDADE: ' + u.nome + '\\n\\n' + u.raw_text,
+      tables: u.tables
+    }));
+
+    ui.status('Enviando ' + allUnits.length + ' unidades pro Firebase...');
+    ui.log('\\nEnviando dados para parsing...');
+
+    const result = await bsSend('gympass', {
+      raw_pages: rawPages,
+      needs_parsing: true,
+      extracted_units: allUnits.map(u => u.nome),
+      hint: 'Cada raw_page corresponde a uma unidade diferente. O título indica qual unidade. Extraia receita do mês atual (' + periodo + ') e checkins de cada uma.'
+    }, periodo);
+
+    if (result.success) {
+      ui.success('Extração completa! ' + allUnits.length + ' unidades enviadas');
+      ui.log('\\nPeriodo: ' + result.periodo);
+      if (result.consolidated) {
+        ui.log('Gympass receita total: R$ ' + (result.consolidated.totais?.gympass_receita || 0).toLocaleString('pt-BR'));
+      }
+    } else {
+      ui.error('Erro: ' + (result.error || 'Falha'));
+      ui.log('Resposta: ' + JSON.stringify(result));
+    }
+
+  } catch(err) {
+    ui.error('Erro: ' + err.message);
+    ui.log(err.stack || err.message);
+  }
+
+  ui.close(15000);
+})();
+`;
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TOTALPASS BOOKMARKLET v2
+// ══════════════════════════════════════════════════════════════════════════════
+const totalpassCode = `
+(async function() {
+  ${HELPERS}
+
+  const ui = bsOverlay('BlackSheep - Totalpass');
+
+  try {
+    if (!location.hostname.includes('totalpass.com')) {
+      ui.error('Abra em booking.totalpass.com!');
+      ui.close(3000);
+      return;
+    }
+
+    const UNIT_MAP = {
+      'berrini': 'Berrini', 'itaim': 'Itaim',
+      'vila olimpia': 'Vila Olímpia', 'vila olímpia': 'Vila Olímpia',
+      'moema': 'Moema', 'pinheiros': 'Pinheiros', 'alphaville': 'Alphaville'
+    };
+    function normUnit(name) {
+      const lower = (name || '').toLowerCase().trim();
+      for (const [k, v] of Object.entries(UNIT_MAP)) {
+        if (lower.includes(k)) return v;
+      }
+      return name;
+    }
+
+    function parseReais(str) {
+      if (!str) return 0;
+      return parseFloat(str.replace(/[R$\\s.]/g, '').replace(',', '.')) || 0;
+    }
+
+    ui.status('Buscando unidades...');
+
+    // Tentar API interna do Totalpass
+    let gyms = [];
+    try {
+      const gymRes = await fetch('/api/gym/v1/gyms', { credentials: 'include' });
+      if (gymRes.ok) {
+        const gymData = await gymRes.json();
+        gyms = gymData.data || gymData.gyms || gymData || [];
+        if (!Array.isArray(gyms)) gyms = [gyms];
+        ui.log('API: ' + gyms.length + ' unidades encontradas');
+      }
+    } catch(e) {
+      ui.log('API /api/gym/v1/gyms falhou: ' + e.message);
+    }
+
+    // Fallback: DOM dropdown
+    if (gyms.length === 0) {
+      ui.log('Tentando via dropdown DOM...');
+      // Procurar dropdown de unidade no Totalpass
+      const selects = document.querySelectorAll('select');
+      for (const sel of selects) {
+        const opts = Array.from(sel.options);
+        const matching = opts.filter(o => {
+          const t = o.textContent.toLowerCase();
+          return ['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep','black sheep'].some(k => t.includes(k));
+        });
+        if (matching.length > 0) {
+          gyms = matching.map(o => ({ name: o.textContent.trim(), id: o.value, _select: sel }));
+          ui.log('DOM dropdown: ' + gyms.length + ' unidades');
+          break;
+        }
+      }
+
+      // Tentar botoes dropdown customizados
+      if (gyms.length === 0) {
+        const dropdowns = document.querySelectorAll('[class*="dropdown"], [class*="select"], button');
+        for (const dd of dropdowns) {
+          if (dd.textContent.toLowerCase().match(/berrini|itaim|vila|moema|pinheiros|alphaville/)) {
+            dd.click();
+            await new Promise(r => setTimeout(r, 800));
+            const items = document.querySelectorAll('[role="option"], [role="menuitem"], [class*="item"]');
+            const matching = Array.from(items).filter(el => {
+              const t = el.textContent.toLowerCase();
+              return ['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep'].some(k => t.includes(k));
+            });
+            if (matching.length > 0) {
+              gyms = matching.map(el => ({ name: el.textContent.trim(), _element: el }));
+              dd.click(); // fechar
+              await new Promise(r => setTimeout(r, 300));
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    // Se nao encontrou gym algum, extrair pagina atual como raw
+    if (gyms.length === 0) {
+      ui.log('Nenhuma unidade detectada — extraindo pagina atual');
+      gyms = [{ name: 'Pagina Atual', _current: true }];
+    }
+
+    const now = new Date();
+    const periodo = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+    const allData = [];
+
+    for (let i = 0; i < gyms.length; i++) {
+      const gym = gyms[i];
+      const gymName = gym.name || gym.gym_name || gym.place_name || ('Unidade ' + i);
+      const pct = Math.round(((i+1) / gyms.length) * 100);
+      ui.progress(pct);
+      ui.status('(' + (i+1) + '/' + gyms.length + ') ' + gymName);
+
+      // Selecionar unidade
+      if (!gym._current) {
+        if (gym.id && !gym._select) {
+          // API: trocar unidade ativa
+          try {
+            await fetch('/api/gym/v1/gyms/' + (gym.identifier || gym.id) + '/select', {
+              method: 'POST', credentials: 'include'
+            });
+            await new Promise(r => setTimeout(r, 1500));
+          } catch(e) {}
+        } else if (gym._select) {
+          gym._select.value = gym.id;
+          gym._select.dispatchEvent(new Event('change', { bubbles: true }));
+          await new Promise(r => setTimeout(r, 2000));
+        } else if (gym._element) {
+          // Reabrir dropdown e clicar
+          const dropdowns = document.querySelectorAll('[class*="dropdown"], [class*="select"], button');
+          for (const dd of dropdowns) {
+            if (dd.textContent.toLowerCase().match(/berrini|itaim|vila|moema|pinheiros|alphaville/)) {
+              dd.click();
+              await new Promise(r => setTimeout(r, 500));
+              break;
+            }
+          }
+          gym._element.click();
+          await new Promise(r => setTimeout(r, 2000));
+        }
+      }
+
+      // Tentar dashboard API
+      let apiData = null;
+      try {
+        const dashRes = await fetch('/api/gym/v1/dashboard_usages/summary', { credentials: 'include' });
+        if (dashRes.ok) {
+          apiData = await dashRes.json();
+          ui.log('  ' + gymName + ': dados via API');
+        }
+      } catch(e) {}
+
+      // Extrair do DOM
+      const pageText = (document.querySelector('main') || document.body).innerText;
+      const reaisMatches = pageText.match(/R\\$\\s*[\\d.,]+/g) || [];
+
+      allData.push({
+        nome: normUnit(gymName),
+        api_data: apiData,
+        raw_text: pageText.substring(0, 8000),
+        reais_found: reaisMatches.map(parseReais),
+        url: location.href
+      });
+    }
+
+    // Tentar estruturar dados se API retornou
+    const structured = allData.map(u => {
+      if (u.api_data) {
+        const d = u.api_data.data || u.api_data;
+        return {
+          nome: u.nome,
+          checkins: d.total_visits || d.visits || d.checkins || 0,
+          receita: d.total_revenue || d.revenue || d.amount || 0,
+          tarifa_media: d.average_rate || 0
+        };
+      }
+      return {
+        nome: u.nome,
+        checkins: 0,
+        receita: u.reais_found[0] || 0,
+        tarifa_media: 0
+      };
+    });
+
+    const hasRealData = structured.some(u => u.receita > 0 || u.checkins > 0);
+
+    if (hasRealData) {
+      // Enviar dados estruturados
+      const payload = {
+        periodo: periodo,
+        unidades: structured,
+        total_checkins: structured.reduce((s,u) => s + u.checkins, 0),
+        total_receita: structured.reduce((s,u) => s + u.receita, 0)
+      };
+      ui.status('Enviando dados estruturados...');
+      const result = await bsSend('totalpass', payload, periodo);
+      if (result.success) {
+        ui.success('Totalpass OK! ' + structured.length + ' unidades');
+        ui.log('\\nTotal receita: R$ ' + payload.total_receita.toLocaleString('pt-BR'));
+      } else {
+        ui.error('Erro: ' + result.error);
+      }
+    } else {
+      // Enviar raw pra AI parsing
+      ui.status('Enviando pra parsing por IA...');
+      const rawPages = allData.map(u => ({
+        url: u.url,
+        title: 'Totalpass - ' + u.nome,
+        text: 'UNIDADE: ' + u.nome + '\\n\\n' + u.raw_text
+      }));
+      const result = await bsSend('totalpass', {
+        raw_pages: rawPages,
+        needs_parsing: true,
+        extracted_units: allData.map(u => u.nome)
+      }, periodo);
+      if (result.success) {
+        ui.success('Dados enviados pra parsing!');
+      } else {
+        ui.error('Erro: ' + result.error);
+      }
+    }
+
+  } catch(err) {
+    ui.error('Erro: ' + err.message);
+    ui.log(err.stack || err.message);
+  }
+
+  ui.close(15000);
+})();
+`;
+
+// ══════════════════════════════════════════════════════════════════════════════
+// WHATSAPP BOOKMARKLET — Extrai planos do grupo "Planos BLACKSHEEP"
+// ══════════════════════════════════════════════════════════════════════════════
+const whatsappCode = `
+(async function() {
+  ${HELPERS}
+
+  const ui = bsOverlay('BlackSheep - WhatsApp Planos');
+
+  try {
+    if (!location.hostname.includes('whatsapp.com')) {
+      ui.error('Abra em web.whatsapp.com!');
+      ui.close(3000);
+      return;
+    }
+
+    ui.status('Extraindo mensagens do grupo...');
+
+    // Pegar todo o texto visivel na tela
+    // WhatsApp virtualiza mensagens, entao pegamos o que esta no viewport
+    const fullText = document.body.innerText;
+
+    // Verificar se estamos no grupo certo
+    const isPlanos = fullText.toLowerCase().includes('planos') || fullText.toLowerCase().includes('blacksheep');
+    if (!isPlanos) {
+      ui.log('AVISO: Nao parece ser o grupo Planos BLACKSHEEP');
+      ui.log('Continuando mesmo assim...');
+    }
+
+    // Tentar pegar mensagens do container principal de chat
+    let messagesText = '';
+
+    // Metodo 1: Pegar texto da area de mensagens
+    const messageContainer = document.querySelector('[data-tab="8"]') // area de mensagens
+      || document.querySelector('[role="application"]')
+      || document.querySelector('div[class*="message-list"]');
+
+    if (messageContainer) {
+      messagesText = messageContainer.innerText;
+      ui.log('Container de mensagens: ' + messagesText.length + ' chars');
+    }
+
+    // Metodo 2: Se tiver resultados de busca abertos, pegar esses tambem
+    const searchResults = fullText.split('Pesquisar mensagens');
+    if (searchResults.length > 1) {
+      const searchText = searchResults[searchResults.length - 1];
+      // Pegar ate o proximo marcador
+      const endMarkers = ['Use o WhatsApp', 'Mensagens fixadas', 'WhatsApp Messenger'];
+      let resultText = searchText;
+      for (const marker of endMarkers) {
+        const idx = resultText.indexOf(marker);
+        if (idx > 0) resultText = resultText.substring(0, idx);
+      }
+      messagesText += '\\n\\n=== RESULTADOS DA BUSCA ===\\n' + resultText;
+      ui.log('Resultados de busca incluidos: ' + resultText.length + ' chars');
+    }
+
+    // Fallback: texto completo
+    if (!messagesText || messagesText.length < 100) {
+      messagesText = fullText;
+      ui.log('Usando texto completo da pagina: ' + messagesText.length + ' chars');
+    }
+
+    const now = new Date();
+    const periodo = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+
+    ui.status('Enviando pra parsing por IA...');
+    ui.log('\\nTexto total: ' + messagesText.length + ' chars');
+    ui.log('Periodo: ' + periodo);
+
+    // Enviar como raw pra AI parsing — Claude AI vai extrair os planos
+    const result = await bsSend('planos', {
+      raw_pages: [{
+        url: location.href,
+        title: 'WhatsApp - Planos BLACKSHEEP',
+        text: messagesText.substring(0, 60000) // limite de seguranca
+      }],
+      needs_parsing: true,
+      hint: 'Extraia planos de academia vendidos. Cada mensagem tipicamente contem: nome do aluno, unidade (Moema/Pinheiros/Berrini/Itaim/Vila Olimpia/Alphaville), tipo de plano (mensal/trimestral/semestral/anual), e valor. Agrupe por unidade.'
+    }, periodo);
+
+    if (result.success) {
+      ui.success('Planos enviados!');
+      ui.log('Periodo: ' + result.periodo);
+      if (result.consolidated) {
+        ui.log('Planos fechados: ' + (result.consolidated.totais?.planos_fechados || '?'));
+        ui.log('Valor total: R$ ' + (result.consolidated.totais?.planos_valor || 0).toLocaleString('pt-BR'));
+      }
+    } else {
+      ui.error('Erro: ' + (result.error || 'Falha'));
+      ui.log(JSON.stringify(result));
+    }
+
+  } catch(err) {
+    ui.error('Erro: ' + err.message);
+    ui.log(err.stack || err.message);
+  }
+
+  ui.close(15000);
+})();
+`;
+
+    // Gerar bookmarklet URLs
+    document.getElementById('gympass-bm').href = 'javascript:' + encodeURIComponent(gympassCode.trim());
+    document.getElementById('totalpass-bm').href = 'javascript:' + encodeURIComponent(totalpassCode.trim());
+    document.getElementById('whatsapp-bm').href = 'javascript:' + encodeURIComponent(whatsappCode.trim());
+  </script>
+</body>
+</html>
