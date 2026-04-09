@@ -579,7 +579,6 @@
   <!-- Tabs -->
   <div class="tabs">
     <button class="tab active" onclick="showTab('visao-geral', this)">Visão Geral</button>
-    <button class="tab" onclick="showTab('professores', this)">Professores</button>
     <button class="tab" onclick="showTab('gympass', this)">Gympass / Totalpass</button>
     <button class="tab" onclick="showTab('alunos', this)">Alunos</button>
     <button class="tab" onclick="showTab('financeiro', this)">Financeiro</button>
@@ -608,11 +607,6 @@
         <div class="kpi-value" id="kpi-wellhub">—</div>
         <div class="kpi-sub" id="kpi-wellhub-receita">receita —</div>
       </div>
-      <div class="kpi">
-        <div class="kpi-label">Professores Pagos</div>
-        <div class="kpi-value" id="kpi-profs">—</div>
-        <div class="kpi-sub" id="kpi-profs-total">total pago —</div>
-      </div>
     </div>
 
     <div class="section-title">Unidades</div>
@@ -632,29 +626,6 @@
     </div>
   </div>
 
-  <!-- PROFESSORES -->
-  <div id="professores" class="tab-content">
-    <div class="section-title">Pagamento de Professores</div>
-    <div class="table-wrap">
-      <table id="table-professores">
-        <thead>
-          <tr>
-            <th>Professor</th>
-            <th>Unidade</th>
-            <th>Aulas</th>
-            <th>Valor/Aula</th>
-            <th>Subtotal Aulas</th>
-            <th>Sala Personal</th>
-            <th>Bônus</th>
-            <th>Total a Pagar</th>
-          </tr>
-        </thead>
-        <tbody id="tbody-professores">
-          <tr><td colspan="8" style="text-align:center; color:var(--gray); padding:3rem;">Nenhum dado carregado</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
 
   <!-- GYMPASS / TOTALPASS -->
   <div id="gympass" class="tab-content">
@@ -884,8 +855,7 @@ function renderDashboard(data) {
     '+' + d.total_novos + ' novos, -' + d.total_cancel + ' cancel.';
   document.getElementById('kpi-wellhub').textContent = (d.total_ci_gp + d.total_ci_tp) + ' check-ins';
   document.getElementById('kpi-wellhub-receita').textContent = 'receita ' + fmt(d.total_wellhub);
-  document.getElementById('kpi-profs').textContent = d.profsProcessado.length;
-  document.getElementById('kpi-profs-total').textContent = 'total ' + fmt(d.total_profs);
+  // Professores KPIs removed
 
   // Units grid
   const ug = document.getElementById('units-grid');
@@ -961,20 +931,7 @@ function renderDashboard(data) {
       </div>
     </div>`;
 
-  // Table Professores
-  const tbody_p = document.getElementById('tbody-professores');
-  tbody_p.innerHTML = d.profsProcessado.map(p=>`
-    <tr>
-      <td class="td-name">${p.nome}</td>
-      <td class="td-gray">${p.unidade}</td>
-      <td>${p.aulas}</td>
-      <td class="td-gray">R$ ${p.val_aula}</td>
-      <td>${fmt(p.sub_aulas)}</td>
-      <td>${p.personal>0?fmt(p.personal):'<span style="color:var(--gray)">—</span>'}</td>
-      <td>${p.bonus>0?fmt(p.bonus):'<span style="color:var(--gray)">—</span>'}</td>
-      <td class="td-gold">${fmt(p.total)}</td>
-    </tr>`).join('') +
-    `<tr class="total-row"><td colspan="7">TOTAL PROFESSORES</td><td>${fmt(d.total_profs)}</td></tr>`;
+  // Table Professores removed
 
   // Wellhub cards por unidade
   const maxTotal = Math.max(...d.gpProcessado.map(g=>g.total));
@@ -1106,22 +1063,17 @@ function firestoreParaDashboard(data) {
   const pl = data.planos;
 
   // Gympass/Totalpass → formato esperado
-  // Passa receita direta (rec_gp/rec_tp) pra processar() usar quando checkins=0
   const gympass = UNIDADES.map(u => {
     const gpU = (gp?.unidades || []).find(x => x.nome === u) || {};
     const tpU = (tp?.unidades || []).find(x => x.nome === u) || {};
-    const gp_rec = gpU.receita || 0;
-    const gp_ci = gpU.checkins || 0;
-    const tp_rec = tpU.receita || 0;
-    const tp_ci = tpU.checkins || 0;
     return {
       unidade: u,
-      ci_gp: gp_ci,
-      val_gp: gp_ci ? gp_rec / gp_ci : 0,
-      rec_gp: gp_rec,
-      ci_tp: tp_ci,
-      val_tp: tp_ci ? tp_rec / tp_ci : 0,
-      rec_tp: tp_rec,
+      ci_gp: gpU.checkins || 0,
+      val_gp: gpU.checkins ? (gpU.receita || 0) / gpU.checkins : 0,
+      rec_gp: gpU.receita || 0,
+      ci_tp: tpU.checkins || 0,
+      val_tp: tpU.checkins ? (tpU.receita || 0) / tpU.checkins : 0,
+      rec_tp: tpU.receita || 0,
     };
   });
 
