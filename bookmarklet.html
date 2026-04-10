@@ -30,17 +30,19 @@
 
   <!-- GYMPASS -->
   <div class="card">
-    <h2>Gympass / Wellhub <span class="badge">v2</span></h2>
-    <p>Extrai receita e check-ins de <strong>todas as unidades</strong> do login atual automaticamente. Percorre o dropdown de unidades, coleta dados de Finanças de cada uma e envia tudo pro Firebase.</p>
+    <h2>Gympass / Wellhub <span class="badge">v3</span></h2>
+    <p>Extrai receita <strong>E check-ins</strong> de todas as unidades. Funciona em 2 fases automáticas: primeiro coleta receita (Finanças), depois coleta check-ins (Check-ins). Permite escolher o mês.</p>
     <p><a class="bookmarklet-link" id="gympass-bm" href="#">Extrair Gympass</a></p>
     <div class="instructions">
       <p><strong>Como usar:</strong></p>
       <ol>
         <li>Arraste o botão verde para a <strong>barra de favoritos</strong> do Chrome</li>
         <li>Acesse <a href="https://partners.gympass.com" style="color:#4ade80">partners.gympass.com</a> e faça login</li>
-        <li>Vá até <strong>Finanças</strong> (menu lateral)</li>
-        <li>Clique no bookmarklet — ele percorre todas as unidades do dropdown</li>
-        <li><strong>Repita para cada conta</strong> (são 3 logins: Berrini/Itaim/VO, Pinheiros/Alphaville, Moema)</li>
+        <li>Vá até <strong>Finanças</strong> ou <strong>Check-ins</strong> (menu lateral)</li>
+        <li>Clique no bookmarklet — ele vai pedir o mês desejado</li>
+        <li>Fase 1: coleta receita de todas as unidades</li>
+        <li>Fase 2: redireciona para Check-ins e <strong>clique o bookmarklet de novo</strong></li>
+        <li><strong>Repita para cada conta</strong> (3 logins)</li>
       </ol>
       <p class="warning">⚠ Não mude de aba enquanto o bookmarklet estiver rodando!</p>
     </div>
@@ -48,24 +50,24 @@
 
   <!-- TOTALPASS -->
   <div class="card">
-    <h2>Totalpass <span class="badge">v2</span></h2>
-    <p>Extrai receita, check-ins e previsão de todas as unidades do portal Totalpass.</p>
+    <h2>Totalpass <span class="badge">v3</span></h2>
+    <p>Extrai receita, check-ins (visitas) e pessoas de todas as unidades do Dashboard Totalpass. Permite escolher o mês.</p>
     <p><a class="bookmarklet-link" id="totalpass-bm" href="#">Extrair Totalpass</a></p>
     <div class="instructions">
       <p><strong>Como usar:</strong></p>
       <ol>
         <li>Arraste o botão verde para a <strong>barra de favoritos</strong></li>
         <li>Acesse <a href="https://booking.totalpass.com/br/dashboard" style="color:#4ade80">booking.totalpass.com</a> e faça login</li>
-        <li>Na página do <strong>Dashboard</strong> ou <strong>Financeiro</strong>, clique no bookmarklet</li>
-        <li>Aguarde — ele percorre todas as unidades e envia pro Firebase</li>
+        <li>Na página do <strong>Dashboard / Visão Geral</strong>, clique no bookmarklet</li>
+        <li>Ele vai pedir o mês e percorrer todas as unidades automaticamente</li>
       </ol>
     </div>
   </div>
 
   <!-- WHATSAPP -->
   <div class="card">
-    <h2>WhatsApp - Planos <span class="badge new">NOVO</span></h2>
-    <p>Extrai os planos vendidos do grupo <strong>"Planos BLACKSHEEP"</strong> no WhatsApp Web. Usa a busca interna pra pegar mensagens do mês atual.</p>
+    <h2>WhatsApp - Planos <span class="badge">v2</span></h2>
+    <p>Extrai os planos vendidos do grupo <strong>"Planos BLACKSHEEP"</strong> no WhatsApp Web. Permite escolher o mês.</p>
     <p><a class="bookmarklet-link" id="whatsapp-bm" href="#">Extrair Planos</a></p>
     <div class="instructions">
       <p><strong>Como usar:</strong></p>
@@ -85,7 +87,7 @@
       <li>Gympass conta 1 (tatabbm@me.com → Berrini, Itaim, Vila Olímpia)</li>
       <li>Gympass conta 2 (rebane@bjjblacksheepfit.com → Pinheiros, Alphaville)</li>
       <li>Gympass conta 3 (blacksheepmoema@gmail.com → Moema)</li>
-      <li>Totalpass (rebane@crossfitblacksheep.com.br)</li>
+      <li>Totalpass (rebane@crossfitblacksheep.com.br → todas 6 unidades)</li>
       <li>WhatsApp grupo "Planos BLACKSHEEP"</li>
     </ol>
   </div>
@@ -132,219 +134,416 @@ async function bsSend(source, data, periodo) {
   return res.json();
 }`;
 
-const HELPERS = OVERLAY_FN + '\n' + SEND_FN;
+const UNIT_MAP_FN = `
+const UNIT_MAP = {
+  'berrini': 'Berrini', 'itaim': 'Itaim',
+  'vila olimpia': 'Vila Olímpia', 'vila olímpia': 'Vila Olímpia',
+  'moema': 'Moema', 'pinheiros': 'Pinheiros', 'alphaville': 'Alphaville'
+};
+function normUnit(name) {
+  const lower = (name || '').toLowerCase().trim();
+  for (const [k, v] of Object.entries(UNIT_MAP)) {
+    if (lower.includes(k)) return v;
+  }
+  return name;
+}
+function parseReais(str) {
+  if (!str) return 0;
+  return parseFloat(str.replace(/[R$\\s.]/g, '').replace(',', '.')) || 0;
+}`;
+
+const PERIODO_FN = `
+function askPeriodo() {
+  const now = new Date();
+  const defaultP = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  const input = prompt('Período para extração (YYYY-MM):', defaultP);
+  if (!input) return null;
+  const match = input.match(/(\\d{4})-(\\d{1,2})/);
+  if (!match) { alert('Formato inválido. Use YYYY-MM (ex: 2026-03)'); return null; }
+  return match[1] + '-' + match[2].padStart(2, '0');
+}`;
+
+const HELPERS = OVERLAY_FN + '\n' + SEND_FN + '\n' + UNIT_MAP_FN + '\n' + PERIODO_FN;
 
 // ══════════════════════════════════════════════════════════════════════════════
-// GYMPASS BOOKMARKLET v2
-// Percorre TODAS as unidades do dropdown, extrai dados de Finanças de cada uma
+// GYMPASS BOOKMARKLET v3
+// Two-phase: Finance (receita) → Check-ins (check-ins history)
+// Uses sessionStorage to pass data between phases
 // ══════════════════════════════════════════════════════════════════════════════
 const gympassCode = `
 (async function() {
   ${HELPERS}
 
+  const isFinance = location.pathname.includes('finance');
+  const isCheckins = location.pathname.includes('checkins');
+
+  // If not on either page, redirect to finance
+  if (!location.hostname.includes('gympass.com') && !location.hostname.includes('wellhub.com')) {
+    alert('Abra em partners.gympass.com primeiro!');
+    return;
+  }
+
+  if (!isFinance && !isCheckins) {
+    location.href = '/new/finance';
+    return;
+  }
+
   const ui = bsOverlay('BlackSheep - Gympass');
 
   try {
-    // Verificar se estamos no portal certo
-    if (!location.hostname.includes('gympass.com') && !location.hostname.includes('wellhub.com')) {
-      ui.error('Abra em partners.gympass.com!');
-      ui.close(3000);
-      return;
-    }
+    // Ask for periodo (only on phase 1, or if no stored data)
+    let periodo;
+    const stored = sessionStorage.getItem('bs_gympass_phase');
 
-    // Navegar para finance se necessario
-    if (!location.pathname.includes('finance')) {
-      ui.status('Redirecionando para Finanças...');
-      location.href = '/new/finance';
-      return;
-    }
+    if (isFinance) {
+      // PHASE 1: Scrape finance data
+      periodo = askPeriodo();
+      if (!periodo) { ui.error('Cancelado'); ui.close(2000); return; }
 
-    ui.status('Detectando unidades...');
-    ui.log('URL: ' + location.href);
-    await new Promise(r => setTimeout(r, 2000)); // esperar SPA carregar
+      ui.status('FASE 1: Coletando receita...');
+      ui.log('Período: ' + periodo);
+      await new Promise(r => setTimeout(r, 2000)); // wait SPA
 
-    // Normalizar nome da unidade
-    const UNIT_MAP = {
-      'berrini': 'Berrini', 'itaim': 'Itaim',
-      'vila olimpia': 'Vila Olímpia', 'vila olímpia': 'Vila Olímpia',
-      'moema': 'Moema', 'pinheiros': 'Pinheiros', 'alphaville': 'Alphaville'
-    };
-    function normUnit(name) {
-      const lower = (name || '').toLowerCase().trim();
-      for (const [k, v] of Object.entries(UNIT_MAP)) {
-        if (lower.includes(k)) return v;
+      // Find unit dropdown
+      let unitOptions = [];
+
+      // Strategy 1: <select> element
+      const selects = document.querySelectorAll('select');
+      for (const sel of selects) {
+        const opts = Array.from(sel.options).filter(o => o.value && o.textContent.trim());
+        const matchingOpts = opts.filter(o => {
+          const t = o.textContent.toLowerCase();
+          return ['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep','black sheep'].some(k => t.includes(k));
+        });
+        if (matchingOpts.length > 0) {
+          unitOptions = matchingOpts.map(o => ({ text: o.textContent.trim(), value: o.value, select: sel }));
+          ui.log('Dropdown <select>: ' + unitOptions.length + ' unidades');
+          break;
+        }
       }
-      return name;
-    }
 
-    function parseReais(str) {
-      if (!str) return 0;
-      return parseFloat(str.replace(/[R$\\s.]/g, '').replace(',', '.')) || 0;
-    }
-
-    // Encontrar dropdown de unidade — no Gympass portal, geralmente eh um <select> ou
-    // um botão que abre um menu. Vamos tentar varias estrategias.
-    let unitOptions = [];
-
-    // Estrategia 1: <select> element
-    const selects = document.querySelectorAll('select');
-    for (const sel of selects) {
-      const opts = Array.from(sel.options).filter(o => o.value && o.textContent.trim());
-      const matchingOpts = opts.filter(o => {
-        const t = o.textContent.toLowerCase();
-        return ['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep','black sheep'].some(k => t.includes(k));
-      });
-      if (matchingOpts.length > 0) {
-        unitOptions = matchingOpts.map(o => ({ text: o.textContent.trim(), value: o.value, select: sel }));
-        ui.log('Dropdown <select> encontrado com ' + unitOptions.length + ' unidades');
-        break;
+      // Strategy 2: Custom dropdown (React)
+      if (unitOptions.length === 0) {
+        const allButtons = document.querySelectorAll('button, [role="button"], [class*="dropdown"], [class*="select"]');
+        let dropdownBtn = null;
+        for (const btn of allButtons) {
+          const t = btn.textContent.toLowerCase();
+          if (['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep'].some(k => t.includes(k))) {
+            if (btn.offsetHeight < 100) { dropdownBtn = btn; break; }
+          }
+        }
+        if (dropdownBtn) {
+          ui.log('Botao dropdown: ' + dropdownBtn.textContent.trim().substring(0, 50));
+          dropdownBtn.click();
+          await new Promise(r => setTimeout(r, 1000));
+          const menuItems = document.querySelectorAll('[role="option"], [role="menuitem"], [class*="option"], [class*="menu-item"], li');
+          const items = Array.from(menuItems).filter(el => {
+            const t = el.textContent.toLowerCase();
+            return ['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep','black sheep'].some(k => t.includes(k));
+          });
+          if (items.length > 0) {
+            unitOptions = items.map(el => ({ text: el.textContent.trim(), element: el }));
+            ui.log('Menu: ' + unitOptions.length + ' opções');
+            dropdownBtn.click();
+            await new Promise(r => setTimeout(r, 500));
+          }
+        }
       }
-    }
 
-    // Estrategia 2: Botao dropdown customizado (React)
-    if (unitOptions.length === 0) {
-      // Procurar botao que contem nome de unidade
-      const allButtons = document.querySelectorAll('button, [role="button"], [class*="dropdown"], [class*="select"]');
-      let dropdownBtn = null;
-      for (const btn of allButtons) {
-        const t = btn.textContent.toLowerCase();
-        if (['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep'].some(k => t.includes(k))) {
-          if (btn.offsetHeight < 100) { // provavelmente eh o botao do dropdown, nao um card
-            dropdownBtn = btn;
+      // Strategy 3: textbox/combobox (like on checkins page)
+      if (unitOptions.length === 0) {
+        const inputs = document.querySelectorAll('input[type="text"], input[role="combobox"], [role="combobox"]');
+        for (const inp of inputs) {
+          const val = inp.value || inp.textContent || '';
+          if (['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep'].some(k => val.toLowerCase().includes(k))) {
+            // Found unit selector input - click to open dropdown
+            inp.click();
+            await new Promise(r => setTimeout(r, 1000));
+            const listItems = document.querySelectorAll('[role="option"], [role="listbox"] li, [class*="option"]');
+            const matching = Array.from(listItems).filter(el => {
+              const t = el.textContent.toLowerCase();
+              return ['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep'].some(k => t.includes(k));
+            });
+            if (matching.length > 0) {
+              unitOptions = matching.map(el => ({ text: el.textContent.trim(), element: el, isCombobox: true, input: inp }));
+              ui.log('Combobox: ' + unitOptions.length + ' opções');
+              document.body.click(); // close
+              await new Promise(r => setTimeout(r, 500));
+            }
             break;
           }
         }
       }
 
-      if (dropdownBtn) {
-        ui.log('Botao dropdown encontrado: ' + dropdownBtn.textContent.trim().substring(0, 50));
-        dropdownBtn.click();
-        await new Promise(r => setTimeout(r, 1000));
+      if (unitOptions.length === 0) {
+        ui.log('Nenhum dropdown — extraindo unidade atual');
+        unitOptions = [{ text: 'Unidade Atual', current: true }];
+      }
 
-        // Pegar opcoes do menu aberto
-        const menuItems = document.querySelectorAll('[role="option"], [role="menuitem"], [class*="option"], [class*="menu-item"], li');
-        const items = Array.from(menuItems).filter(el => {
-          const t = el.textContent.toLowerCase();
-          return ['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep','black sheep'].some(k => t.includes(k));
+      // Iterate units and scrape finance
+      const financeData = [];
+      for (let i = 0; i < unitOptions.length; i++) {
+        const opt = unitOptions[i];
+        const pct = Math.round(((i + 1) / unitOptions.length) * 100);
+        ui.progress(pct);
+        ui.status('Receita (' + (i+1) + '/' + unitOptions.length + ') ' + opt.text);
+
+        if (!opt.current) {
+          if (opt.select) {
+            opt.select.value = opt.value;
+            opt.select.dispatchEvent(new Event('change', { bubbles: true }));
+          } else if (opt.element) {
+            if (opt.isCombobox && opt.input) {
+              opt.input.click();
+            } else {
+              const btns = document.querySelectorAll('button, [role="button"], [class*="dropdown"], [class*="select"]');
+              for (const btn of btns) {
+                const t = btn.textContent.toLowerCase();
+                if (['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep'].some(k => t.includes(k)) && btn.offsetHeight < 100) {
+                  btn.click(); break;
+                }
+              }
+            }
+            await new Promise(r => setTimeout(r, 800));
+            const items = document.querySelectorAll('[role="option"], [role="menuitem"], [class*="option"], li');
+            for (const item of items) {
+              if (item.textContent.trim() === opt.text) { item.click(); break; }
+            }
+          }
+          await new Promise(r => setTimeout(r, 3000));
+        }
+
+        // Scrape finance page
+        const mainEl = document.querySelector('main') || document.querySelector('[class*="content"]') || document.body;
+        const mainText = mainEl.innerText;
+        const tables = [];
+        document.querySelectorAll('table').forEach(t => {
+          const rows = [];
+          t.querySelectorAll('tr').forEach(tr => {
+            const cells = [];
+            tr.querySelectorAll('td, th').forEach(td => cells.push(td.innerText.trim()));
+            if (cells.length) rows.push(cells);
+          });
+          if (rows.length) tables.push(rows);
+        });
+        const reaisMatches = mainText.match(/R\\$\\s*[\\d.,]+/g) || [];
+
+        financeData.push({
+          nome: normUnit(opt.text),
+          raw_text: mainText.substring(0, 8000),
+          tables: tables,
+          reais_found: reaisMatches.map(parseReais).filter(v => v > 0)
         });
 
-        if (items.length > 0) {
-          unitOptions = items.map(el => ({ text: el.textContent.trim(), element: el }));
-          ui.log('Menu dropdown com ' + unitOptions.length + ' opcoes');
-          // Fechar o dropdown antes de comecar
-          dropdownBtn.click();
+        ui.log('  ' + normUnit(opt.text) + ': ' + reaisMatches.length + ' valores R$');
+      }
+
+      // Store finance data and redirect to checkins
+      sessionStorage.setItem('bs_gympass_phase', JSON.stringify({
+        periodo: periodo,
+        finance: financeData
+      }));
+
+      ui.success('Fase 1 completa! Redirecionando para Check-ins...');
+      ui.log('\\nDados de receita salvos. Redirecionando em 3s...');
+      ui.log('>>> Clique o bookmarklet DE NOVO na página de Check-ins <<<');
+
+      setTimeout(() => {
+        if (document.getElementById('bs-overlay')) document.getElementById('bs-overlay').remove();
+        location.href = '/new/checkins';
+      }, 3000);
+
+    } else if (isCheckins) {
+      // PHASE 2: Scrape check-in history
+      const phaseData = sessionStorage.getItem('bs_gympass_phase');
+      let financeData = [];
+
+      if (phaseData) {
+        const parsed = JSON.parse(phaseData);
+        periodo = parsed.periodo;
+        financeData = parsed.finance || [];
+        ui.log('Fase 2: dados de receita carregados (' + financeData.length + ' unidades)');
+      } else {
+        periodo = askPeriodo();
+        if (!periodo) { ui.error('Cancelado'); ui.close(2000); return; }
+        ui.log('Modo direto (sem dados de receita pré-coletados)');
+      }
+
+      ui.status('FASE 2: Coletando check-ins...');
+      ui.log('Período: ' + periodo);
+      await new Promise(r => setTimeout(r, 2000)); // wait SPA
+
+      // Find unit dropdown on checkins page (combobox/input)
+      let unitOptions = [];
+      const inputs = document.querySelectorAll('input[type="text"], input[role="combobox"], [role="combobox"]');
+      for (const inp of inputs) {
+        const val = inp.value || inp.textContent || inp.placeholder || '';
+        if (['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep'].some(k => val.toLowerCase().includes(k))) {
+          inp.click();
+          await new Promise(r => setTimeout(r, 1000));
+          const listItems = document.querySelectorAll('[role="option"], [role="listbox"] li, [class*="option"]');
+          const matching = Array.from(listItems).filter(el => {
+            const t = el.textContent.toLowerCase();
+            return ['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep'].some(k => t.includes(k));
+          });
+          if (matching.length > 0) {
+            unitOptions = matching.map(el => ({ text: el.textContent.trim(), element: el, input: inp }));
+            ui.log('Combobox check-ins: ' + unitOptions.length + ' opções');
+          }
+          document.body.click(); // close
           await new Promise(r => setTimeout(r, 500));
+          break;
         }
       }
-    }
 
-    // Se nao encontrou dropdown, extrair apenas a unidade atual
-    if (unitOptions.length === 0) {
-      ui.log('Nenhum dropdown encontrado — extraindo unidade atual');
-      unitOptions = [{ text: 'Unidade Atual', current: true }];
-    }
-
-    ui.log('Unidades detectadas: ' + unitOptions.map(u => u.text).join(', '));
-
-    // Iterar por cada unidade
-    const allUnits = [];
-    for (let i = 0; i < unitOptions.length; i++) {
-      const opt = unitOptions[i];
-      const pct = Math.round(((i + 1) / unitOptions.length) * 100);
-      ui.progress(pct);
-      ui.status('(' + (i+1) + '/' + unitOptions.length + ') ' + opt.text);
-
-      // Selecionar unidade
-      if (!opt.current) {
-        if (opt.select) {
-          // <select> element
-          opt.select.value = opt.value;
-          opt.select.dispatchEvent(new Event('change', { bubbles: true }));
-        } else if (opt.element) {
-          // Abrir dropdown, clicar na opcao
-          const allBtns = document.querySelectorAll('button, [role="button"], [class*="dropdown"], [class*="select"]');
-          for (const btn of allBtns) {
-            const t = btn.textContent.toLowerCase();
-            if (['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep'].some(k => t.includes(k)) && btn.offsetHeight < 100) {
-              btn.click();
-              break;
-            }
-          }
-          await new Promise(r => setTimeout(r, 800));
-
-          // Clicar na opcao via JavaScript (mais confiavel que click por coord)
-          const items = document.querySelectorAll('[role="option"], [role="menuitem"], [class*="option"], li');
-          for (const item of items) {
-            if (item.textContent.trim() === opt.text) {
-              item.click();
-              break;
-            }
+      // Fallback: try button/select approaches
+      if (unitOptions.length === 0) {
+        const selects = document.querySelectorAll('select');
+        for (const sel of selects) {
+          const matching = Array.from(sel.options).filter(o => {
+            const t = o.textContent.toLowerCase();
+            return ['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep'].some(k => t.includes(k));
+          });
+          if (matching.length > 0) {
+            unitOptions = matching.map(o => ({ text: o.textContent.trim(), value: o.value, select: sel }));
+            break;
           }
         }
-
-        await new Promise(r => setTimeout(r, 3000)); // esperar dados carregarem
       }
 
-      // Extrair dados da pagina
-      const mainText = (document.querySelector('main') || document.querySelector('[class*="content"]') || document.body).innerText;
+      if (unitOptions.length === 0) {
+        ui.log('Nenhum dropdown — extraindo unidade atual');
+        unitOptions = [{ text: 'Unidade Atual', current: true }];
+      }
 
-      // Tentar extrair tabelas
-      const tables = [];
-      document.querySelectorAll('table').forEach(t => {
-        const rows = [];
-        t.querySelectorAll('tr').forEach(tr => {
-          const cells = [];
-          tr.querySelectorAll('td, th').forEach(td => cells.push(td.innerText.trim()));
-          if (cells.length) rows.push(cells);
+      // Iterate units and scrape check-in history
+      const checkinData = [];
+      for (let i = 0; i < unitOptions.length; i++) {
+        const opt = unitOptions[i];
+        const pct = Math.round(((i + 1) / unitOptions.length) * 100);
+        ui.progress(pct);
+        ui.status('Check-ins (' + (i+1) + '/' + unitOptions.length + ') ' + opt.text);
+
+        if (!opt.current) {
+          if (opt.select) {
+            opt.select.value = opt.value;
+            opt.select.dispatchEvent(new Event('change', { bubbles: true }));
+          } else if (opt.element) {
+            opt.input.click();
+            await new Promise(r => setTimeout(r, 800));
+            const items = document.querySelectorAll('[role="option"], [role="listbox"] li, [class*="option"]');
+            for (const item of items) {
+              if (item.textContent.trim() === opt.text) { item.click(); break; }
+            }
+          }
+          await new Promise(r => setTimeout(r, 3000));
+        }
+
+        // Scrape check-in history table
+        // The page shows: heading "abril de 2026" + heading "116 check-ins" for current month
+        // Then a table with rows: "março de 2026" | "471 check-ins"
+        const mainText = (document.querySelector('main') || document.body).innerText;
+
+        // Parse the "Histórico de check-ins" table
+        const monthCheckins = {};
+
+        // Parse current month from headings
+        const currentMonthMatch = mainText.match(/(janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\\s+de\\s+(\\d{4})\\s*\\n\\s*(\\d+)\\s*check-ins/i);
+        if (currentMonthMatch) {
+          const monthNames = {'janeiro':'01','fevereiro':'02','março':'03','abril':'04','maio':'05','junho':'06','julho':'07','agosto':'08','setembro':'09','outubro':'10','novembro':'11','dezembro':'12'};
+          const mKey = currentMonthMatch[2] + '-' + monthNames[currentMonthMatch[1].toLowerCase()];
+          monthCheckins[mKey] = parseInt(currentMonthMatch[3]);
+        }
+
+        // Parse table rows
+        const historyRows = mainText.matchAll(/(janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\\s+de\\s+(\\d{4})\\s*\\n?\\s*(\\d+)\\s*check-ins/gi);
+        const monthNames = {'janeiro':'01','fevereiro':'02','março':'03','abril':'04','maio':'05','junho':'06','julho':'07','agosto':'08','setembro':'09','outubro':'10','novembro':'11','dezembro':'12'};
+        for (const row of historyRows) {
+          const mKey = row[2] + '-' + monthNames[row[1].toLowerCase()];
+          monthCheckins[mKey] = parseInt(row[3]);
+        }
+
+        // Also try table elements directly
+        document.querySelectorAll('table').forEach(tbl => {
+          tbl.querySelectorAll('tr, [role="row"]').forEach(tr => {
+            const text = tr.innerText;
+            const m = text.match(/(janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\\s+de\\s+(\\d{4})/i);
+            const c = text.match(/(\\d+)\\s*check-ins/i);
+            if (m && c) {
+              const mKey = m[2] + '-' + monthNames[m[1].toLowerCase()];
+              monthCheckins[mKey] = parseInt(c[1]);
+            }
+          });
         });
-        if (rows.length) tables.push(rows);
-      });
 
-      // Tentar parsear valores de receita do texto
-      const reaisMatches = mainText.match(/R\\$\\s*[\\d.,]+/g) || [];
-      const reaisValues = reaisMatches.map(parseReais).filter(v => v > 0);
+        const targetCheckins = monthCheckins[periodo] || 0;
 
-      allUnits.push({
-        nome: normUnit(opt.text),
-        raw_text: mainText.substring(0, 8000),
-        tables: tables,
-        reais_found: reaisValues,
-        url: location.href
-      });
+        checkinData.push({
+          nome: normUnit(opt.text),
+          checkins_mes: targetCheckins,
+          historico: monthCheckins,
+          raw_text: mainText.substring(0, 4000)
+        });
 
-      ui.log('  ' + normUnit(opt.text) + ': ' + reaisMatches.length + ' valores encontrados');
-    }
-
-    // Montar payload — enviar como raw pra AI parsing fazer a magica
-    const now = new Date();
-    const periodo = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
-
-    const rawPages = allUnits.map(u => ({
-      url: u.url,
-      title: 'Gympass Finance - ' + u.nome,
-      text: 'UNIDADE: ' + u.nome + '\\n\\n' + u.raw_text,
-      tables: u.tables
-    }));
-
-    ui.status('Enviando ' + allUnits.length + ' unidades pro Firebase...');
-    ui.log('\\nEnviando dados para parsing...');
-
-    const result = await bsSend('gympass', {
-      raw_pages: rawPages,
-      needs_parsing: true,
-      extracted_units: allUnits.map(u => u.nome),
-      hint: 'Cada raw_page corresponde a uma unidade diferente. O título indica qual unidade. Extraia receita do mês atual (' + periodo + ') e checkins de cada uma.'
-    }, periodo);
-
-    if (result.success) {
-      ui.success('Extração completa! ' + allUnits.length + ' unidades enviadas');
-      ui.log('\\nPeriodo: ' + result.periodo);
-      if (result.consolidated) {
-        ui.log('Gympass receita total: R$ ' + (result.consolidated.totais?.gympass_receita || 0).toLocaleString('pt-BR'));
+        ui.log('  ' + normUnit(opt.text) + ': ' + targetCheckins + ' check-ins em ' + periodo);
+        if (Object.keys(monthCheckins).length > 0) {
+          ui.log('    Histórico: ' + Object.entries(monthCheckins).map(([k,v]) => k + '=' + v).join(', '));
+        }
       }
-    } else {
-      ui.error('Erro: ' + (result.error || 'Falha'));
-      ui.log('Resposta: ' + JSON.stringify(result));
+
+      // Combine finance + checkins
+      const combined = checkinData.map(ci => {
+        const fin = financeData.find(f => f.nome === ci.nome) || {};
+        return {
+          nome: ci.nome,
+          checkins: ci.checkins_mes,
+          historico_checkins: ci.historico,
+          finance_raw: fin.raw_text || '',
+          finance_tables: fin.tables || [],
+          finance_reais: fin.reais_found || [],
+          checkins_raw: ci.raw_text
+        };
+      });
+
+      // Build payload
+      const rawPages = combined.map(u => ({
+        url: location.href,
+        title: 'Gympass - ' + u.nome,
+        text: 'UNIDADE: ' + u.nome
+          + '\\n\\nCHECK-INS DO MÊS (' + periodo + '): ' + u.checkins
+          + '\\nHISTÓRICO CHECK-INS: ' + JSON.stringify(u.historico_checkins)
+          + '\\n\\n=== DADOS FINANCEIROS ===\\n' + u.finance_raw
+          + '\\n\\n=== DADOS CHECK-INS ===\\n' + u.checkins_raw,
+        tables: u.finance_tables
+      }));
+
+      ui.status('Enviando ' + combined.length + ' unidades pro Firebase...');
+
+      const result = await bsSend('gympass', {
+        raw_pages: rawPages,
+        needs_parsing: true,
+        extracted_units: combined.map(u => u.nome),
+        checkins_by_unit: Object.fromEntries(combined.map(u => [u.nome, u.checkins])),
+        historico_checkins: Object.fromEntries(combined.map(u => [u.nome, u.historico_checkins])),
+        hint: 'Cada raw_page tem dados de receita (Finanças) e check-ins (Histórico) de uma unidade. '
+          + 'O campo checkins_by_unit já tem os check-ins parseados do mês ' + periodo + '. '
+          + 'Extraia a receita do mês ' + periodo + ' dos dados financeiros. '
+          + 'Os check-ins já foram extraídos e estão em checkins_by_unit.'
+      }, periodo);
+
+      // Clear sessionStorage
+      sessionStorage.removeItem('bs_gympass_phase');
+
+      if (result.success) {
+        ui.success('Extração completa! ' + combined.length + ' unidades');
+        ui.log('\\nPeríodo: ' + result.periodo);
+        combined.forEach(u => {
+          ui.log(u.nome + ': ' + u.checkins + ' check-ins');
+        });
+      } else {
+        ui.error('Erro: ' + (result.error || 'Falha'));
+        ui.log(JSON.stringify(result));
+      }
     }
 
   } catch(err) {
@@ -357,7 +556,9 @@ const gympassCode = `
 `;
 
 // ══════════════════════════════════════════════════════════════════════════════
-// TOTALPASS BOOKMARKLET v2
+// TOTALPASS BOOKMARKLET v3
+// Scrapes Dashboard: receita + visitas + pessoas per unit
+// Uses the unit selector button to iterate all units
 // ══════════════════════════════════════════════════════════════════════════════
 const totalpassCode = `
 (async function() {
@@ -372,202 +573,233 @@ const totalpassCode = `
       return;
     }
 
-    const UNIT_MAP = {
-      'berrini': 'Berrini', 'itaim': 'Itaim',
-      'vila olimpia': 'Vila Olímpia', 'vila olímpia': 'Vila Olímpia',
-      'moema': 'Moema', 'pinheiros': 'Pinheiros', 'alphaville': 'Alphaville'
-    };
-    function normUnit(name) {
-      const lower = (name || '').toLowerCase().trim();
-      for (const [k, v] of Object.entries(UNIT_MAP)) {
-        if (lower.includes(k)) return v;
-      }
-      return name;
+    // Navigate to dashboard if not there
+    if (!location.pathname.includes('dashboard') && !location.pathname.includes('/br')) {
+      location.href = '/br/dashboard';
+      return;
     }
 
-    function parseReais(str) {
-      if (!str) return 0;
-      return parseFloat(str.replace(/[R$\\s.]/g, '').replace(',', '.')) || 0;
-    }
+    const periodo = askPeriodo();
+    if (!periodo) { ui.error('Cancelado'); ui.close(2000); return; }
 
-    ui.status('Buscando unidades...');
+    ui.status('Coletando dados do Dashboard...');
+    ui.log('Período: ' + periodo);
+    await new Promise(r => setTimeout(r, 2000));
 
-    // Tentar API interna do Totalpass
-    let gyms = [];
-    try {
-      const gymRes = await fetch('/api/gym/v1/gyms', { credentials: 'include' });
-      if (gymRes.ok) {
-        const gymData = await gymRes.json();
-        gyms = gymData.data || gymData.gyms || gymData || [];
-        if (!Array.isArray(gyms)) gyms = [gyms];
-        ui.log('API: ' + gyms.length + ' unidades encontradas');
-      }
-    } catch(e) {
-      ui.log('API /api/gym/v1/gyms falhou: ' + e.message);
-    }
+    // Find unit selector — on Totalpass it's a button with the gym name and a chevron
+    // The button contains text like "CrossFit Black Sheep Pinheiros"
+    let unitBtn = null;
+    let unitOptions = [];
 
-    // Fallback: DOM dropdown
-    if (gyms.length === 0) {
-      ui.log('Tentando via dropdown DOM...');
-      // Procurar dropdown de unidade no Totalpass
-      const selects = document.querySelectorAll('select');
-      for (const sel of selects) {
-        const opts = Array.from(sel.options);
-        const matching = opts.filter(o => {
-          const t = o.textContent.toLowerCase();
-          return ['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep','black sheep'].some(k => t.includes(k));
-        });
-        if (matching.length > 0) {
-          gyms = matching.map(o => ({ name: o.textContent.trim(), id: o.value, _select: sel }));
-          ui.log('DOM dropdown: ' + gyms.length + ' unidades');
+    // Look for the unit card/button on the dashboard
+    const allBtns = document.querySelectorAll('button');
+    for (const btn of allBtns) {
+      const t = btn.textContent.toLowerCase();
+      if (['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep','black sheep','crossfit','crosslift'].some(k => t.includes(k))) {
+        if (btn.offsetHeight < 120 && btn.offsetWidth > 100) {
+          unitBtn = btn;
           break;
         }
       }
+    }
 
-      // Tentar botoes dropdown customizados
-      if (gyms.length === 0) {
-        const dropdowns = document.querySelectorAll('[class*="dropdown"], [class*="select"], button');
-        for (const dd of dropdowns) {
-          if (dd.textContent.toLowerCase().match(/berrini|itaim|vila|moema|pinheiros|alphaville/)) {
-            dd.click();
-            await new Promise(r => setTimeout(r, 800));
-            const items = document.querySelectorAll('[role="option"], [role="menuitem"], [class*="item"]');
-            const matching = Array.from(items).filter(el => {
-              const t = el.textContent.toLowerCase();
-              return ['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep'].some(k => t.includes(k));
-            });
-            if (matching.length > 0) {
-              gyms = matching.map(el => ({ name: el.textContent.trim(), _element: el }));
-              dd.click(); // fechar
-              await new Promise(r => setTimeout(r, 300));
-            }
-            break;
-          }
-        }
+    if (unitBtn) {
+      ui.log('Botão unidade: ' + unitBtn.textContent.trim().substring(0, 60));
+      // Click to see if there's a dropdown/menu
+      unitBtn.click();
+      await new Promise(r => setTimeout(r, 1500));
+
+      // Check for menu/dropdown items
+      const menuItems = document.querySelectorAll('[role="option"], [role="menuitem"], [role="listbox"] li, [class*="menu-item"], [class*="dropdown-item"]');
+      const unitItems = Array.from(menuItems).filter(el => {
+        const t = el.textContent.toLowerCase();
+        return ['berrini','itaim','vila','moema','pinheiros','alphaville','blacksheep','black sheep','crossfit','crosslift'].some(k => t.includes(k));
+      });
+
+      if (unitItems.length > 1) {
+        unitOptions = unitItems.map(el => ({ text: el.textContent.trim(), element: el }));
+        ui.log('Dropdown com ' + unitOptions.length + ' unidades');
+        // Close dropdown
+        document.body.click();
+        await new Promise(r => setTimeout(r, 500));
+      } else {
+        // Maybe the button navigates or expands to show units below
+        // Close any popup
+        document.body.click();
+        await new Promise(r => setTimeout(r, 500));
       }
     }
 
-    // Se nao encontrou gym algum, extrair pagina atual como raw
-    if (gyms.length === 0) {
-      ui.log('Nenhuma unidade detectada — extraindo pagina atual');
-      gyms = [{ name: 'Pagina Atual', _current: true }];
+    // Alternative: Look for unit cards on the dashboard (the cards at the bottom)
+    if (unitOptions.length === 0) {
+      // Try looking for sidebar nav or unit links
+      const links = document.querySelectorAll('a, [role="link"]');
+      const unitLinks = Array.from(links).filter(el => {
+        const t = el.textContent.toLowerCase();
+        return ['berrini','itaim','vila','moema','pinheiros','alphaville'].some(k => t.includes(k));
+      });
+      if (unitLinks.length > 0) {
+        unitOptions = unitLinks.map(el => ({ text: el.textContent.trim(), element: el, isLink: true }));
+        ui.log('Links unidade: ' + unitOptions.length);
+      }
     }
 
-    const now = new Date();
-    const periodo = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+    // Fallback: scrape the current page — the Dashboard shows ONE unit at a time
+    // plus a summary "Resumo da rede" at top. We'll extract what we can.
+    if (unitOptions.length === 0) {
+      ui.log('Modo single-unit — extraindo página atual');
+      unitOptions = [{ text: 'Pagina Atual', current: true }];
+    }
+
     const allData = [];
 
-    for (let i = 0; i < gyms.length; i++) {
-      const gym = gyms[i];
-      const gymName = gym.name || gym.gym_name || gym.place_name || ('Unidade ' + i);
-      const pct = Math.round(((i+1) / gyms.length) * 100);
+    for (let i = 0; i < unitOptions.length; i++) {
+      const opt = unitOptions[i];
+      const pct = Math.round(((i+1) / unitOptions.length) * 100);
       ui.progress(pct);
-      ui.status('(' + (i+1) + '/' + gyms.length + ') ' + gymName);
+      ui.status('(' + (i+1) + '/' + unitOptions.length + ') ' + opt.text);
 
-      // Selecionar unidade
-      if (!gym._current) {
-        if (gym.id && !gym._select) {
-          // API: trocar unidade ativa
-          try {
-            await fetch('/api/gym/v1/gyms/' + (gym.identifier || gym.id) + '/select', {
-              method: 'POST', credentials: 'include'
-            });
-            await new Promise(r => setTimeout(r, 1500));
-          } catch(e) {}
-        } else if (gym._select) {
-          gym._select.value = gym.id;
-          gym._select.dispatchEvent(new Event('change', { bubbles: true }));
-          await new Promise(r => setTimeout(r, 2000));
-        } else if (gym._element) {
-          // Reabrir dropdown e clicar
-          const dropdowns = document.querySelectorAll('[class*="dropdown"], [class*="select"], button');
-          for (const dd of dropdowns) {
-            if (dd.textContent.toLowerCase().match(/berrini|itaim|vila|moema|pinheiros|alphaville/)) {
-              dd.click();
-              await new Promise(r => setTimeout(r, 500));
-              break;
-            }
-          }
-          gym._element.click();
-          await new Promise(r => setTimeout(r, 2000));
+      // Select unit
+      if (!opt.current && opt.element) {
+        if (unitBtn) {
+          unitBtn.click();
+          await new Promise(r => setTimeout(r, 800));
+        }
+        opt.element.click();
+        await new Promise(r => setTimeout(r, 3000));
+      }
+
+      // Scrape dashboard data
+      // The dashboard shows:
+      // - "Hoje" section: daily revenue, visitas, pessoas
+      // - Month section (e.g. "Abril"): monthly revenue, visitas, pessoas
+      // - "Previsão de faturamento"
+      // - "Repasse" section with historical
+      // - "Histórico de receita" table
+
+      const pageText = (document.querySelector('main') || document.body).innerText;
+
+      // Try to find the current unit name from the page
+      let unitName = opt.text;
+      const gymNameMatch = pageText.match(/(CrossFit|CrossLift|BlackSheep|Black Sheep)[^\\n]*(Berrini|Itaim|Vila Ol[ií]mpia|Moema|Pinheiros|Alphaville)/i);
+      if (gymNameMatch) {
+        unitName = normUnit(gymNameMatch[0]);
+      }
+
+      // Extract monthly data from page text
+      // Pattern: month name heading, then R$ value, then visitas count, then pessoas count
+      const monthNames = {'janeiro':'01','fevereiro':'02','março':'03','abril':'04','maio':'05','junho':'06','julho':'07','agosto':'08','setembro':'09','outubro':'10','novembro':'11','dezembro':'12'};
+
+      let monthlyReceita = 0;
+      let monthlyVisitas = 0;
+      let monthlyPessoas = 0;
+
+      // Look for the month section data
+      // The structure is: "Abril\\nValores processados até DD/MM/YYYY\\nR$XX.XXX,XX\\nDesde dia ...\\nNNN\\nVisitas\\nNNN\\nPessoas"
+      const monthSectionMatch = pageText.match(/(Janeiro|Fevereiro|Março|Abril|Maio|Junho|Julho|Agosto|Setembro|Outubro|Novembro|Dezembro)\\s*\\n[^]*?R\\$\\s*([\\d.,]+)[^]*?(\\d+)\\s*\\nVisitas\\s*\\n(\\d+)\\s*\\nPessoas/i);
+      if (monthSectionMatch) {
+        monthlyReceita = parseReais('R$ ' + monthSectionMatch[2]);
+        monthlyVisitas = parseInt(monthSectionMatch[3]);
+        monthlyPessoas = parseInt(monthSectionMatch[4]);
+        ui.log('  ' + unitName + ': R$' + monthlyReceita.toLocaleString('pt-BR') + ' | ' + monthlyVisitas + ' visitas | ' + monthlyPessoas + ' pessoas');
+      }
+
+      // Extract historical revenue from "Histórico de receita" table
+      const historicoReceita = {};
+      const tabelaMatch = pageText.match(/Histórico de receita[^]*$/i);
+      if (tabelaMatch) {
+        const rows = tabelaMatch[0].matchAll(/(\\d{4})\\s*\\n\\s*(\\d{2}\\/\\d{2})\\s+a\\s+(\\d{2}\\/\\d{2})\\s*\\n\\s*R\\$\\s*([\\d.,]+)/g);
+        for (const row of rows) {
+          const year = row[1];
+          const startMonth = row[2].split('/')[1]; // MM from DD/MM
+          const key = year + '-' + startMonth;
+          historicoReceita[key] = parseReais('R$ ' + row[4]);
         }
       }
 
-      // Tentar dashboard API
-      let apiData = null;
-      try {
-        const dashRes = await fetch('/api/gym/v1/dashboard_usages/summary', { credentials: 'include' });
-        if (dashRes.ok) {
-          apiData = await dashRes.json();
-          ui.log('  ' + gymName + ': dados via API');
-        }
-      } catch(e) {}
+      // Also scrape tables directly
+      const tables = [];
+      document.querySelectorAll('table').forEach(t => {
+        const rows = [];
+        t.querySelectorAll('tr, [role="row"]').forEach(tr => {
+          const cells = [];
+          tr.querySelectorAll('td, th, [role="cell"], [role="columnheader"]').forEach(td => cells.push(td.innerText.trim()));
+          if (cells.length) rows.push(cells);
+        });
+        if (rows.length) tables.push(rows);
+      });
 
-      // Extrair do DOM
-      const pageText = (document.querySelector('main') || document.body).innerText;
-      const reaisMatches = pageText.match(/R\\$\\s*[\\d.,]+/g) || [];
+      // Parse "Repasse" section for actual confirmed revenue
+      let repasseReceita = 0;
+      const repasseMatch = pageText.match(/Total liquido a receber\\s*\\n\\s*R\\$\\s*([\\d.,]+)/i)
+        || pageText.match(/Total a receber\\s*\\n\\s*R\\$\\s*([\\d.,]+)/i);
+      if (repasseMatch) {
+        repasseReceita = parseReais('R$ ' + repasseMatch[1]);
+      }
 
       allData.push({
-        nome: normUnit(gymName),
-        api_data: apiData,
+        nome: unitName,
+        receita: monthlyReceita,
+        visitas: monthlyVisitas,
+        pessoas: monthlyPessoas,
+        repasse: repasseReceita,
+        historico_receita: historicoReceita,
         raw_text: pageText.substring(0, 8000),
-        reais_found: reaisMatches.map(parseReais),
-        url: location.href
+        tables: tables
       });
     }
 
-    // Tentar estruturar dados se API retornou
-    const structured = allData.map(u => {
-      if (u.api_data) {
-        const d = u.api_data.data || u.api_data;
-        return {
-          nome: u.nome,
-          checkins: d.total_visits || d.visits || d.checkins || 0,
-          receita: d.total_revenue || d.revenue || d.amount || 0,
-          tarifa_media: d.average_rate || 0
-        };
-      }
-      return {
-        nome: u.nome,
-        checkins: 0,
-        receita: u.reais_found[0] || 0,
-        tarifa_media: 0
-      };
-    });
+    // Build payload — send structured + raw for AI backup
+    const structured = allData.map(u => ({
+      nome: u.nome,
+      checkins: u.visitas,
+      pessoas: u.pessoas,
+      receita: u.receita,
+      repasse: u.repasse,
+      historico_receita: u.historico_receita
+    }));
 
     const hasRealData = structured.some(u => u.receita > 0 || u.checkins > 0);
 
+    ui.status('Enviando dados...');
+
     if (hasRealData) {
-      // Enviar dados estruturados
       const payload = {
         periodo: periodo,
         unidades: structured,
         total_checkins: structured.reduce((s,u) => s + u.checkins, 0),
-        total_receita: structured.reduce((s,u) => s + u.receita, 0)
+        total_receita: structured.reduce((s,u) => s + u.receita, 0),
+        total_pessoas: structured.reduce((s,u) => s + u.pessoas, 0)
       };
-      ui.status('Enviando dados estruturados...');
+
       const result = await bsSend('totalpass', payload, periodo);
       if (result.success) {
         ui.success('Totalpass OK! ' + structured.length + ' unidades');
         ui.log('\\nTotal receita: R$ ' + payload.total_receita.toLocaleString('pt-BR'));
+        ui.log('Total visitas: ' + payload.total_checkins);
+        ui.log('Total pessoas: ' + payload.total_pessoas);
+        structured.forEach(u => {
+          ui.log('  ' + u.nome + ': R$' + u.receita.toLocaleString('pt-BR') + ' | ' + u.checkins + ' vis | ' + u.pessoas + ' pes');
+        });
       } else {
         ui.error('Erro: ' + result.error);
       }
     } else {
-      // Enviar raw pra AI parsing
-      ui.status('Enviando pra parsing por IA...');
+      // Fallback: send raw for AI parsing
       const rawPages = allData.map(u => ({
-        url: u.url,
-        title: 'Totalpass - ' + u.nome,
-        text: 'UNIDADE: ' + u.nome + '\\n\\n' + u.raw_text
+        url: location.href,
+        title: 'Totalpass Dashboard - ' + u.nome,
+        text: 'UNIDADE: ' + u.nome + '\\n\\n' + u.raw_text,
+        tables: u.tables
       }));
       const result = await bsSend('totalpass', {
         raw_pages: rawPages,
         needs_parsing: true,
-        extracted_units: allData.map(u => u.nome)
+        extracted_units: allData.map(u => u.nome),
+        hint: 'Extraia receita, check-ins (visitas) e número de pessoas de cada unidade para o mês ' + periodo
       }, periodo);
       if (result.success) {
-        ui.success('Dados enviados pra parsing!');
+        ui.success('Dados enviados pra parsing por IA');
       } else {
         ui.error('Erro: ' + result.error);
       }
@@ -583,7 +815,7 @@ const totalpassCode = `
 `;
 
 // ══════════════════════════════════════════════════════════════════════════════
-// WHATSAPP BOOKMARKLET — Extrai planos do grupo "Planos BLACKSHEEP"
+// WHATSAPP BOOKMARKLET v2 — Extrai planos do grupo "Planos BLACKSHEEP"
 // ══════════════════════════════════════════════════════════════════════════════
 const whatsappCode = `
 (async function() {
@@ -598,37 +830,35 @@ const whatsappCode = `
       return;
     }
 
-    ui.status('Extraindo mensagens do grupo...');
+    const periodo = askPeriodo();
+    if (!periodo) { ui.error('Cancelado'); ui.close(2000); return; }
 
-    // Pegar todo o texto visivel na tela
-    // WhatsApp virtualiza mensagens, entao pegamos o que esta no viewport
+    ui.status('Extraindo mensagens do grupo...');
+    ui.log('Período: ' + periodo);
+
     const fullText = document.body.innerText;
 
-    // Verificar se estamos no grupo certo
     const isPlanos = fullText.toLowerCase().includes('planos') || fullText.toLowerCase().includes('blacksheep');
     if (!isPlanos) {
-      ui.log('AVISO: Nao parece ser o grupo Planos BLACKSHEEP');
-      ui.log('Continuando mesmo assim...');
+      ui.log('AVISO: Não parece ser o grupo Planos BLACKSHEEP');
     }
 
-    // Tentar pegar mensagens do container principal de chat
     let messagesText = '';
 
-    // Metodo 1: Pegar texto da area de mensagens
-    const messageContainer = document.querySelector('[data-tab="8"]') // area de mensagens
+    // Method 1: message area
+    const messageContainer = document.querySelector('[data-tab="8"]')
       || document.querySelector('[role="application"]')
       || document.querySelector('div[class*="message-list"]');
 
     if (messageContainer) {
       messagesText = messageContainer.innerText;
-      ui.log('Container de mensagens: ' + messagesText.length + ' chars');
+      ui.log('Container: ' + messagesText.length + ' chars');
     }
 
-    // Metodo 2: Se tiver resultados de busca abertos, pegar esses tambem
+    // Method 2: search results
     const searchResults = fullText.split('Pesquisar mensagens');
     if (searchResults.length > 1) {
       const searchText = searchResults[searchResults.length - 1];
-      // Pegar ate o proximo marcador
       const endMarkers = ['Use o WhatsApp', 'Mensagens fixadas', 'WhatsApp Messenger'];
       let resultText = searchText;
       for (const marker of endMarkers) {
@@ -636,36 +866,33 @@ const whatsappCode = `
         if (idx > 0) resultText = resultText.substring(0, idx);
       }
       messagesText += '\\n\\n=== RESULTADOS DA BUSCA ===\\n' + resultText;
-      ui.log('Resultados de busca incluidos: ' + resultText.length + ' chars');
+      ui.log('Busca incluída: ' + resultText.length + ' chars');
     }
 
-    // Fallback: texto completo
     if (!messagesText || messagesText.length < 100) {
       messagesText = fullText;
-      ui.log('Usando texto completo da pagina: ' + messagesText.length + ' chars');
+      ui.log('Usando texto completo: ' + messagesText.length + ' chars');
     }
 
-    const now = new Date();
-    const periodo = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
-
     ui.status('Enviando pra parsing por IA...');
-    ui.log('\\nTexto total: ' + messagesText.length + ' chars');
-    ui.log('Periodo: ' + periodo);
+    ui.log('\\nTexto: ' + messagesText.length + ' chars');
 
-    // Enviar como raw pra AI parsing — Claude AI vai extrair os planos
     const result = await bsSend('planos', {
       raw_pages: [{
         url: location.href,
         title: 'WhatsApp - Planos BLACKSHEEP',
-        text: messagesText.substring(0, 60000) // limite de seguranca
+        text: messagesText.substring(0, 60000)
       }],
       needs_parsing: true,
-      hint: 'Extraia planos de academia vendidos. Cada mensagem tipicamente contem: nome do aluno, unidade (Moema/Pinheiros/Berrini/Itaim/Vila Olimpia/Alphaville), tipo de plano (mensal/trimestral/semestral/anual), e valor. Agrupe por unidade.'
+      hint: 'Extraia planos de academia vendidos para o período ' + periodo + '. '
+        + 'Cada mensagem tipicamente contém: nome do aluno, unidade (Moema/Pinheiros/Berrini/Itaim/Vila Olímpia/Alphaville), '
+        + 'tipo de plano (mensal/trimestral/semestral/anual), e valor. Agrupe por unidade. '
+        + 'Ignore mensagens de outros meses.'
     }, periodo);
 
     if (result.success) {
       ui.success('Planos enviados!');
-      ui.log('Periodo: ' + result.periodo);
+      ui.log('Período: ' + result.periodo);
       if (result.consolidated) {
         ui.log('Planos fechados: ' + (result.consolidated.totais?.planos_fechados || '?'));
         ui.log('Valor total: R$ ' + (result.consolidated.totais?.planos_valor || 0).toLocaleString('pt-BR'));
@@ -684,7 +911,7 @@ const whatsappCode = `
 })();
 `;
 
-    // Gerar bookmarklet URLs
+    // Generate bookmarklet URLs
     document.getElementById('gympass-bm').href = 'javascript:' + encodeURIComponent(gympassCode.trim());
     document.getElementById('totalpass-bm').href = 'javascript:' + encodeURIComponent(totalpassCode.trim());
     document.getElementById('whatsapp-bm').href = 'javascript:' + encodeURIComponent(whatsappCode.trim());
