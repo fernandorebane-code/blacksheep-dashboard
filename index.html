@@ -3,1224 +3,733 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crosslift Blacksheep — Central de Gestão</title>
+<title>Crosslift Blacksheep — Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --black: #0a0a0a;
-    --gold: #D4FF00;
-    --gold-light: #E8FF4D;
-    --gold-dim: rgba(212,255,0,0.12);
-    --white: #f5f5f0;
-    --gray: #888880;
-    --surface: #111111;
-    --surface2: #181818;
-    --border: rgba(201,168,76,0.2);
-    --red: #E05252;
-    --green: #52C07A;
-    --yellow: #D4FF00;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body {
-    background: var(--black);
-    color: var(--white);
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+:root {
+  --black: #0a0a0a;
+  --gold: #D4FF00;
+  --gold-light: #E8FF4D;
+  --gold-dim: rgba(212,255,0,0.12);
+  --white: #f5f5f0;
+  --gray: #888880;
+  --surface: #111111;
+  --surface2: #181818;
+  --border: rgba(212,255,0,0.15);
+  --green: #52C07A;
+  --red: #E05252;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+}
 
-  /* Header */
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .logo {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.6rem;
-    letter-spacing: 0.12em;
-    color: var(--gold);
-  }
-  .logo span { color: var(--white); }
-  .header-meta {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-  }
-  .last-update {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--gray);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-  .btn-update {
-    background: var(--gold);
-    color: var(--black);
-    border: none;
-    padding: 0.45rem 1.1rem;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.78rem;
-    font-weight: 600;
-    cursor: pointer;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    transition: background 0.2s;
-  }
-  .btn-update:hover { background: var(--gold-light); }
+/* Header */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.6rem;
+  letter-spacing: 0.12em;
+}
+.logo .gold { color: var(--gold); }
+.logo .wht { color: var(--white); }
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+.status-dots {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--gray);
+}
+.dot.ok { background: var(--green); }
+.dot.err { background: var(--red); }
+.dot-label {
+  font-size: 0.65rem;
+  color: var(--gray);
+  font-family: 'DM Mono', monospace;
+  margin-right: 0.3rem;
+}
+select#mesSelector {
+  background: var(--surface2);
+  color: var(--white);
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.6rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  cursor: pointer;
+  outline: none;
+}
+.btn-update {
+  background: var(--gold);
+  color: var(--black);
+  border: none;
+  padding: 0.45rem 1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: background 0.2s;
+}
+.btn-update:hover { background: var(--gold-light); }
 
-  /* Layout */
-  .container { max-width: 1440px; margin: 0 auto; padding: 2rem; }
+/* Container */
+.container { max-width: 1400px; margin: 0 auto; padding: 1.5rem 2rem; }
 
-  /* Tabs */
-  .tabs {
-    display: flex;
-    gap: 0;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 2rem;
-  }
-  .tab {
-    padding: 0.75rem 1.5rem;
-    font-size: 0.8rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--gray);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s;
-    background: none;
-    border-top: none;
-    border-left: none;
-    border-right: none;
-    color: var(--gray);
-  }
-  .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
-  .tab:hover:not(.active) { color: var(--white); }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+.tab {
+  padding: 0.7rem 1.4rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--gray);
+  cursor: pointer;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  transition: all 0.2s;
+}
+.tab:hover { color: var(--white); }
+.tab.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
 
-  /* KPI Grid */
-  .kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    margin-bottom: 2rem;
-  }
-  .kpi {
-    background: var(--surface);
-    padding: 1.25rem 1.5rem;
-    position: relative;
-    overflow: hidden;
-  }
-  .kpi::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 3px; height: 100%;
-    background: var(--gold);
-  }
-  .kpi-label {
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--gray);
-    margin-bottom: 0.5rem;
-  }
-  .kpi-value {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2rem;
-    letter-spacing: 0.04em;
-    color: var(--white);
-    line-height: 1;
-  }
-  .kpi-value.gold { color: var(--gold); }
-  .kpi-sub {
-    font-size: 0.68rem;
-    color: var(--gray);
-    margin-top: 0.3rem;
-    font-family: 'DM Mono', monospace;
-  }
-  .kpi-delta {
-    font-size: 0.7rem;
-    font-weight: 600;
-    margin-top: 0.25rem;
-  }
-  .kpi-delta.up { color: var(--green); }
-  .kpi-delta.down { color: var(--red); }
+/* Tab content */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
 
-  /* Section title */
-  .section-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.1rem;
-    letter-spacing: 0.12em;
-    color: var(--gold);
-    text-transform: uppercase;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-  .section-title::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
+/* Period label */
+.period-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem;
+  letter-spacing: 0.05em;
+  color: var(--white);
+  margin-bottom: 1.5rem;
+}
+.period-label .partial {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  color: var(--gold);
+  font-weight: 500;
+  margin-left: 0.5rem;
+}
 
-  /* Units grid */
-  .units-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
-  .unit-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 1.25rem;
-    position: relative;
-    transition: border-color 0.2s;
-  }
-  .unit-card:hover { border-color: var(--gold); }
-  .unit-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-  }
-  .unit-name {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.2rem;
-    letter-spacing: 0.08em;
-    color: var(--white);
-  }
-  .unit-badge {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.6rem;
-    padding: 0.2rem 0.5rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-weight: 500;
-  }
-  .badge-green { background: rgba(82,192,122,0.15); color: var(--green); }
-  .badge-red { background: rgba(224,82,82,0.15); color: var(--red); }
-  .badge-yellow { background: rgba(232,201,122,0.15); color: var(--yellow); }
+/* KPI Cards */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 1.2rem 1.4rem;
+}
+.kpi-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--gray);
+  margin-bottom: 0.5rem;
+}
+.kpi-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.6rem;
+  font-weight: 500;
+  color: var(--gold);
+}
 
-  .unit-metrics {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-  }
-  .metric {
-    background: var(--surface2);
-    padding: 0.75rem;
-  }
-  .metric-label {
-    font-size: 0.6rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--gray);
-    margin-bottom: 0.2rem;
-  }
-  .metric-value {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: var(--white);
-  }
-  .metric-value.alert { color: var(--red); }
-  .metric-value.ok { color: var(--green); }
-  .metric-value.warn { color: var(--yellow); }
+/* Unit grid */
+.unit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+@media (max-width: 900px) {
+  .unit-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .unit-grid { grid-template-columns: 1fr; }
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
+  header { padding: 0 1rem; }
+  .container { padding: 1rem; }
+}
+.unit-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 1.2rem 1.4rem;
+}
+.unit-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  color: var(--white);
+  margin-bottom: 0.8rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+.unit-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0;
+  font-size: 0.8rem;
+}
+.unit-line .label { color: var(--gray); }
+.unit-line .val {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--white);
+}
+.unit-line.total {
+  border-top: 1px solid var(--border);
+  margin-top: 0.4rem;
+  padding-top: 0.5rem;
+}
+.unit-line.total .val {
+  color: var(--gold);
+  font-weight: 500;
+}
 
-  .unit-bar {
-    margin-top: 1rem;
-  }
-  .bar-label {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.65rem;
-    color: var(--gray);
-    margin-bottom: 0.3rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-  .bar-track {
-    height: 4px;
-    background: var(--surface2);
-    position: relative;
-  }
-  .bar-fill {
-    height: 100%;
-    background: var(--gold);
-    transition: width 1s ease;
-  }
-  .bar-fill.green { background: var(--green); }
-  .bar-fill.red { background: var(--red); }
+/* Tables */
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: 0.08em;
+  color: var(--white);
+  margin: 2rem 0 1rem 0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  font-size: 0.82rem;
+}
+th {
+  background: var(--surface2);
+  color: var(--gold);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: left;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  color: var(--white);
+}
+td.mono {
+  font-family: 'DM Mono', monospace;
+}
+tr:last-child td { border-bottom: none; }
+tr.total-row {
+  background: var(--gold-dim);
+  font-weight: 600;
+}
+tr.total-row td { color: var(--gold); }
 
-  /* Table */
-  .table-wrap {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    overflow-x: auto;
-    margin-bottom: 2rem;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  th {
-    background: var(--surface2);
-    padding: 0.65rem 1rem;
-    text-align: left;
-    font-size: 0.62rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--gray);
-    font-weight: 500;
-    white-space: nowrap;
-  }
-  td {
-    padding: 0.75rem 1rem;
-    font-size: 0.82rem;
-    border-top: 1px solid rgba(255,255,255,0.04);
-    font-family: 'DM Mono', monospace;
-    white-space: nowrap;
-  }
-  tr:hover td { background: var(--surface2); }
-  .td-name { font-family: 'DM Sans', sans-serif; font-weight: 500; color: var(--white); }
-  .td-gold { color: var(--gold); font-weight: 500; }
-  .td-green { color: var(--green); }
-  .td-red { color: var(--red); }
-  .td-gray { color: var(--gray); }
-  tr.total-row td {
-    background: var(--gold-dim);
-    color: var(--gold);
-    font-weight: 600;
-    border-top: 1px solid var(--border);
-  }
+/* Loading */
+#loading {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,10,10,0.85);
+  z-index: 200;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+}
+#loading.show {
+  display: flex;
+}
 
-  /* Insights */
-  .insights-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
-  .insight-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 1.25rem;
-  }
-  .insight-type {
-    font-size: 0.6rem;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    font-weight: 600;
-    margin-bottom: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  .insight-type.positive { color: var(--green); }
-  .insight-type.alert { color: var(--red); }
-  .insight-type.action { color: var(--gold); }
-  .insight-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-  }
-  .insight-items { display: flex; flex-direction: column; gap: 0.5rem; }
-  .insight-item {
-    font-size: 0.78rem;
-    color: var(--gray);
-    line-height: 1.5;
-    padding-left: 0.75rem;
-    border-left: 2px solid var(--surface2);
-  }
-
-  /* Empty state */
-  .empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-    color: var(--gray);
-  }
-  .empty-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    opacity: 0.4;
-  }
-  .empty-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.4rem;
-    letter-spacing: 0.1em;
-    color: var(--gold);
-    margin-bottom: 0.5rem;
-    opacity: 0.7;
-  }
-  .empty-text { font-size: 0.82rem; line-height: 1.6; }
-
-  /* Status bar */
-  .status-bar {
-    display: flex;
-    gap: 1.5rem;
-    align-items: center;
-    padding: 0.75rem 1.5rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    margin-bottom: 2rem;
-    font-size: 0.72rem;
-  }
-  .status-item {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: var(--gray);
-    font-family: 'DM Mono', monospace;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-  .status-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-  }
-  .dot-green { background: var(--green); box-shadow: 0 0 6px var(--green); }
-  .dot-red { background: var(--red); }
-  .dot-yellow { background: var(--yellow); }
-  .dot-gray { background: var(--gray); }
-
-  /* Loading overlay */
-  #loading-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(10,10,10,0.85);
-    z-index: 999;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  #loading-overlay.active { display: flex; }
-  .spinner {
-    width: 40px; height: 40px;
-    border: 2px solid var(--border);
-    border-top-color: var(--gold);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-text {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.72rem;
-    color: var(--gray);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-
-  /* Wellhub cards por unidade */
-  .wellhub-cards {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    margin-bottom: 1.5rem;
-  }
-  .wellhub-card {
-    background: var(--surface);
-    padding: 1.1rem 1rem;
-    position: relative;
-  }
-  .wellhub-card-name {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1rem;
-    letter-spacing: 0.08em;
-    color: var(--white);
-    margin-bottom: 0.9rem;
-    padding-bottom: 0.6rem;
-    border-bottom: 1px solid var(--border);
-  }
-  .wellhub-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.45rem;
-  }
-  .wellhub-plat {
-    font-size: 0.6rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--gray);
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-  }
-  .plat-dot { width:5px; height:5px; border-radius:50%; }
-  .dot-gp { background: #00C853; }
-  .dot-tp { background: #2979FF; }
-  .wellhub-rec {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--white);
-  }
-  .wellhub-checkins {
-    font-size: 0.6rem;
-    color: var(--gray);
-    font-family: 'DM Mono', monospace;
-    margin-bottom: 0.1rem;
-  }
-  .wellhub-divider {
-    height: 1px;
-    background: var(--border);
-    margin: 0.6rem 0;
-  }
-  .wellhub-total-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .wellhub-total-label {
-    font-size: 0.6rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--gold);
-    font-weight: 600;
-  }
-  .wellhub-total-val {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.1rem;
-    letter-spacing: 0.05em;
-    color: var(--gold);
-  }
-  .wellhub-bar-track {
-    height: 3px;
-    background: var(--surface2);
-    margin-top: 0.6rem;
-  }
-  .wellhub-bar-fill {
-    height: 100%;
-    background: var(--gold);
-    transition: width 1s ease;
-  }
-  .wellhub-pct {
-    font-size: 0.58rem;
-    color: var(--gray);
-    font-family: 'DM Mono', monospace;
-    text-align: right;
-    margin-top: 0.25rem;
-  }
-
-  @media (max-width: 1100px) {
-    .kpi-grid { grid-template-columns: repeat(3, 1fr); }
-    .units-grid { grid-template-columns: repeat(2, 1fr); }
-    .insights-grid { grid-template-columns: 1fr 1fr; }
-    .wellhub-cards { grid-template-columns: repeat(3, 1fr); }
-  }
-  @media (max-width: 700px) {
-    .kpi-grid { grid-template-columns: 1fr 1fr; }
-    .units-grid { grid-template-columns: 1fr; }
-    .insights-grid { grid-template-columns: 1fr; }
-    .wellhub-cards { grid-template-columns: repeat(2, 1fr); }
-  }
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--gray);
+  font-size: 0.9rem;
+}
 </style>
 </head>
 <body>
 
-<div id="loading-overlay">
-  <div class="spinner"></div>
-  <div class="loading-text" id="loading-text">Carregando dados...</div>
-</div>
+<div id="loading"><span>CARREGANDO DADOS...</span></div>
 
 <header>
-  <div class="logo">Crosslift <span>Blacksheep</span></div>
-  <div class="header-meta">
-    <div class="last-update" id="last-update">⬤ Nenhum dado carregado</div>
-    <button class="btn-update" onclick="simularAtualizacao()">↻ Atualizar Dados</button>
-    <button class="btn-update" style="background:transparent;color:var(--gold);border:1px solid var(--gold);font-size:0.65rem;" onclick="extrairAgora('tudo')">⚡ Extrair Tudo</button>
+  <div class="logo"><span class="gold">CROSSLIFT </span><span class="wht">BLACKSHEEP</span></div>
+  <div class="header-right">
+    <div class="status-dots">
+      <span class="dot-label">GYM</span><span class="dot" id="dotGympass"></span>
+      <span class="dot-label">TP</span><span class="dot" id="dotTotalpass"></span>
+    </div>
+    <select id="mesSelector"></select>
+    <button class="btn-update" onclick="carregarMesAtual()">ATUALIZAR DADOS</button>
   </div>
 </header>
 
 <div class="container">
-
-  <!-- Status bar -->
-  <div class="status-bar">
-    <div class="status-item">
-      <div class="status-dot" id="dot-sheets"></div>
-      Google Sheets
-    </div>
-    <div class="status-item">
-      <div class="status-dot" id="dot-gympass"></div>
-      Gympass / Wellhub
-    </div>
-    <div class="status-item">
-      <div class="status-dot" id="dot-totalpass"></div>
-      Totalpass
-    </div>
-    <div class="status-item">
-      <div class="status-dot" id="dot-app"></div>
-      Blacksheep App
-    </div>
-    <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
-      <select id="periodo-select" onchange="trocarPeriodo(this.value)" style="
-        background:var(--surface2); color:var(--gold); border:1px solid var(--border);
-        border-radius:6px; padding:4px 8px; font-family:'DM Mono',monospace; font-size:0.75rem;
-        cursor:pointer; outline:none;
-      ">
-        <option value="2026-04">Abril 2026 (parcial)</option>
-        <option value="2026-03" selected>Março 2026</option>
-        <option value="2026-02">Fevereiro 2026</option>
-        <option value="2026-01">Janeiro 2026</option>
-      </select>
-      <span id="mes-ref" style="color:var(--gray); font-family:'DM Mono',monospace; font-size:0.7rem;">—</span>
-    </div>
-  </div>
-
-  <!-- Tabs -->
   <div class="tabs">
-    <button class="tab active" onclick="showTab('visao-geral', this)">Visão Geral</button>
-    <button class="tab" onclick="showTab('gympass', this)">Gympass / Totalpass</button>
-    <button class="tab" onclick="showTab('alunos', this)">Alunos</button>
-    <button class="tab" onclick="showTab('financeiro', this)">Financeiro</button>
+    <button class="tab active" data-tab="mesAtual">MES ATUAL</button>
+    <button class="tab" data-tab="historico">HISTORICO</button>
+    <button class="tab" data-tab="detalhes">DETALHES</button>
   </div>
 
-  <!-- VISÃO GERAL -->
-  <div id="visao-geral" class="tab-content active">
-    <div class="kpi-grid" id="kpi-grid">
-      <div class="kpi">
-        <div class="kpi-label">Receita Total Rede</div>
-        <div class="kpi-value gold" id="kpi-receita">—</div>
-        <div class="kpi-sub">todas as 6 unidades</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Resultado Líquido</div>
-        <div class="kpi-value" id="kpi-resultado">—</div>
-        <div class="kpi-sub" id="kpi-margem">margem —</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Total Alunos Ativos</div>
-        <div class="kpi-value" id="kpi-alunos">—</div>
-        <div class="kpi-sub" id="kpi-alunos-delta">crescimento —</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Check-ins Wellhub</div>
-        <div class="kpi-value" id="kpi-wellhub">—</div>
-        <div class="kpi-sub" id="kpi-wellhub-receita">receita —</div>
-      </div>
+  <!-- TAB 1: MES ATUAL -->
+  <div id="mesAtual" class="tab-content active">
+    <div class="period-label" id="periodLabel">---</div>
+    <div class="kpi-row" id="kpiRow">
+      <div class="kpi-card"><div class="kpi-label">Faturamento Plataformas</div><div class="kpi-value" id="kpiFaturamento">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Check-ins Gympass</div><div class="kpi-value" id="kpiCheckins">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Receita Totalpass</div><div class="kpi-value" id="kpiTotalpass">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Planos Fechados</div><div class="kpi-value" id="kpiPlanos">--</div></div>
     </div>
-
-    <div class="section-title">Unidades</div>
-    <div class="units-grid" id="units-grid">
-      <div class="empty-state" style="grid-column:1/-1">
-        <div class="empty-icon">🏋️</div>
-        <div class="empty-title">Aguardando dados</div>
-        <div class="empty-text">Clique em "Atualizar Dados" para carregar as informações<br>de todas as 6 unidades automaticamente.</div>
-      </div>
-    </div>
-
-    <div class="section-title">Insights do Mês</div>
-    <div class="insights-grid" id="insights-grid">
-      <div class="empty-state" style="grid-column:1/-1; padding:2rem;">
-        <div class="empty-text">Os insights aparecerão após a atualização dos dados.</div>
-      </div>
-    </div>
+    <div class="unit-grid" id="unitGrid"></div>
   </div>
 
-
-  <!-- GYMPASS / TOTALPASS -->
-  <div id="gympass" class="tab-content">
-    <div class="section-title">Receita por Unidade</div>
-    <div class="wellhub-cards" id="wellhub-cards">
-      <div class="empty-state" style="grid-column:1/-1; padding:2.5rem;">
-        <div class="empty-icon">📊</div>
-        <div class="empty-title">Aguardando dados</div>
-        <div class="empty-text">Clique em "Atualizar Dados" para carregar.</div>
-      </div>
-    </div>
-    <div class="section-title">Detalhamento Completo</div>
-    <div class="table-wrap">
-      <table id="table-gympass">
-        <thead>
-          <tr>
-            <th>Unidade</th>
-            <th>Check-ins Gympass</th>
-            <th>Receita Gympass</th>
-            <th>Check-ins Totalpass</th>
-            <th>Receita Totalpass</th>
-            <th>Total Plataformas</th>
-            <th>% da Rede</th>
-          </tr>
-        </thead>
-        <tbody id="tbody-gympass">
-          <tr><td colspan="7" style="text-align:center; color:var(--gray); padding:3rem;">Nenhum dado carregado</td></tr>
-        </tbody>
-      </table>
-    </div>
+  <!-- TAB 2: HISTORICO -->
+  <div id="historico" class="tab-content">
+    <div class="period-label">HISTORICO 2026</div>
+    <div class="section-title">RECEITA POR UNIDADE (GYMPASS + TOTALPASS)</div>
+    <div id="historicoTableWrap"><div class="empty-state">Clique para carregar dados do historico</div></div>
+    <div class="section-title">CHECK-INS GYMPASS POR MES</div>
+    <div id="historicoCheckinsWrap"><div class="empty-state">---</div></div>
   </div>
 
-  <!-- ALUNOS -->
-  <div id="alunos" class="tab-content">
-    <div class="section-title">Gestão de Alunos</div>
-    <div class="table-wrap">
-      <table id="table-alunos">
-        <thead>
-          <tr>
-            <th>Unidade</th>
-            <th>Alunos Início</th>
-            <th>Novos</th>
-            <th>Cancelamentos</th>
-            <th>Alunos Fim</th>
-            <th>Inadimplentes</th>
-            <th>Taxa Evasão</th>
-            <th>Taxa Inadimp.</th>
-            <th>Receita Mensalidades</th>
-          </tr>
-        </thead>
-        <tbody id="tbody-alunos">
-          <tr><td colspan="9" style="text-align:center; color:var(--gray); padding:3rem;">Nenhum dado carregado</td></tr>
-        </tbody>
-      </table>
-    </div>
+  <!-- TAB 3: DETALHES -->
+  <div id="detalhes" class="tab-content">
+    <div class="period-label" id="detalhesLabel">---</div>
+    <div class="section-title">GYMPASS</div>
+    <div id="gympassTableWrap"><div class="empty-state">Sem dados</div></div>
+    <div class="section-title">TOTALPASS</div>
+    <div id="totalpassTableWrap"><div class="empty-state">Sem dados</div></div>
+    <div class="section-title">PLANOS</div>
+    <div id="planosTableWrap"><div class="empty-state">Sem dados</div></div>
   </div>
-
-  <!-- FINANCEIRO -->
-  <div id="financeiro" class="tab-content">
-    <div class="section-title">DRE por Unidade</div>
-    <div class="table-wrap">
-      <table id="table-financeiro">
-        <thead>
-          <tr>
-            <th>Unidade</th>
-            <th>Receita Mensalidades</th>
-            <th>Receita Wellhub</th>
-            <th>Outras Receitas</th>
-            <th>Receita Total</th>
-            <th>Despesas Fixas</th>
-            <th>Desp. Variáveis</th>
-            <th>Despesa Total</th>
-            <th>Resultado</th>
-            <th>Margem</th>
-          </tr>
-        </thead>
-        <tbody id="tbody-financeiro">
-          <tr><td colspan="10" style="text-align:center; color:var(--gray); padding:3rem;">Nenhum dado carregado</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
 </div>
 
 <script>
-const UNIDADES = ['Moema','Pinheiros','Berrini','Itaim','Vila Olímpia','Alphaville'];
-const SIGLAS = ['MOE','PIN','BER','ITA','VOL','ALF'];
+const API_BASE = 'https://us-central1-bjj-blacksheep.cloudfunctions.net/getDashboardData';
+const UNIDADES = ['Moema', 'Pinheiros', 'Berrini', 'Itaim', 'Vila Olímpia', 'Alphaville'];
+const MESES_NOME = {
+  '01':'JANEIRO','02':'FEVEREIRO','03':'MARCO','04':'ABRIL',
+  '05':'MAIO','06':'JUNHO','07':'JULHO','08':'AGOSTO',
+  '09':'SETEMBRO','10':'OUTUBRO','11':'NOVEMBRO','12':'DEZEMBRO'
+};
+const MESES_ABREV = {
+  '01':'Jan','02':'Fev','03':'Mar','04':'Abr','05':'Mai','06':'Jun',
+  '07':'Jul','08':'Ago','09':'Set','10':'Out','11':'Nov','12':'Dez'
+};
 
-function fmt(v) {
-  return 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:0, maximumFractionDigits:0});
-}
-function fmtPct(v) {
-  return (v*100).toFixed(1) + '%';
-}
-function showTab(id, btn) {
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  btn.classList.add('active');
-}
+let dadosAtual = null;
+let historicoCarregado = false;
+let dadosHistorico = {};
 
-let STATE = null;
-
-function gerarDadosDemo() {
-  const profs = [];
-  const nomes = ['Carlos Silva','André Mendes','Rafael Costa','Lucas Rocha','Bruno Alves',
-    'Mateus Lima','Diego Souza','Felipe Neto','Rodrigo Paz','João Matos',
-    'Thiago Cruz','Eduardo Ramos','Paulo Ferreira','Henrique Dias','Marcelo Santos',
-    'Victor Gomes','Leandro Oliveira','Fábio Castro','Igor Barros','Alex Martins'];
-  nomes.forEach((n,i) => {
-    const un = UNIDADES[i % UNIDADES.length];
-    const aulas = 16 + Math.floor(Math.random()*12);
-    const val_aula = [70,80,90][Math.floor(Math.random()*3)];
-    const personal = Math.random()>0.5 ? 400+Math.floor(Math.random()*200) : 0;
-    profs.push({ nome:n, unidade:un, aulas, val_aula, personal, bonus:0 });
-  });
-
-  const gympass = UNIDADES.map(u => ({
-    unidade: u,
-    ci_gp: 80+Math.floor(Math.random()*100),
-    val_gp: 19.5,
-    ci_tp: 30+Math.floor(Math.random()*60),
-    val_tp: 21.0
-  }));
-
-  const alunos = UNIDADES.map(u => {
-    const ini = 140+Math.floor(Math.random()*80);
-    const novos = 8+Math.floor(Math.random()*15);
-    const cancel = 4+Math.floor(Math.random()*12);
-    return { unidade:u, ini, novos, cancel, inadimpl: Math.floor((ini+novos-cancel)*0.07), mensalidade:175 };
-  });
-
-  const financeiro = UNIDADES.map((u,i) => ({
-    unidade: u,
-    outras_rec: 1000+Math.floor(Math.random()*2000),
-    aluguel: 7000+Math.floor(Math.random()*4000),
-    desp_fix: 2500+Math.floor(Math.random()*1500),
-    desp_var: 800+Math.floor(Math.random()*600)
-  }));
-
-  return { profs, gympass, alunos, financeiro };
-}
-
-function processar(raw) {
-  const { profs, gympass, alunos, financeiro } = raw;
-
-  // Gympass — usa rec_gp/rec_tp direto se disponível (quando checkins=0 mas receita existe)
-  const gpProcessado = gympass.map(g => {
-    const rec_gp = g.rec_gp != null ? g.rec_gp : g.ci_gp * g.val_gp;
-    const rec_tp = g.rec_tp != null ? g.rec_tp : g.ci_tp * g.val_tp;
-    return { ...g, rec_gp, rec_tp, total: rec_gp + rec_tp };
-  });
-  const total_wellhub = gpProcessado.reduce((s,g)=>s+g.total,0);
-  const total_ci_gp = gpProcessado.reduce((s,g)=>s+g.ci_gp,0);
-  const total_ci_tp = gpProcessado.reduce((s,g)=>s+g.ci_tp,0);
-  gpProcessado.forEach(g => g.pct = g.total/total_wellhub);
-
-  // Alunos
-  const alunosProcessado = alunos.map(a => ({
-    ...a,
-    fim: a.ini + a.novos - a.cancel,
-    evasao: a.cancel/a.ini,
-    inadimp_pct: a.inadimpl/(a.ini+a.novos-a.cancel),
-    rec_mens: (a.ini+a.novos-a.cancel-a.inadimpl)*a.mensalidade
-  }));
-  const total_alunos = alunosProcessado.reduce((s,a)=>s+a.fim,0);
-  const total_novos = alunosProcessado.reduce((s,a)=>s+a.novos,0);
-  const total_cancel = alunosProcessado.reduce((s,a)=>s+a.cancel,0);
-
-  // Financeiro
-  const finProcessado = financeiro.map((f,i) => {
-    const a = alunosProcessado[i];
-    const g = gpProcessado[i];
-    const rec_mens = a.rec_mens;
-    const rec_wp = g.total;
-    const rec_total = rec_mens + rec_wp + f.outras_rec;
-    const desp_total = f.aluguel + f.desp_fix + f.desp_var;
-    const resultado = rec_total - desp_total;
-    const margem = rec_total>0 ? resultado/rec_total : 0;
-    return { ...f, rec_mens, rec_wp, rec_total, desp_total, resultado, margem };
-  });
-  const total_receita = finProcessado.reduce((s,f)=>s+f.rec_total,0);
-  const total_resultado = finProcessado.reduce((s,f)=>s+f.resultado,0);
-  const margem_rede = total_receita>0 ? total_resultado/total_receita : 0;
-
-  return {
-    gpProcessado, total_wellhub, total_ci_gp, total_ci_tp,
-    alunosProcessado, total_alunos, total_novos, total_cancel,
-    finProcessado, total_receita, total_resultado, margem_rede
-  };
-}
-
-function renderDots(ok) {
-  ['dot-sheets','dot-gympass','dot-totalpass','dot-app'].forEach(id => {
-    const d = document.getElementById(id);
-    d.className = 'status-dot ' + (ok ? 'dot-green' : 'dot-gray');
+// --- UTILS ---
+function fmtMoeda(val) {
+  if (val == null || isNaN(val)) return '\u2014';
+  return val.toLocaleString('pt-BR', {
+    style: 'currency', currency: 'BRL',
+    minimumFractionDigits: val % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2
   });
 }
 
-function renderDashboard(data) {
-  const d = data;
+function fmtNum(val) {
+  if (val == null || isNaN(val)) return '\u2014';
+  return val.toLocaleString('pt-BR');
+}
+
+function mesAtualStr() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
+}
+
+function isParcial(periodo) {
+  const now = new Date();
+  const [y, m] = periodo.split('-').map(Number);
+  return y === now.getFullYear() && m === (now.getMonth() + 1);
+}
+
+function nomeDoMes(periodo) {
+  const m = periodo.split('-')[1];
+  return MESES_NOME[m] || m;
+}
+
+// --- LOADING ---
+function showLoading() { document.getElementById('loading').classList.add('show'); }
+function hideLoading() { document.getElementById('loading').classList.remove('show'); }
+
+// --- API ---
+async function fetchDashboardData(periodo) {
+  const url = `${API_BASE}?periodo=${periodo}`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  return resp.json();
+}
+
+// --- SELECTOR ---
+function initSelector() {
+  const sel = document.getElementById('mesSelector');
+  const now = new Date();
+  const year = now.getFullYear();
+  const curMonth = now.getMonth() + 1;
+  sel.innerHTML = '';
+  for (let m = curMonth; m >= 1; m--) {
+    const val = `${year}-${String(m).padStart(2,'0')}`;
+    const opt = document.createElement('option');
+    opt.value = val;
+    opt.textContent = `${MESES_ABREV[String(m).padStart(2,'0')]} ${year}`;
+    sel.appendChild(opt);
+  }
+  sel.value = mesAtualStr();
+  sel.addEventListener('change', () => carregarPeriodo(sel.value));
+}
+
+// --- STATUS DOTS ---
+function updateDots(data) {
+  const dg = document.getElementById('dotGympass');
+  const dt = document.getElementById('dotTotalpass');
+  dg.className = 'dot ' + (data?.gympass ? 'ok' : 'err');
+  dt.className = 'dot ' + (data?.totalpass ? 'ok' : 'err');
+}
+
+// --- FIND UNIT ---
+function findUnit(arr, nome) {
+  if (!arr) return null;
+  return arr.find(u => u.nome && u.nome.toLowerCase().replace(/[^a-z]/g,'') === nome.toLowerCase().replace(/[^a-z]/g,''));
+}
+
+// --- RENDER MES ATUAL ---
+function renderMesAtual(resp) {
+  const periodo = resp.periodo || document.getElementById('mesSelector').value;
+  const data = resp.data || {};
+  const gympass = data.gympass || {};
+  const totalpass = data.totalpass || {};
+  const planos = data.planos || {};
+
+  dadosAtual = { periodo, data };
+  updateDots(data);
+
+  // Period label
+  const parcial = isParcial(periodo);
+  const label = document.getElementById('periodLabel');
+  label.innerHTML = `${nomeDoMes(periodo)} ${periodo.split('-')[0]}${parcial ? '<span class="partial">(PARCIAL)</span>' : ''}`;
 
   // KPIs
-  document.getElementById('kpi-receita').textContent = fmt(d.total_receita);
-  const resEl = document.getElementById('kpi-resultado');
-  resEl.textContent = fmt(d.total_resultado);
-  resEl.style.color = d.total_resultado >= 0 ? 'var(--green)' : 'var(--red)';
-  document.getElementById('kpi-margem').textContent = 'margem ' + fmtPct(d.margem_rede);
-  document.getElementById('kpi-alunos').textContent = d.total_alunos;
-  document.getElementById('kpi-alunos-delta').textContent =
-    '+' + d.total_novos + ' novos, -' + d.total_cancel + ' cancel.';
-  document.getElementById('kpi-wellhub').textContent = (d.total_ci_gp + d.total_ci_tp) + ' check-ins';
-  document.getElementById('kpi-wellhub-receita').textContent = 'receita ' + fmt(d.total_wellhub);
-  // Professores KPIs removed
+  const receitaGympass = gympass.total_receita || 0;
+  const receitaTotalpass = totalpass.total_receita || 0;
+  const faturamento = receitaGympass + receitaTotalpass;
+  const checkins = gympass.total_checkins;
+  const totalPlanos = contarPlanos(planos, periodo);
 
-  // Units grid
-  const ug = document.getElementById('units-grid');
-  ug.innerHTML = '';
-  d.finProcessado.forEach((f, i) => {
-    const a = d.alunosProcessado[i];
-    const g = d.gpProcessado[i];
-    const status = f.margem > 0.10 ? 'badge-green' : f.resultado >= 0 ? 'badge-yellow' : 'badge-red';
-    const statusTxt = f.margem > 0.10 ? 'Saudável' : f.resultado >= 0 ? 'Atenção' : 'Déficit';
-    const evasaoClass = a.evasao > 0.05 ? 'alert' : a.evasao >= 0.03 ? 'warn' : 'ok';
-    const barPct = Math.max(0, Math.min(100, (f.margem + 0.2) * 250));
-    const barClass = f.margem > 0.1 ? 'green' : f.resultado >= 0 ? '' : 'red';
-    ug.innerHTML += `
-      <div class="unit-card">
-        <div class="unit-header">
-          <div class="unit-name">${f.unidade}</div>
-          <div class="unit-badge ${status}">${statusTxt}</div>
-        </div>
-        <div class="unit-metrics">
-          <div class="metric">
-            <div class="metric-label">Receita</div>
-            <div class="metric-value">${fmt(f.rec_total)}</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Resultado</div>
-            <div class="metric-value ${f.resultado>=0?'ok':'alert'}">${fmt(f.resultado)}</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Alunos Ativos</div>
-            <div class="metric-value">${a.fim}</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Taxa Evasão</div>
-            <div class="metric-value ${evasaoClass}">${fmtPct(a.evasao)}</div>
-          </div>
-        </div>
-        <div class="unit-bar">
-          <div class="bar-label"><span>Margem</span><span>${fmtPct(f.margem)}</span></div>
-          <div class="bar-track"><div class="bar-fill ${barClass}" style="width:${barPct}%"></div></div>
-        </div>
-      </div>`;
+  document.getElementById('kpiFaturamento').textContent = fmtMoeda(faturamento);
+  document.getElementById('kpiCheckins').textContent = fmtNum(checkins);
+  document.getElementById('kpiTotalpass').textContent = fmtMoeda(receitaTotalpass);
+  document.getElementById('kpiPlanos').textContent = totalPlanos != null ? fmtNum(totalPlanos) : '\u2014';
+
+  // Unit cards
+  const grid = document.getElementById('unitGrid');
+  grid.innerHTML = '';
+  UNIDADES.forEach(nome => {
+    const ug = findUnit(gympass.unidades, nome);
+    const ut = findUnit(totalpass.unidades, nome);
+    const gCheckins = ug?.checkins ?? null;
+    const gReceita = ug?.receita ?? 0;
+    const tReceita = ut?.receita ?? 0;
+    const total = gReceita + tReceita;
+
+    const card = document.createElement('div');
+    card.className = 'unit-card';
+    card.innerHTML = `
+      <div class="unit-name">${nome.toUpperCase()}</div>
+      <div class="unit-line">
+        <span class="label">Gympass</span>
+        <span class="val">${gCheckins != null ? fmtNum(gCheckins) + ' check-ins' : '\u2014'} | ${fmtMoeda(gReceita)}</span>
+      </div>
+      <div class="unit-line">
+        <span class="label">Totalpass</span>
+        <span class="val">${fmtMoeda(tReceita)}</span>
+      </div>
+      <div class="unit-line total">
+        <span class="label">Total</span>
+        <span class="val">${fmtMoeda(total)}</span>
+      </div>
+    `;
+    grid.appendChild(card);
   });
-
-  // Insights
-  const melhor = d.finProcessado.reduce((a,b)=>a.margem>b.margem?a:b);
-  const piorEvasao = d.alunosProcessado.reduce((a,b)=>a.evasao>b.evasao?a:b);
-  const maiorWellhub = d.gpProcessado.reduce((a,b)=>a.total>b.total?a:b);
-  const deficits = d.finProcessado.filter(f=>f.resultado<0);
-  const altaEvasao = d.alunosProcessado.filter(a=>a.evasao>0.05);
-
-  document.getElementById('insights-grid').innerHTML = `
-    <div class="insight-card">
-      <div class="insight-type positive"><div class="insight-dot"></div>Destaques Positivos</div>
-      <div class="insight-items">
-        <div class="insight-item">🏆 <strong>${melhor.unidade}</strong> com melhor margem do mês: ${fmtPct(melhor.margem)}</div>
-        <div class="insight-item">📍 <strong>${maiorWellhub.unidade}</strong> lidera em Wellhub: ${fmt(maiorWellhub.total)}</div>
-        <div class="insight-item">📈 Rede cresceu ${d.total_novos - d.total_cancel} alunos líquido no mês</div>
-      </div>
-    </div>
-    <div class="insight-card">
-      <div class="insight-type alert"><div class="insight-dot"></div>Pontos de Atenção</div>
-      <div class="insight-items">
-        ${deficits.length ? deficits.map(f=>`<div class="insight-item">🔴 <strong>${f.unidade}</strong> com resultado negativo: ${fmt(f.resultado)}</div>`).join('') : '<div class="insight-item">✅ Todas as unidades com resultado positivo</div>'}
-        ${altaEvasao.map(a=>`<div class="insight-item">⚠️ <strong>${a.unidade}</strong> evasão alta: ${fmtPct(a.evasao)}</div>`).join('') || '<div class="insight-item">✅ Evasão dentro do limite em todas as unidades</div>'}
-      </div>
-    </div>
-    <div class="insight-card">
-      <div class="insight-type action"><div class="insight-dot"></div>Recomendações</div>
-      <div class="insight-items">
-        ${deficits.length ? `<div class="insight-item">🎯 Revisar despesas em <strong>${deficits.map(f=>f.unidade).join(', ')}</strong></div>` : ''}
-        ${altaEvasao.length ? `<div class="insight-item">📞 Ação de retenção urgente em <strong>${piorEvasao.unidade}</strong></div>` : ''}
-        <div class="insight-item">💡 Unidade com menor Wellhub: expandir divulgação do convênio</div>
-      </div>
-    </div>`;
-
-  // Table Professores removed
-
-  // Wellhub cards por unidade
-  const maxTotal = Math.max(...d.gpProcessado.map(g=>g.total));
-  const wc = document.getElementById('wellhub-cards');
-  wc.innerHTML = d.gpProcessado.map(g => `
-    <div class="wellhub-card">
-      <div class="wellhub-card-name">${g.unidade}</div>
-      <div class="wellhub-row">
-        <div class="wellhub-plat"><div class="plat-dot dot-gp"></div>Gympass</div>
-      </div>
-      <div class="wellhub-checkins">${g.ci_gp} check-ins</div>
-      <div class="wellhub-row" style="margin-bottom:0.75rem">
-        <div class="wellhub-rec">${fmt(g.rec_gp)}</div>
-      </div>
-      <div class="wellhub-row">
-        <div class="wellhub-plat"><div class="plat-dot dot-tp"></div>Totalpass</div>
-      </div>
-      <div class="wellhub-checkins">${g.ci_tp} check-ins</div>
-      <div class="wellhub-row" style="margin-bottom:0">
-        <div class="wellhub-rec">${fmt(g.rec_tp)}</div>
-      </div>
-      <div class="wellhub-divider"></div>
-      <div class="wellhub-total-row">
-        <div class="wellhub-total-label">Total</div>
-        <div class="wellhub-total-val">${fmt(g.total)}</div>
-      </div>
-      <div class="wellhub-bar-track">
-        <div class="wellhub-bar-fill" style="width:${(g.total/maxTotal*100).toFixed(1)}%"></div>
-      </div>
-      <div class="wellhub-pct">${fmtPct(g.pct)} da rede</div>
-    </div>`).join('');
-
-  // Table Gympass
-  const tbody_g = document.getElementById('tbody-gympass');
-  tbody_g.innerHTML = d.gpProcessado.map(g=>`
-    <tr>
-      <td class="td-name">${g.unidade}</td>
-      <td>${g.ci_gp}</td>
-      <td>${fmt(g.rec_gp)}</td>
-      <td>${g.ci_tp}</td>
-      <td>${fmt(g.rec_tp)}</td>
-      <td class="td-gold">${fmt(g.total)}</td>
-      <td class="td-gray">${fmtPct(g.pct)}</td>
-    </tr>`).join('') +
-    `<tr class="total-row"><td>TOTAL REDE</td><td>${d.total_ci_gp}</td><td>—</td><td>${d.total_ci_tp}</td><td>—</td><td>${fmt(d.total_wellhub)}</td><td>100%</td></tr>`;
-
-  // Table Alunos
-  const tbody_a = document.getElementById('tbody-alunos');
-  tbody_a.innerHTML = d.alunosProcessado.map(a=>`
-    <tr>
-      <td class="td-name">${a.unidade}</td>
-      <td>${a.ini}</td>
-      <td class="td-green">+${a.novos}</td>
-      <td class="td-red">-${a.cancel}</td>
-      <td>${a.fim}</td>
-      <td class="${a.inadimpl/a.fim>0.1?'td-red':'td-gray'}">${a.inadimpl}</td>
-      <td class="${a.evasao>0.05?'td-red':a.evasao>=0.03?'':'td-green'}">${fmtPct(a.evasao)}</td>
-      <td class="${a.inadimp_pct>0.1?'td-red':'td-gray'}">${fmtPct(a.inadimp_pct)}</td>
-      <td>${fmt(a.rec_mens)}</td>
-    </tr>`).join('') +
-    `<tr class="total-row"><td>TOTAL REDE</td><td>—</td><td>+${d.total_novos}</td><td>-${d.total_cancel}</td><td>${d.total_alunos}</td><td colspan="3">—</td><td>${fmt(d.alunosProcessado.reduce((s,a)=>s+a.rec_mens,0))}</td></tr>`;
-
-  // Table Financeiro
-  const tbody_f = document.getElementById('tbody-financeiro');
-  tbody_f.innerHTML = d.finProcessado.map(f=>`
-    <tr>
-      <td class="td-name">${f.unidade}</td>
-      <td>${fmt(f.rec_mens)}</td>
-      <td>${fmt(f.rec_wp)}</td>
-      <td class="td-gray">${fmt(f.outras_rec)}</td>
-      <td class="td-gold">${fmt(f.rec_total)}</td>
-      <td class="td-gray">${fmt(f.aluguel + f.desp_fix)}</td>
-      <td class="td-gray">${fmt(f.desp_var)}</td>
-      <td class="td-red">(${fmt(f.desp_total)})</td>
-      <td class="${f.resultado>=0?'td-green':'td-red'}">${fmt(f.resultado)}</td>
-      <td class="${f.margem>0.1?'td-green':f.margem>=0?'':'td-red'}">${fmtPct(f.margem)}</td>
-    </tr>`).join('') +
-    `<tr class="total-row">
-      <td>CONSOLIDADO REDE</td>
-      <td colspan="3">—</td>
-      <td>${fmt(d.total_receita)}</td>
-      <td colspan="2">—</td>
-      <td>(${fmt(d.finProcessado.reduce((s,f)=>s+f.desp_total,0))})</td>
-      <td>${fmt(d.total_resultado)}</td>
-      <td>${fmtPct(d.margem_rede)}</td>
-    </tr>`;
 }
 
-function setDotStatus(id, status) {
-  const el = document.getElementById(id);
-  el.className = 'status-dot dot-' + status;
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// INTEGRAÇÃO COM FIREBASE CLOUD FUNCTIONS
-// ══════════════════════════════════════════════════════════════════════════════
-
-const API_BASE = 'https://us-central1-bjj-blacksheep.cloudfunctions.net';
-const ADMIN_SECRET = localStorage.getItem('bs_admin_secret') || '';
-
-// Salva secret no localStorage (rodar 1x no console: localStorage.setItem('bs_admin_secret','bs2025admin'))
-function setAdminSecret(s) { localStorage.setItem('bs_admin_secret', s); }
-
-// Buscar dados consolidados do Firestore via Cloud Function
-async function fetchDashboardData(periodo) {
-  const url = `${API_BASE}/getDashboardData${periodo ? '?periodo=' + periodo : ''}`;
-  const resp = await fetch(url);
-  return resp.json();
-}
-
-// Disparar extração manual
-async function dispararExtracao(source) {
-  const url = `${API_BASE}/${source}`;
-  const resp = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ secret: ADMIN_SECRET })
+function contarPlanos(planos, periodo) {
+  if (!planos?.resumo_por_unidade) return null;
+  let total = 0;
+  let found = false;
+  planos.resumo_por_unidade.forEach(u => {
+    if (u.detalhes) {
+      u.detalhes.forEach(d => {
+        if (d.mes === periodo) {
+          found = true;
+          total += (d.planos?.length || 0);
+        }
+      });
+    }
+    // fallback: if no detalhes with matching month, use total_planos
   });
-  return resp.json();
+  if (!found) {
+    planos.resumo_por_unidade.forEach(u => {
+      total += (u.total_planos || 0);
+    });
+    if (total === 0) return null;
+  }
+  return total;
 }
 
-// Converter dados do Firestore para o formato que processar() espera
-function firestoreParaDashboard(data) {
-  if (!data) return null;
+// --- RENDER DETALHES ---
+function renderDetalhes(resp) {
+  const periodo = resp.periodo || document.getElementById('mesSelector').value;
+  const data = resp.data || {};
+  const gympass = data.gympass || {};
+  const totalpass = data.totalpass || {};
+  const planos = data.planos || {};
 
-  const gp = data.gympass;
-  const tp = data.totalpass;
-  const pl = data.planos;
+  document.getElementById('detalhesLabel').innerHTML = `DETALHES \u2014 ${nomeDoMes(periodo)} ${periodo.split('-')[0]}`;
 
-  // Gympass/Totalpass → formato esperado
-  const gympass = UNIDADES.map(u => {
-    const gpU = (gp?.unidades || []).find(x => x.nome === u) || {};
-    const tpU = (tp?.unidades || []).find(x => x.nome === u) || {};
-    return {
-      unidade: u,
-      ci_gp: gpU.checkins || 0,
-      val_gp: gpU.checkins ? (gpU.receita || 0) / gpU.checkins : 0,
-      rec_gp: gpU.receita || 0,
-      ci_tp: tpU.checkins || 0,
-      val_tp: tpU.checkins ? (tpU.receita || 0) / tpU.checkins : 0,
-      rec_tp: tpU.receita || 0,
-    };
-  });
+  // Gympass table
+  const gWrap = document.getElementById('gympassTableWrap');
+  if (gympass.unidades?.length) {
+    let html = '<table><tr><th>Unidade</th><th>Check-ins</th><th>Receita</th><th>Tarifa Media</th></tr>';
+    let tCheckins = 0, tReceita = 0;
+    gympass.unidades.forEach(u => {
+      tCheckins += (u.checkins || 0);
+      tReceita += (u.receita || 0);
+      html += `<tr>
+        <td>${u.nome}</td>
+        <td class="mono">${fmtNum(u.checkins)}</td>
+        <td class="mono">${fmtMoeda(u.receita)}</td>
+        <td class="mono">${u.tarifa_media != null ? 'R$ ' + u.tarifa_media.toFixed(2) : '\u2014'}</td>
+      </tr>`;
+    });
+    html += `<tr class="total-row">
+      <td>TOTAL</td>
+      <td class="mono">${fmtNum(tCheckins)}</td>
+      <td class="mono">${fmtMoeda(tReceita)}</td>
+      <td class="mono">\u2014</td>
+    </tr></table>`;
+    gWrap.innerHTML = html;
+  } else {
+    gWrap.innerHTML = '<div class="empty-state">Sem dados Gympass</div>';
+  }
 
-  // Planos fechados → alunos (dados parciais — precisa complementar com Millbody futuramente)
-  const alunos = UNIDADES.map(u => {
-    const plU = (pl?.resumo_por_unidade || []).find(x => x.nome === u) || {};
-    return {
-      unidade: u,
-      ini: 150,
-      novos: plU.total_planos || 0,
-      cancel: 0,
-      inadimpl: 0,
-      mensalidade: 175,
-    };
-  });
+  // Totalpass table
+  const tWrap = document.getElementById('totalpassTableWrap');
+  if (totalpass.unidades?.length) {
+    let html = '<table><tr><th>Unidade</th><th>Receita</th><th>Check-ins</th></tr>';
+    let tReceita = 0;
+    totalpass.unidades.forEach(u => {
+      tReceita += (u.receita || 0);
+      html += `<tr>
+        <td>${u.nome}</td>
+        <td class="mono">${fmtMoeda(u.receita)}</td>
+        <td class="mono">${u.checkins ? fmtNum(u.checkins) : '\u2014'}</td>
+      </tr>`;
+    });
+    html += `<tr class="total-row">
+      <td>TOTAL</td>
+      <td class="mono">${fmtMoeda(tReceita)}</td>
+      <td class="mono">\u2014</td>
+    </tr></table>`;
+    tWrap.innerHTML = html;
+  } else {
+    tWrap.innerHTML = '<div class="empty-state">Sem dados Totalpass</div>';
+  }
 
-  // Financeiro placeholder (será alimentado por Millbody futuramente)
-  const financeiro = UNIDADES.map(u => ({
-    unidade: u,
-    outras_rec: 0,
-    aluguel: 8000,
-    desp_fix: 3000,
-    desp_var: 1000,
-  }));
-
-  // Professores placeholder
-  const profs = [];
-
-  return { profs, gympass, alunos, financeiro };
-}
-
-// ── ATUALIZAÇÃO PRINCIPAL ────────────────────────────────────────────────────
-
-let PERIODO_ATUAL = '2026-03';
-
-function trocarPeriodo(periodo) {
-  PERIODO_ATUAL = periodo;
-  simularAtualizacao(periodo);
-}
-
-async function simularAtualizacao(periodo) {
-  periodo = periodo || PERIODO_ATUAL;
-  const overlay = document.getElementById('loading-overlay');
-  const txt = document.getElementById('loading-text');
-  overlay.classList.add('active');
-
-  // Reset dots
-  ['dot-sheets','dot-gympass','dot-totalpass','dot-app'].forEach(id => setDotStatus(id, 'yellow'));
-
-  let usouAPI = false;
-  let raw = null;
-
-  try {
-    // 1. Tentar buscar dados reais do Firestore
-    txt.textContent = 'Conectando ao servidor...';
-    setDotStatus('dot-sheets', 'green');
-    const resp = await fetchDashboardData(periodo);
-
-    if (resp.data && (resp.data.gympass || resp.data.totalpass || resp.data.planos)) {
-      usouAPI = true;
-      txt.textContent = 'Dados encontrados! Processando...';
-
-      if (resp.data.gympass) setDotStatus('dot-gympass', 'green');
-      if (resp.data.totalpass) setDotStatus('dot-totalpass', 'green');
-      setDotStatus('dot-app', 'green');
-
-      raw = firestoreParaDashboard(resp.data);
-
-      // Se tiver dados consolidados completos com profs, usar direto
-      if (resp.data.profs) {
-        raw.profs = resp.data.profs;
+  // Planos table
+  const pWrap = document.getElementById('planosTableWrap');
+  if (planos.resumo_por_unidade?.length) {
+    let html = '<table><tr><th>Unidade</th><th>Qtd</th><th>Planos</th></tr>';
+    let tTotal = 0;
+    planos.resumo_por_unidade.forEach(u => {
+      const qty = u.total_planos || 0;
+      tTotal += qty;
+      // Get plan names for current period
+      let nomes = '\u2014';
+      if (u.detalhes) {
+        const periodo_sel = document.getElementById('mesSelector').value;
+        const det = u.detalhes.find(d => d.mes === periodo_sel);
+        if (det?.planos?.length) {
+          nomes = det.planos.join(', ');
+        }
       }
-    }
-  } catch (err) {
-    console.warn('API indisponível, usando dados demo:', err.message);
+      html += `<tr>
+        <td>${u.nome}</td>
+        <td class="mono">${qty}</td>
+        <td style="font-size:0.75rem;color:var(--gray)">${nomes}</td>
+      </tr>`;
+    });
+    html += `<tr class="total-row">
+      <td>TOTAL</td>
+      <td class="mono">${tTotal}</td>
+      <td></td>
+    </tr></table>`;
+    pWrap.innerHTML = html;
+  } else {
+    pWrap.innerHTML = '<div class="empty-state">Sem dados de planos</div>';
   }
-
-  // 2. Fallback para dados demo se API falhou ou sem dados
-  if (!raw) {
-    txt.textContent = 'Sem dados reais — gerando demonstração...';
-    await new Promise(r => setTimeout(r, 400));
-
-    const steps = [
-      ['dot-gympass', 'Simulando Gympass...', 500],
-      ['dot-totalpass', 'Simulando Totalpass...', 400],
-      ['dot-app', 'Simulando App...', 400],
-    ];
-    for (const [dotId, msg, delay] of steps) {
-      txt.textContent = msg;
-      await new Promise(r => setTimeout(r, delay));
-      if (dotId) setDotStatus(dotId, 'green');
-    }
-    raw = gerarDadosDemo();
-  }
-
-  txt.textContent = 'Renderizando dashboard...';
-  STATE = processar(raw);
-  renderDashboard(STATE);
-
-  // Mostrar mês de referência baseado no período selecionado
-  const [ano, mes] = periodo.split('-');
-  const mesNomes = ['','janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-  const mesRef = mesNomes[parseInt(mes)] + ' de ' + ano;
-  const isParcial = periodo === getPeriodoAtual();
-
-  const now = new Date();
-  document.getElementById('last-update').textContent =
-    (usouAPI ? '⬤ Dados reais — ' : '⬤ Demo — ') +
-    now.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
-  document.getElementById('mes-ref').textContent =
-    'REF: ' + mesRef.toUpperCase() + (isParcial ? ' (PARCIAL)' : '');
-
-  overlay.classList.remove('active');
 }
 
-function getPeriodoAtual() {
+// --- RENDER HISTORICO ---
+async function carregarHistorico() {
+  if (historicoCarregado) return;
+  showLoading();
   const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-}
-
-// ── EXTRAIR AGORA (botões admin) ─────────────────────────────────────────────
-
-async function extrairAgora(source) {
-  if (!ADMIN_SECRET) { alert('Configure o secret: localStorage.setItem("bs_admin_secret","sua_senha")'); return; }
-  const overlay = document.getElementById('loading-overlay');
-  const txt = document.getElementById('loading-text');
-  overlay.classList.add('active');
-  txt.textContent = `Extraindo ${source}... (pode levar 1-2 min)`;
+  const year = now.getFullYear();
+  const curMonth = now.getMonth() + 1;
+  const meses = [];
+  // Load Jan through previous month
+  for (let m = 1; m < curMonth; m++) {
+    meses.push(`${year}-${String(m).padStart(2,'0')}`);
+  }
+  if (meses.length === 0) {
+    document.getElementById('historicoTableWrap').innerHTML = '<div class="empty-state">Nenhum mes completo ainda</div>';
+    document.getElementById('historicoCheckinsWrap').innerHTML = '';
+    hideLoading();
+    return;
+  }
 
   try {
-    const result = await dispararExtracao(source === 'tudo' ? 'extrairTudo' :
-      source === 'gympass' ? 'extrairGympass' :
-      source === 'totalpass' ? 'extrairTotalpass' : 'extrairWhatsapp');
-
-    if (result.success) {
-      txt.textContent = 'Extração concluída! Atualizando dashboard...';
-      await new Promise(r => setTimeout(r, 500));
-      overlay.classList.remove('active');
-      await simularAtualizacao();
-    } else {
-      alert('Erro na extração: ' + (result.error || JSON.stringify(result)));
-      overlay.classList.remove('active');
-    }
-  } catch (err) {
-    alert('Erro: ' + err.message);
-    overlay.classList.remove('active');
+    const results = await Promise.all(meses.map(m => fetchDashboardData(m).catch(() => null)));
+    meses.forEach((m, i) => {
+      if (results[i]) dadosHistorico[m] = results[i];
+    });
+    historicoCarregado = true;
+    renderHistorico(meses);
+  } catch (e) {
+    document.getElementById('historicoTableWrap').innerHTML = `<div class="empty-state">Erro ao carregar: ${e.message}</div>`;
   }
+  hideLoading();
 }
 
-// Carregar dados automaticamente ao abrir
-window.addEventListener('DOMContentLoaded', () => {
-  simularAtualizacao();
+function renderHistorico(meses) {
+  // Receita table
+  const wrap = document.getElementById('historicoTableWrap');
+  let html = '<table><tr><th>Unidade</th>';
+  meses.forEach(m => {
+    const mm = m.split('-')[1];
+    html += `<th>${MESES_ABREV[mm]} ${m.split('-')[0]}</th>`;
+  });
+  html += '</tr>';
+
+  const totals = meses.map(() => 0);
+
+  UNIDADES.forEach(nome => {
+    html += `<tr><td>${nome}</td>`;
+    meses.forEach((m, i) => {
+      const d = dadosHistorico[m]?.data;
+      const gU = findUnit(d?.gympass?.unidades, nome);
+      const tU = findUnit(d?.totalpass?.unidades, nome);
+      const val = (gU?.receita || 0) + (tU?.receita || 0);
+      totals[i] += val;
+      html += `<td class="mono">${val > 0 ? fmtMoeda(val) : '\u2014'}</td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += '<tr class="total-row"><td>TOTAL</td>';
+  totals.forEach(t => {
+    html += `<td class="mono">${fmtMoeda(t)}</td>`;
+  });
+  html += '</tr></table>';
+  wrap.innerHTML = html;
+
+  // Checkins table
+  const cWrap = document.getElementById('historicoCheckinsWrap');
+  let cHtml = '<table><tr><th>Mes</th><th>Check-ins Gympass</th></tr>';
+  meses.forEach(m => {
+    const mm = m.split('-')[1];
+    const d = dadosHistorico[m]?.data;
+    const val = d?.gympass?.total_checkins;
+    cHtml += `<tr><td>${MESES_ABREV[mm]} ${m.split('-')[0]}</td><td class="mono">${val != null ? fmtNum(val) : '\u2014'}</td></tr>`;
+  });
+  cHtml += '</table>';
+  cWrap.innerHTML = cHtml;
+}
+
+// --- LOAD ---
+async function carregarPeriodo(periodo) {
+  showLoading();
+  try {
+    const resp = await fetchDashboardData(periodo);
+    renderMesAtual(resp);
+    renderDetalhes(resp);
+  } catch (e) {
+    console.error('Erro ao carregar dados:', e);
+    updateDots({});
+    document.getElementById('periodLabel').textContent = 'ERRO AO CARREGAR';
+  }
+  hideLoading();
+}
+
+function carregarMesAtual() {
+  const periodo = document.getElementById('mesSelector').value;
+  historicoCarregado = false; // force reload on next historico click
+  carregarPeriodo(periodo);
+}
+
+// --- TABS ---
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    const target = tab.dataset.tab;
+    document.getElementById(target).classList.add('active');
+    if (target === 'historico') carregarHistorico();
+  });
 });
+
+// --- INIT ---
+initSelector();
+carregarPeriodo(mesAtualStr());
 </script>
 </body>
 </html>
