@@ -27,6 +27,90 @@ body {
   min-height: 100vh;
 }
 
+/* Login Screen */
+#loginScreen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+#loginScreen.hidden { display: none; }
+.login-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 3rem 2.5rem;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+}
+.login-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem;
+  letter-spacing: 0.12em;
+  margin-bottom: 0.5rem;
+}
+.login-logo .gold { color: var(--gold); }
+.login-logo .wht { color: var(--white); }
+.login-sub {
+  font-size: 0.75rem;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 2rem;
+}
+.login-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--white);
+  padding: 0.8rem 1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  margin-bottom: 0.8rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.login-input:focus { border-color: var(--gold); }
+.login-input::placeholder { color: var(--gray); }
+.login-btn {
+  width: 100%;
+  background: var(--gold);
+  color: var(--black);
+  border: none;
+  padding: 0.8rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 0.5rem;
+  transition: background 0.2s;
+}
+.login-btn:hover { background: var(--gold-light); }
+.login-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.login-error {
+  color: var(--red);
+  font-size: 0.78rem;
+  margin-top: 1rem;
+  min-height: 1.2rem;
+}
+.login-forgot {
+  font-size: 0.72rem;
+  color: var(--gray);
+  margin-top: 1.2rem;
+  cursor: pointer;
+}
+.login-forgot:hover { color: var(--gold); }
+
+/* App wrapper */
+#appWrapper { display: none; }
+#appWrapper.visible { display: block; }
+
 /* Header */
 header {
   background: var(--surface);
@@ -69,6 +153,27 @@ header {
   color: var(--gray);
   font-family: 'DM Mono', monospace;
   margin-right: 0.3rem;
+}
+.user-info {
+  font-size: 0.7rem;
+  color: var(--gray);
+  font-family: 'DM Mono', monospace;
+}
+.btn-logout {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--gray);
+  padding: 0.35rem 0.7rem;
+  font-size: 0.65rem;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+}
+.btn-logout:hover {
+  color: var(--red);
+  border-color: var(--red);
 }
 select#mesSelector {
   background: var(--surface2);
@@ -182,7 +287,7 @@ select#mesSelector {
 @media (max-width: 600px) {
   .unit-grid { grid-template-columns: 1fr; }
   .kpi-row { grid-template-columns: repeat(2, 1fr); }
-  header { padding: 0 1rem; }
+  header { padding: 0 1rem; flex-wrap: wrap; height: auto; gap: 0.5rem; padding: 0.5rem 1rem; }
   .container { padding: 1rem; }
 }
 .unit-card {
@@ -292,8 +397,23 @@ tr.total-row td { color: var(--gold); }
 </head>
 <body>
 
-<div id="loading"><span>CARREGANDO DADOS...</span></div>
+<div id="loading"><span>CARREGANDO...</span></div>
 
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo"><span class="gold">CROSSLIFT </span><span class="wht">BLACKSHEEP</span></div>
+    <div class="login-sub">Dashboard</div>
+    <input type="email" id="loginEmail" class="login-input" placeholder="Email" autocomplete="email">
+    <input type="password" id="loginPassword" class="login-input" placeholder="Senha" autocomplete="current-password">
+    <button id="loginBtn" class="login-btn" onclick="doLogin()">ENTRAR</button>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-forgot" onclick="doResetPassword()">Esqueci minha senha</div>
+  </div>
+</div>
+
+<!-- APP (hidden until authenticated) -->
+<div id="appWrapper">
 <header>
   <div class="logo"><span class="gold">CROSSLIFT </span><span class="wht">BLACKSHEEP</span></div>
   <div class="header-right">
@@ -303,6 +423,8 @@ tr.total-row td { color: var(--gold); }
     </div>
     <select id="mesSelector"></select>
     <button class="btn-update" onclick="carregarMesAtual()">ATUALIZAR DADOS</button>
+    <span class="user-info" id="userEmail"></span>
+    <button class="btn-logout" onclick="doLogout()">SAIR</button>
   </div>
 </header>
 
@@ -345,8 +467,135 @@ tr.total-row td { color: var(--gold); }
     <div id="planosTableWrap"><div class="empty-state">Sem dados</div></div>
   </div>
 </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
+// --- FIREBASE CONFIG ---
+const firebaseConfig = {
+  apiKey: "AIzaSyAcyQMnedG-XcRzMPv8_hyLcnF_VIAF7AQ",
+  authDomain: "bjj-blacksheep.firebaseapp.com",
+  projectId: "bjj-blacksheep",
+  storageBucket: "bjj-blacksheep.firebasestorage.app",
+  messagingSenderId: "1005609332876",
+  appId: "1:1005609332876:web:a11586795be7f886454ba9"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// --- AUTH ---
+let currentUser = null;
+
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    // Check if user is authorized
+    const authorized = await checkAuthorized(user.email);
+    if (authorized) {
+      currentUser = user;
+      showApp(user);
+    } else {
+      auth.signOut();
+      showLogin('Acesso negado. Seu email nao esta autorizado.');
+    }
+  } else {
+    currentUser = null;
+    showLogin();
+  }
+});
+
+async function checkAuthorized(email) {
+  try {
+    const doc = await db.collection('dashboard_users').doc(email.toLowerCase()).get();
+    return doc.exists && doc.data().ativo !== false;
+  } catch (e) {
+    console.error('Erro ao verificar autorizacao:', e);
+    return false;
+  }
+}
+
+function showLogin(errorMsg) {
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('appWrapper').classList.remove('visible');
+  if (errorMsg) document.getElementById('loginError').textContent = errorMsg;
+}
+
+function showApp(user) {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appWrapper').classList.add('visible');
+  document.getElementById('userEmail').textContent = user.email;
+  // Init dashboard
+  initSelector();
+  carregarPeriodo(mesAtualStr());
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errorEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+
+  if (!email || !password) {
+    errorEl.textContent = 'Preencha email e senha.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'ENTRANDO...';
+  errorEl.textContent = '';
+
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+    // onAuthStateChanged will handle the rest
+  } catch (e) {
+    let msg = 'Erro ao fazer login.';
+    if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
+      msg = 'Email ou senha incorretos.';
+    } else if (e.code === 'auth/too-many-requests') {
+      msg = 'Muitas tentativas. Tente novamente mais tarde.';
+    } else if (e.code === 'auth/invalid-email') {
+      msg = 'Email invalido.';
+    }
+    errorEl.textContent = msg;
+  }
+  btn.disabled = false;
+  btn.textContent = 'ENTRAR';
+}
+
+async function doResetPassword() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const errorEl = document.getElementById('loginError');
+  if (!email) {
+    errorEl.textContent = 'Digite seu email primeiro.';
+    return;
+  }
+  try {
+    await auth.sendPasswordResetEmail(email);
+    errorEl.style.color = 'var(--green)';
+    errorEl.textContent = 'Email de recuperacao enviado!';
+    setTimeout(() => { errorEl.style.color = 'var(--red)'; }, 5000);
+  } catch (e) {
+    errorEl.textContent = 'Erro ao enviar email de recuperacao.';
+  }
+}
+
+function doLogout() {
+  auth.signOut();
+}
+
+// Enter key on password field
+document.getElementById('loginPassword').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') doLogin();
+});
+document.getElementById('loginEmail').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('loginPassword').focus();
+});
+
+// --- DASHBOARD CODE ---
 const API_BASE = 'https://us-central1-bjj-blacksheep.cloudfunctions.net/getDashboardData';
 const UNIDADES = ['Moema', 'Pinheiros', 'Berrini', 'Itaim', 'Vila Olímpia', 'Alphaville'];
 const MESES_NOME = {
@@ -513,7 +762,6 @@ function contarPlanos(planos, periodo) {
         }
       });
     }
-    // fallback: if no detalhes with matching month, use total_planos
   });
   if (!found) {
     planos.resumo_por_unidade.forEach(u => {
@@ -591,7 +839,6 @@ function renderDetalhes(resp) {
     planos.resumo_por_unidade.forEach(u => {
       const qty = u.total_planos || 0;
       tTotal += qty;
-      // Get plan names for current period
       let nomes = '\u2014';
       if (u.detalhes) {
         const periodo_sel = document.getElementById('mesSelector').value;
@@ -625,7 +872,6 @@ async function carregarHistorico() {
   const year = now.getFullYear();
   const curMonth = now.getMonth() + 1;
   const meses = [];
-  // Load Jan through previous month
   for (let m = 1; m < curMonth; m++) {
     meses.push(`${year}-${String(m).padStart(2,'0')}`);
   }
@@ -650,7 +896,6 @@ async function carregarHistorico() {
 }
 
 function renderHistorico(meses) {
-  // Receita table
   const wrap = document.getElementById('historicoTableWrap');
   let html = '<table><tr><th>Unidade</th>';
   meses.forEach(m => {
@@ -681,7 +926,6 @@ function renderHistorico(meses) {
   html += '</tr></table>';
   wrap.innerHTML = html;
 
-  // Checkins table
   const cWrap = document.getElementById('historicoCheckinsWrap');
   let cHtml = '<table><tr><th>Mes</th><th>Check-ins Gympass</th></tr>';
   meses.forEach(m => {
@@ -711,7 +955,7 @@ async function carregarPeriodo(periodo) {
 
 function carregarMesAtual() {
   const periodo = document.getElementById('mesSelector').value;
-  historicoCarregado = false; // force reload on next historico click
+  historicoCarregado = false;
   carregarPeriodo(periodo);
 }
 
@@ -726,10 +970,6 @@ document.querySelectorAll('.tab').forEach(tab => {
     if (target === 'historico') carregarHistorico();
   });
 });
-
-// --- INIT ---
-initSelector();
-carregarPeriodo(mesAtualStr());
 </script>
 </body>
 </html>
