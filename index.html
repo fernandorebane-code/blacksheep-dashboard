@@ -450,8 +450,10 @@ tr.total-row td { color: var(--gold); }
   <!-- TAB 2: HISTORICO -->
   <div id="historico" class="tab-content">
     <div class="period-label">HISTORICO 2026</div>
-    <div class="section-title">RECEITA POR UNIDADE (GYMPASS + TOTALPASS)</div>
-    <div id="historicoTableWrap"><div class="empty-state">Clique para carregar dados do historico</div></div>
+    <div class="section-title">RECEITA GYMPASS POR UNIDADE</div>
+    <div id="historicoGympassWrap"><div class="empty-state">Clique para carregar dados do historico</div></div>
+    <div class="section-title">RECEITA TOTALPASS POR UNIDADE</div>
+    <div id="historicoTotalpassWrap"><div class="empty-state">---</div></div>
     <div class="section-title">CHECK-INS GYMPASS POR MES</div>
     <div id="historicoCheckinsWrap"><div class="empty-state">---</div></div>
   </div>
@@ -877,6 +879,8 @@ async function carregarHistorico() {
   }
   if (meses.length === 0) {
     document.getElementById('historicoTableWrap').innerHTML = '<div class="empty-state">Nenhum mes completo ainda</div>';
+    document.getElementById('historicoGympassWrap').innerHTML = '';
+    document.getElementById('historicoTotalpassWrap').innerHTML = '';
     document.getElementById('historicoCheckinsWrap').innerHTML = '';
     hideLoading();
     return;
@@ -890,42 +894,58 @@ async function carregarHistorico() {
     historicoCarregado = true;
     renderHistorico(meses);
   } catch (e) {
-    document.getElementById('historicoTableWrap').innerHTML = `<div class="empty-state">Erro ao carregar: ${e.message}</div>`;
+    document.getElementById('historicoGympassWrap').innerHTML = `<div class="empty-state">Erro ao carregar: ${e.message}</div>`;
   }
   hideLoading();
 }
 
 function renderHistorico(meses) {
-  const wrap = document.getElementById('historicoTableWrap');
-  let html = '<table><tr><th>Unidade</th>';
-  meses.forEach(m => {
+  const headerCols = meses.map(m => {
     const mm = m.split('-')[1];
-    html += `<th>${MESES_ABREV[mm]} ${m.split('-')[0]}</th>`;
-  });
-  html += '</tr>';
+    return `<th>${MESES_ABREV[mm]} ${m.split('-')[0]}</th>`;
+  }).join('');
 
-  const totals = meses.map(() => 0);
-
+  // GYMPASS table
+  const gWrap = document.getElementById('historicoGympassWrap');
+  let gHtml = `<table><tr><th>Unidade</th>${headerCols}</tr>`;
+  const gTotals = meses.map(() => 0);
   UNIDADES.forEach(nome => {
-    html += `<tr><td>${nome}</td>`;
+    gHtml += `<tr><td>${nome}</td>`;
     meses.forEach((m, i) => {
       const d = dadosHistorico[m]?.data;
       const gU = findUnit(d?.gympass?.unidades, nome);
-      const tU = findUnit(d?.totalpass?.unidades, nome);
-      const val = (gU?.receita || 0) + (tU?.receita || 0);
-      totals[i] += val;
-      html += `<td class="mono">${val > 0 ? fmtMoeda(val) : '\u2014'}</td>`;
+      const val = gU?.receita || 0;
+      gTotals[i] += val;
+      gHtml += `<td class="mono">${val > 0 ? fmtMoeda(val) : '\u2014'}</td>`;
     });
-    html += '</tr>';
+    gHtml += '</tr>';
   });
+  gHtml += '<tr class="total-row"><td>TOTAL</td>';
+  gTotals.forEach(t => { gHtml += `<td class="mono">${fmtMoeda(t)}</td>`; });
+  gHtml += '</tr></table>';
+  gWrap.innerHTML = gHtml;
 
-  html += '<tr class="total-row"><td>TOTAL</td>';
-  totals.forEach(t => {
-    html += `<td class="mono">${fmtMoeda(t)}</td>`;
+  // TOTALPASS table
+  const tWrap = document.getElementById('historicoTotalpassWrap');
+  let tHtml = `<table><tr><th>Unidade</th>${headerCols}</tr>`;
+  const tTotals = meses.map(() => 0);
+  UNIDADES.forEach(nome => {
+    tHtml += `<tr><td>${nome}</td>`;
+    meses.forEach((m, i) => {
+      const d = dadosHistorico[m]?.data;
+      const tU = findUnit(d?.totalpass?.unidades, nome);
+      const val = tU?.receita || 0;
+      tTotals[i] += val;
+      tHtml += `<td class="mono">${val > 0 ? fmtMoeda(val) : '\u2014'}</td>`;
+    });
+    tHtml += '</tr>';
   });
-  html += '</tr></table>';
-  wrap.innerHTML = html;
+  tHtml += '<tr class="total-row"><td>TOTAL</td>';
+  tTotals.forEach(t => { tHtml += `<td class="mono">${fmtMoeda(t)}</td>`; });
+  tHtml += '</tr></table>';
+  tWrap.innerHTML = tHtml;
 
+  // CHECK-INS table
   const cWrap = document.getElementById('historicoCheckinsWrap');
   let cHtml = '<table><tr><th>Mes</th><th>Check-ins Gympass</th></tr>';
   meses.forEach(m => {
