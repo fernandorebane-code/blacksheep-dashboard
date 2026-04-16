@@ -497,6 +497,8 @@ tr.total-row td { color: var(--gold); }
     <div id="historicoGympassWrap"><div class="empty-state">Clique para carregar dados do historico</div></div>
     <div class="section-title">RECEITA TOTALPASS POR UNIDADE</div>
     <div id="historicoTotalpassWrap"><div class="empty-state">---</div></div>
+    <div class="section-title">RECEITA PLANOS FECHADOS POR UNIDADE</div>
+    <div id="historicoPlanosReceitaWrap"><div class="empty-state">---</div></div>
     <div class="section-title">CHECK-INS GYMPASS POR MES</div>
     <div id="historicoCheckinsWrap"><div class="empty-state">---</div></div>
   </div>
@@ -1055,6 +1057,32 @@ function renderHistorico(meses) {
   tTotals.forEach(t => { tHtml += `<td class="mono">${fmtMoeda(t)}</td>`; });
   tHtml += '</tr></table>';
   tWrap.innerHTML = tHtml;
+
+  // PLANOS RECEITA table
+  const prWrap = document.getElementById('historicoPlanosReceitaWrap');
+  let prHtml = '<table><tr><th>Unidade</th>';
+  meses.forEach(m => {
+    const mm = m.split('-')[1];
+    prHtml += `<th>${MESES_ABREV[mm]} ${m.split('-')[0]}</th>`;
+  });
+  prHtml += '</tr>';
+  const prTotals = meses.map(() => 0);
+  UNIDADES.forEach(nome => {
+    prHtml += `<tr><td>${nome}</td>`;
+    meses.forEach((m, i) => {
+      const d = dadosHistorico[m]?.data;
+      const pr = d?.planos_receita?.unidades;
+      const u = pr ? pr.find(x => x.nome === nome) : null;
+      const val = u?.receita || 0;
+      prTotals[i] += val;
+      prHtml += `<td class="mono">${val > 0 ? fmtMoeda(val) : '\u2014'}</td>`;
+    });
+    prHtml += '</tr>';
+  });
+  prHtml += '<tr class="total-row"><td>TOTAL</td>';
+  prTotals.forEach(t => { prHtml += `<td class="mono">${fmtMoeda(t)}</td>`; });
+  prHtml += '</tr></table>';
+  prWrap.innerHTML = prHtml;
 
   // CHECK-INS table
   const cWrap = document.getElementById('historicoCheckinsWrap');
