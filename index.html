@@ -495,9 +495,12 @@ tr.total-row td { color: var(--gold); }
     <div class="period-label">HISTORICO 2026</div>
 
     <div class="section-title">RESULTADO POR UNIDADE</div>
-    <div style="margin-bottom:1rem">
+    <div style="margin-bottom:1rem;display:flex;gap:0.8rem;flex-wrap:wrap">
       <select id="filtroUnidade" style="background:var(--surface2);color:var(--white);border:1px solid var(--border);padding:0.5rem 0.8rem;font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;outline:none;min-width:180px">
         <option value="TODAS">TODAS AS UNIDADES</option>
+      </select>
+      <select id="filtroMes" style="background:var(--surface2);color:var(--white);border:1px solid var(--border);padding:0.5rem 0.8rem;font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;outline:none;min-width:180px">
+        <option value="ANO">ANO INTEIRO</option>
       </select>
     </div>
     <div class="kpi-row" id="filtroKpiRow"></div>
@@ -1088,7 +1091,7 @@ function renderHistorico(meses) {
   cHtml += '</table>';
   cWrap.innerHTML = cHtml;
 
-  // Populate filtro unidade
+  // Populate filtros
   const sel = document.getElementById('filtroUnidade');
   if (sel.options.length <= 1) {
     UNIDADES.forEach(u => {
@@ -1098,22 +1101,34 @@ function renderHistorico(meses) {
     });
     sel.addEventListener('change', () => renderResultadoUnidade(meses));
   }
+  const selMes = document.getElementById('filtroMes');
+  if (selMes.options.length <= 1) {
+    meses.forEach(m => {
+      const mm = m.split('-')[1];
+      const opt = document.createElement('option');
+      opt.value = m; opt.textContent = MESES_ABREV[mm] + ' ' + m.split('-')[0];
+      selMes.appendChild(opt);
+    });
+    selMes.addEventListener('change', () => renderResultadoUnidade(meses));
+  }
   renderResultadoUnidade(meses);
 }
 
 function renderResultadoUnidade(meses) {
-  const filtro = document.getElementById('filtroUnidade').value;
-  const unidades = filtro === 'TODAS' ? UNIDADES : [filtro];
+  const filtroUni = document.getElementById('filtroUnidade').value;
+  const filtroMes = document.getElementById('filtroMes').value;
+  const unidades = filtroUni === 'TODAS' ? UNIDADES : [filtroUni];
+  const mesesFiltrados = filtroMes === 'ANO' ? meses : [filtroMes];
+  const isAno = filtroMes === 'ANO';
   const TP_PCT = { 'Moema': 0.26, 'Pinheiros': 0.24, 'Itaim': 0.24, 'Vila Olímpia': 0.13, 'Berrini': 0.13, 'Alphaville': 0 };
 
   const grandTotals = { gympass: 0, totalpass: 0, planos: 0, total: 0 };
 
-  // Calculate per-unit totals
   const unitData = {};
   unidades.forEach(nome => {
     unitData[nome] = { gympass: 0, totalpass: 0, planos: 0, total: 0, meses: [] };
     const pct = TP_PCT[nome] || 0;
-    meses.forEach(m => {
+    mesesFiltrados.forEach(m => {
       const mm = m.split('-')[1];
       const label = MESES_ABREV[mm] + ' ' + m.split('-')[0];
       const d = dadosHistorico[m]?.data;
@@ -1141,10 +1156,11 @@ function renderResultadoUnidade(meses) {
 
   // KPI cards
   const kpiRow = document.getElementById('filtroKpiRow');
+  const labelPeriodo = isAno ? 'Ano' : '';
   kpiRow.innerHTML = `
-    <div class="kpi-card"><div class="kpi-label">Gympass</div><div class="kpi-value">${fmtMoeda(grandTotals.gympass)}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Totalpass</div><div class="kpi-value">${fmtMoeda(grandTotals.totalpass)}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Planos</div><div class="kpi-value">${fmtMoeda(grandTotals.planos)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Gympass ${labelPeriodo}</div><div class="kpi-value">${fmtMoeda(grandTotals.gympass)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Totalpass ${labelPeriodo}</div><div class="kpi-value">${fmtMoeda(grandTotals.totalpass)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Planos ${labelPeriodo}</div><div class="kpi-value">${fmtMoeda(grandTotals.planos)}</div></div>
     <div class="kpi-card"><div class="kpi-label">Total Geral</div><div class="kpi-value">${fmtMoeda(grandTotals.total)}</div></div>
   `;
 
@@ -1155,12 +1171,21 @@ function renderResultadoUnidade(meses) {
     const ud = unitData[nome];
     const card = document.createElement('div');
     card.className = 'unit-card';
-    let mesLines = ud.meses.map(m =>
-      `<div class="unit-line">
-        <span class="label">${m.label}</span>
-        <span class="val">${fmtMoeda(m.total)}</span>
-      </div>`
-    ).join('');
+
+    let detailHtml = '';
+    if (isAno && ud.meses.length > 1) {
+      const mesLines = ud.meses.map(m =>
+        `<div class="unit-line">
+          <span class="label">${m.label}</span>
+          <span class="val">${fmtMoeda(m.total)}</span>
+        </div>`
+      ).join('');
+      detailHtml = `
+        <div style="margin-top:0.8rem;border-top:1px solid var(--border);padding-top:0.5rem">
+          <div style="font-size:0.65rem;color:var(--gray);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">Por mes</div>
+          ${mesLines}
+        </div>`;
+    }
 
     card.innerHTML = `
       <div class="unit-name">${nome.toUpperCase()}</div>
@@ -1174,16 +1199,13 @@ function renderResultadoUnidade(meses) {
       </div>
       <div class="unit-line">
         <span class="label">Planos</span>
-        <span class="val">${fmtMoeda(ud.planos)}</span>
+        <span class="val">${ud.planos > 0 ? fmtMoeda(ud.planos) : '\u2014'}</span>
       </div>
       <div class="unit-line total">
-        <span class="label">Total Acumulado</span>
+        <span class="label">${isAno ? 'Total Acumulado' : 'Total'}</span>
         <span class="val">${fmtMoeda(ud.total)}</span>
       </div>
-      <div style="margin-top:0.8rem;border-top:1px solid var(--border);padding-top:0.5rem">
-        <div style="font-size:0.65rem;color:var(--gray);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">Por mes</div>
-        ${mesLines}
-      </div>
+      ${detailHtml}
     `;
     grid.appendChild(card);
   });
