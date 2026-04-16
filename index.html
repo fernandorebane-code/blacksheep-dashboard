@@ -981,49 +981,30 @@ function renderHistorico(meses) {
     return `<th>${MESES_ABREV[mm]} ${m.split('-')[0]}</th>`;
   }).join('');
 
-  // GYMPASS table — capturado + divisão por % fixa
-  const GP_PCT = { 'Moema': 0.26, 'Pinheiros': 0.24, 'Itaim': 0.24, 'Vila Olímpia': 0.13, 'Berrini': 0.13, 'Alphaville': 0 };
+  // GYMPASS table — só valor capturado
   const gWrap = document.getElementById('historicoGympassWrap');
-
-  const gTotals = meses.map(m => {
-    const d = dadosHistorico[m]?.data;
-    return d?.gympass?.total_receita || 0;
-  });
-
-  let gHtml = '<table><tr><th>Unidade</th><th>%</th>';
-  meses.forEach(m => {
-    const mm = m.split('-')[1];
-    gHtml += `<th>${MESES_ABREV[mm]} ${m.split('-')[0]}</th>`;
-  });
-  gHtml += '</tr>';
-
+  let gHtml = `<table><tr><th>Unidade</th>${headerCols}</tr>`;
+  const gTotals = meses.map(() => 0);
   UNIDADES.forEach(nome => {
-    const pct = GP_PCT[nome] || 0;
-    gHtml += `<tr><td>${nome}</td><td class="mono" style="color:var(--gray)">${pct > 0 ? (pct * 100) + '%' : '\u2014'}</td>`;
+    gHtml += `<tr><td>${nome}</td>`;
     meses.forEach((m, i) => {
       const d = dadosHistorico[m]?.data;
       const gU = findUnit(d?.gympass?.unidades, nome);
-      const capturado = gU?.receita || 0;
-      const calculado = Math.round(gTotals[i] * pct);
-      if (gTotals[i] === 0) {
-        gHtml += `<td class="mono">\u2014</td>`;
-      } else {
-        gHtml += `<td class="mono">${fmtMoeda(capturado)}<br><span style="color:var(--gold);font-size:0.72rem">${fmtMoeda(calculado)}</span></td>`;
-      }
+      const val = gU?.receita || 0;
+      gTotals[i] += val;
+      gHtml += `<td class="mono">${val > 0 ? fmtMoeda(val) : '\u2014'}</td>`;
     });
     gHtml += '</tr>';
   });
-
-  gHtml += '<tr class="total-row"><td>TOTAL</td><td class="mono">100%</td>';
+  gHtml += '<tr class="total-row"><td>TOTAL</td>';
   gTotals.forEach(t => { gHtml += `<td class="mono">${fmtMoeda(t)}</td>`; });
   gHtml += '</tr></table>';
   gWrap.innerHTML = gHtml;
 
-  // TOTALPASS table — capturado + divisão por % fixa do total
+  // TOTALPASS table — capturado + % + diferença (receber/pagar)
   const TP_PCT = { 'Moema': 0.26, 'Pinheiros': 0.24, 'Itaim': 0.24, 'Vila Olímpia': 0.13, 'Berrini': 0.13, 'Alphaville': 0 };
   const tWrap = document.getElementById('historicoTotalpassWrap');
 
-  // Calcular total de cada mês
   const tTotals = meses.map(m => {
     const d = dadosHistorico[m]?.data;
     return d?.totalpass?.total_receita || 0;
@@ -1038,6 +1019,7 @@ function renderHistorico(meses) {
 
   UNIDADES.forEach(nome => {
     const pct = TP_PCT[nome] || 0;
+    // Linha 1: capturado + calculado
     tHtml += `<tr><td>${nome}</td><td class="mono" style="color:var(--gray)">${pct > 0 ? (pct * 100) + '%' : '\u2014'}</td>`;
     meses.forEach((m, i) => {
       const d = dadosHistorico[m]?.data;
@@ -1047,7 +1029,10 @@ function renderHistorico(meses) {
       if (tTotals[i] === 0) {
         tHtml += `<td class="mono">\u2014</td>`;
       } else {
-        tHtml += `<td class="mono">${fmtMoeda(capturado)}<br><span style="color:var(--gold);font-size:0.72rem">${fmtMoeda(calculado)}</span></td>`;
+        const diff = calculado - capturado;
+        const diffLabel = diff > 0 ? `receber ${fmtMoeda(diff)}` : diff < 0 ? `pagar ${fmtMoeda(Math.abs(diff))}` : 'ok';
+        const diffColor = diff > 0 ? 'var(--green)' : diff < 0 ? 'var(--red)' : 'var(--gray)';
+        tHtml += `<td class="mono">${fmtMoeda(capturado)}<br><span style="color:var(--gold);font-size:0.72rem">${fmtMoeda(calculado)}</span><br><span style="color:${diffColor};font-size:0.68rem;font-weight:600">${diffLabel}</span></td>`;
       }
     });
     tHtml += '</tr>';
