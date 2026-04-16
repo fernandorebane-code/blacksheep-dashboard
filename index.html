@@ -493,6 +493,15 @@ tr.total-row td { color: var(--gold); }
   <!-- TAB 2: HISTORICO -->
   <div id="historico" class="tab-content">
     <div class="period-label">HISTORICO 2026</div>
+
+    <div class="section-title">RESULTADO POR UNIDADE</div>
+    <div style="margin-bottom:1rem">
+      <select id="filtroUnidade" style="background:var(--surface2);color:var(--white);border:1px solid var(--border);padding:0.5rem 0.8rem;font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;outline:none;min-width:180px">
+        <option value="TODAS">TODAS AS UNIDADES</option>
+      </select>
+    </div>
+    <div id="historicoResultadoWrap"><div class="empty-state">Selecione uma unidade</div></div>
+
     <div class="section-title">RECEITA GYMPASS POR UNIDADE</div>
     <div id="historicoGympassWrap"><div class="empty-state">Clique para carregar dados do historico</div></div>
     <div class="section-title">RECEITA TOTALPASS POR UNIDADE</div>
@@ -1080,6 +1089,61 @@ function renderHistorico(meses) {
   });
   cHtml += '</table>';
   cWrap.innerHTML = cHtml;
+
+  // Populate filtro unidade
+  const sel = document.getElementById('filtroUnidade');
+  if (sel.options.length <= 1) {
+    UNIDADES.forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u; opt.textContent = u;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', () => renderResultadoUnidade(meses));
+  }
+  renderResultadoUnidade(meses);
+}
+
+function renderResultadoUnidade(meses) {
+  const wrap = document.getElementById('historicoResultadoWrap');
+  const filtro = document.getElementById('filtroUnidade').value;
+  const unidades = filtro === 'TODAS' ? UNIDADES : [filtro];
+  const TP_PCT = { 'Moema': 0.26, 'Pinheiros': 0.24, 'Itaim': 0.24, 'Vila Olímpia': 0.13, 'Berrini': 0.13, 'Alphaville': 0 };
+
+  let html = '<table><tr><th>Unidade</th><th>Mes</th><th>Gympass</th><th>Totalpass</th><th>Planos</th><th>TOTAL</th></tr>';
+
+  const grandTotals = { gympass: 0, totalpass: 0, planos: 0, total: 0 };
+
+  unidades.forEach(nome => {
+    const pct = TP_PCT[nome] || 0;
+    meses.forEach(m => {
+      const mm = m.split('-')[1];
+      const label = MESES_ABREV[mm] + ' ' + m.split('-')[0];
+      const d = dadosHistorico[m]?.data;
+
+      const gU = findUnit(d?.gympass?.unidades, nome);
+      const gymVal = gU?.receita || 0;
+
+      const tpTotal = d?.totalpass?.total_receita || 0;
+      const tpVal = Math.round(tpTotal * pct);
+
+      const pr = d?.planos_receita?.unidades;
+      const pU = pr ? pr.find(x => x.nome === nome) : null;
+      const plVal = pU?.receita || 0;
+
+      const total = gymVal + tpVal + plVal;
+
+      grandTotals.gympass += gymVal;
+      grandTotals.totalpass += tpVal;
+      grandTotals.planos += plVal;
+      grandTotals.total += total;
+
+      html += `<tr><td>${nome}</td><td>${label}</td><td class="mono">${gymVal > 0 ? fmtMoeda(gymVal) : '\u2014'}</td><td class="mono">${tpVal > 0 ? fmtMoeda(tpVal) : '\u2014'}</td><td class="mono">${plVal > 0 ? fmtMoeda(plVal) : '\u2014'}</td><td class="mono" style="color:var(--gold);font-weight:600">${total > 0 ? fmtMoeda(total) : '\u2014'}</td></tr>`;
+    });
+  });
+
+  html += `<tr class="total-row"><td colspan="2">TOTAL</td><td class="mono">${fmtMoeda(grandTotals.gympass)}</td><td class="mono">${fmtMoeda(grandTotals.totalpass)}</td><td class="mono">${fmtMoeda(grandTotals.planos)}</td><td class="mono">${fmtMoeda(grandTotals.total)}</td></tr>`;
+  html += '</table>';
+  wrap.innerHTML = html;
 }
 
 // --- RENDER INDICADORES ---
