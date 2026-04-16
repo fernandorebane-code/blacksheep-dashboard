@@ -500,7 +500,8 @@ tr.total-row td { color: var(--gold); }
         <option value="TODAS">TODAS AS UNIDADES</option>
       </select>
     </div>
-    <div id="historicoResultadoWrap"><div class="empty-state">Selecione uma unidade</div></div>
+    <div class="kpi-row" id="filtroKpiRow"></div>
+    <div class="unit-grid" id="filtroUnitGrid"></div>
 
     <div class="section-title">RECEITA GYMPASS POR UNIDADE</div>
     <div id="historicoGympassWrap"><div class="empty-state">Clique para carregar dados do historico</div></div>
@@ -516,25 +517,22 @@ tr.total-row td { color: var(--gold); }
   <div id="indicadores" class="tab-content">
     <div class="period-label" id="indicadoresLabel">---</div>
 
-    <div class="ind-grid">
-      <!-- Gympass resumo -->
-      <div class="ind-panel">
-        <div class="ind-panel-title">GYMPASS</div>
-        <div class="ind-row"><span class="lbl">Faturamento</span><span class="val" id="indGymFat">--</span></div>
-        <div class="ind-row"><span class="lbl">Check-ins</span><span class="val" id="indGymCheckins">--</span></div>
-        <div class="ind-row"><span class="lbl">Usuarios</span><span class="val" id="indGymUsers">--</span></div>
-        <div class="ind-row highlight"><span class="lbl">Ticket Medio</span><span class="val" id="indGymTicket">--</span></div>
-      </div>
-
-      <!-- Totalpass resumo -->
-      <div class="ind-panel">
-        <div class="ind-panel-title">TOTALPASS</div>
-        <div class="ind-row"><span class="lbl">Faturamento</span><span class="val" id="indTpFat">--</span></div>
-        <div class="ind-row"><span class="lbl">Check-ins</span><span class="val" id="indTpCheckins">--</span></div>
-        <div class="ind-row"><span class="lbl">Usuarios</span><span class="val" id="indTpUsers">--</span></div>
-        <div class="ind-row highlight"><span class="lbl">Ticket Medio</span><span class="val" id="indTpTicket">--</span></div>
-      </div>
+    <!-- KPI cards -->
+    <div class="kpi-row" id="indKpiRow">
+      <div class="kpi-card"><div class="kpi-label">Gympass Receita</div><div class="kpi-value" id="indGymFat">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Totalpass Receita</div><div class="kpi-value" id="indTpFat">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Planos Receita</div><div class="kpi-value" id="indPlanosFat">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Total Geral</div><div class="kpi-value" id="indTotalGeral">--</div></div>
     </div>
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-label">Check-ins Gympass</div><div class="kpi-value" id="indGymCheckins">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Check-ins Totalpass</div><div class="kpi-value" id="indTpCheckins">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Ticket Medio Gympass</div><div class="kpi-value" id="indGymTicket">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Ticket Medio Totalpass</div><div class="kpi-value" id="indTpTicket">--</div></div>
+    </div>
+
+    <!-- Unit cards -->
+    <div class="unit-grid" id="indUnitGrid"></div>
 
     <div class="section-title">COMPARATIVO VISITAS POR UNIDADE</div>
     <div id="indComparativoWrap"><div class="empty-state">Dados disponiveis na proxima extracao</div></div>
@@ -1104,46 +1102,91 @@ function renderHistorico(meses) {
 }
 
 function renderResultadoUnidade(meses) {
-  const wrap = document.getElementById('historicoResultadoWrap');
   const filtro = document.getElementById('filtroUnidade').value;
   const unidades = filtro === 'TODAS' ? UNIDADES : [filtro];
   const TP_PCT = { 'Moema': 0.26, 'Pinheiros': 0.24, 'Itaim': 0.24, 'Vila Olímpia': 0.13, 'Berrini': 0.13, 'Alphaville': 0 };
 
-  let html = '<table><tr><th>Unidade</th><th>Mes</th><th>Gympass</th><th>Totalpass</th><th>Planos</th><th>TOTAL</th></tr>';
-
   const grandTotals = { gympass: 0, totalpass: 0, planos: 0, total: 0 };
 
+  // Calculate per-unit totals
+  const unitData = {};
   unidades.forEach(nome => {
+    unitData[nome] = { gympass: 0, totalpass: 0, planos: 0, total: 0, meses: [] };
     const pct = TP_PCT[nome] || 0;
     meses.forEach(m => {
       const mm = m.split('-')[1];
       const label = MESES_ABREV[mm] + ' ' + m.split('-')[0];
       const d = dadosHistorico[m]?.data;
-
       const gU = findUnit(d?.gympass?.unidades, nome);
       const gymVal = gU?.receita || 0;
-
       const tpTotal = d?.totalpass?.total_receita || 0;
       const tpVal = Math.round(tpTotal * pct);
-
       const pr = d?.planos_receita?.unidades;
       const pU = pr ? pr.find(x => x.nome === nome) : null;
       const plVal = pU?.receita || 0;
-
       const total = gymVal + tpVal + plVal;
+
+      unitData[nome].gympass += gymVal;
+      unitData[nome].totalpass += tpVal;
+      unitData[nome].planos += plVal;
+      unitData[nome].total += total;
+      unitData[nome].meses.push({ label, gymVal, tpVal, plVal, total });
 
       grandTotals.gympass += gymVal;
       grandTotals.totalpass += tpVal;
       grandTotals.planos += plVal;
       grandTotals.total += total;
-
-      html += `<tr><td>${nome}</td><td>${label}</td><td class="mono">${gymVal > 0 ? fmtMoeda(gymVal) : '\u2014'}</td><td class="mono">${tpVal > 0 ? fmtMoeda(tpVal) : '\u2014'}</td><td class="mono">${plVal > 0 ? fmtMoeda(plVal) : '\u2014'}</td><td class="mono" style="color:var(--gold);font-weight:600">${total > 0 ? fmtMoeda(total) : '\u2014'}</td></tr>`;
     });
   });
 
-  html += `<tr class="total-row"><td colspan="2">TOTAL</td><td class="mono">${fmtMoeda(grandTotals.gympass)}</td><td class="mono">${fmtMoeda(grandTotals.totalpass)}</td><td class="mono">${fmtMoeda(grandTotals.planos)}</td><td class="mono">${fmtMoeda(grandTotals.total)}</td></tr>`;
-  html += '</table>';
-  wrap.innerHTML = html;
+  // KPI cards
+  const kpiRow = document.getElementById('filtroKpiRow');
+  kpiRow.innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">Gympass</div><div class="kpi-value">${fmtMoeda(grandTotals.gympass)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Totalpass</div><div class="kpi-value">${fmtMoeda(grandTotals.totalpass)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Planos</div><div class="kpi-value">${fmtMoeda(grandTotals.planos)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Total Geral</div><div class="kpi-value">${fmtMoeda(grandTotals.total)}</div></div>
+  `;
+
+  // Unit cards
+  const grid = document.getElementById('filtroUnitGrid');
+  grid.innerHTML = '';
+  unidades.forEach(nome => {
+    const ud = unitData[nome];
+    const card = document.createElement('div');
+    card.className = 'unit-card';
+    let mesLines = ud.meses.map(m =>
+      `<div class="unit-line">
+        <span class="label">${m.label}</span>
+        <span class="val">${fmtMoeda(m.total)}</span>
+      </div>`
+    ).join('');
+
+    card.innerHTML = `
+      <div class="unit-name">${nome.toUpperCase()}</div>
+      <div class="unit-line">
+        <span class="label">Gympass</span>
+        <span class="val">${fmtMoeda(ud.gympass)}</span>
+      </div>
+      <div class="unit-line">
+        <span class="label">Totalpass</span>
+        <span class="val">${fmtMoeda(ud.totalpass)}</span>
+      </div>
+      <div class="unit-line">
+        <span class="label">Planos</span>
+        <span class="val">${fmtMoeda(ud.planos)}</span>
+      </div>
+      <div class="unit-line total">
+        <span class="label">Total Acumulado</span>
+        <span class="val">${fmtMoeda(ud.total)}</span>
+      </div>
+      <div style="margin-top:0.8rem;border-top:1px solid var(--border);padding-top:0.5rem">
+        <div style="font-size:0.65rem;color:var(--gray);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">Por mes</div>
+        ${mesLines}
+      </div>
+    `;
+    grid.appendChild(card);
+  });
 }
 
 // --- RENDER INDICADORES ---
@@ -1175,26 +1218,64 @@ function renderIndicadores(resp, periodo) {
   const data = resp.data || {};
   const gympass = data.gympass || {};
   const totalpass = data.totalpass || {};
+  const planosRec = data.planos_receita || {};
+  const TP_PCT = { 'Moema': 0.26, 'Pinheiros': 0.24, 'Itaim': 0.24, 'Vila Olímpia': 0.13, 'Berrini': 0.13, 'Alphaville': 0 };
 
   document.getElementById('indicadoresLabel').innerHTML = `INDICADORES \u2014 ${nomeDoMes(periodo)} ${periodo.split('-')[0]}`;
 
-  // Gympass
   const gRec = gympass.total_receita || 0;
   const gChk = gympass.total_checkins || 0;
-  const gUsers = gympass.total_usuarios || null;
-  document.getElementById('indGymFat').textContent = fmtMoeda(gRec);
-  document.getElementById('indGymCheckins').textContent = fmtNum(gChk);
-  document.getElementById('indGymUsers').textContent = gUsers != null ? fmtNum(gUsers) : 'pendente';
-  document.getElementById('indGymTicket').textContent = gUsers ? fmtMoeda(gRec / gUsers) : (gChk > 0 ? fmtMoeda(gRec / gChk) + ' /checkin' : '--');
-
-  // Totalpass
   const tRec = totalpass.total_receita || 0;
   const tChk = totalpass.total_checkins || 0;
-  const tUsers = totalpass.total_usuarios || null;
+  const plRec = planosRec.total_receita || 0;
+  const totalGeral = gRec + tRec + plRec;
+
+  // KPI cards
+  document.getElementById('indGymFat').textContent = fmtMoeda(gRec);
   document.getElementById('indTpFat').textContent = fmtMoeda(tRec);
+  document.getElementById('indPlanosFat').textContent = fmtMoeda(plRec);
+  document.getElementById('indTotalGeral').textContent = fmtMoeda(totalGeral);
+  document.getElementById('indGymCheckins').textContent = fmtNum(gChk);
   document.getElementById('indTpCheckins').textContent = fmtNum(tChk);
-  document.getElementById('indTpUsers').textContent = tUsers != null ? fmtNum(tUsers) : 'pendente';
-  document.getElementById('indTpTicket').textContent = tUsers ? fmtMoeda(tRec / tUsers) : (tChk > 0 ? fmtMoeda(tRec / tChk) + ' /checkin' : '--');
+  document.getElementById('indGymTicket').textContent = gChk > 0 ? fmtMoeda(gRec / gChk) + ' /checkin' : '--';
+  document.getElementById('indTpTicket').textContent = tChk > 0 ? fmtMoeda(tRec / tChk) + ' /checkin' : '--';
+
+  // Unit cards
+  const grid = document.getElementById('indUnitGrid');
+  grid.innerHTML = '';
+  UNIDADES.forEach(nome => {
+    const pct = TP_PCT[nome] || 0;
+    const ug = findUnit(gympass.unidades, nome);
+    const gVal = ug?.receita || 0;
+    const gCk = ug?.checkins || 0;
+    const tpVal = Math.round(tRec * pct);
+    const prU = planosRec.unidades ? planosRec.unidades.find(x => x.nome === nome) : null;
+    const plVal = prU?.receita || 0;
+    const total = gVal + tpVal + plVal;
+
+    const card = document.createElement('div');
+    card.className = 'unit-card';
+    card.innerHTML = `
+      <div class="unit-name">${nome.toUpperCase()}</div>
+      <div class="unit-line">
+        <span class="label">Gympass</span>
+        <span class="val">${gCk > 0 ? fmtNum(gCk) + ' check-ins' : '\u2014'} | ${fmtMoeda(gVal)}</span>
+      </div>
+      <div class="unit-line">
+        <span class="label">Totalpass (${(pct*100)}%)</span>
+        <span class="val">${fmtMoeda(tpVal)}</span>
+      </div>
+      <div class="unit-line">
+        <span class="label">Planos</span>
+        <span class="val">${plVal > 0 ? fmtMoeda(plVal) : '\u2014'}</span>
+      </div>
+      <div class="unit-line total">
+        <span class="label">Total</span>
+        <span class="val">${fmtMoeda(total)}</span>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
 }
 
 function renderComparativo(currResp, prevResp, currPeriodo, prevPeriodo) {
