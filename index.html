@@ -999,11 +999,11 @@ function renderHistorico(meses) {
   gHtml += '</tr></table>';
   gWrap.innerHTML = gHtml;
 
-  // TOTALPASS table — divisão por % fixa do total
+  // TOTALPASS table — capturado + divisão por % fixa do total
   const TP_PCT = { 'Moema': 0.26, 'Pinheiros': 0.24, 'Itaim': 0.24, 'Vila Olímpia': 0.13, 'Berrini': 0.13, 'Alphaville': 0 };
   const tWrap = document.getElementById('historicoTotalpassWrap');
 
-  // Calcular total de cada mês primeiro
+  // Calcular total de cada mês
   const tTotals = meses.map(m => {
     const d = dadosHistorico[m]?.data;
     return d?.totalpass?.total_receita || 0;
@@ -1020,8 +1020,15 @@ function renderHistorico(meses) {
     const pct = TP_PCT[nome] || 0;
     tHtml += `<tr><td>${nome}</td><td class="mono" style="color:var(--gray)">${pct > 0 ? (pct * 100) + '%' : '\u2014'}</td>`;
     meses.forEach((m, i) => {
-      const val = Math.round(tTotals[i] * pct);
-      tHtml += `<td class="mono">${val > 0 ? fmtMoeda(val) : '\u2014'}</td>`;
+      const d = dadosHistorico[m]?.data;
+      const tU = findUnit(d?.totalpass?.unidades, nome);
+      const capturado = tU?.receita || 0;
+      const calculado = Math.round(tTotals[i] * pct);
+      if (tTotals[i] === 0) {
+        tHtml += `<td class="mono">\u2014</td>`;
+      } else {
+        tHtml += `<td class="mono">${fmtMoeda(capturado)}<br><span style="color:var(--gold);font-size:0.72rem">${fmtMoeda(calculado)}</span></td>`;
+      }
     });
     tHtml += '</tr>';
   });
