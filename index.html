@@ -393,6 +393,48 @@ tr.total-row td { color: var(--gold); }
   color: var(--gray);
   font-size: 0.9rem;
 }
+
+/* Indicadores */
+.ind-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+@media (max-width: 800px) {
+  .ind-grid { grid-template-columns: 1fr; }
+}
+.ind-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 1.4rem;
+}
+.ind-panel-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+.ind-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  font-size: 0.8rem;
+}
+.ind-row .lbl { color: var(--gray); }
+.ind-row .val {
+  font-family: 'DM Mono', monospace;
+  color: var(--white);
+}
+.ind-row.highlight .val { color: var(--gold); font-weight: 600; }
+.trend-up { color: var(--green) !important; }
+.trend-down { color: var(--red) !important; }
+.ind-full {
+  grid-column: 1 / -1;
+}
 </style>
 </head>
 <body>
@@ -432,6 +474,7 @@ tr.total-row td { color: var(--gold); }
   <div class="tabs">
     <button class="tab active" data-tab="mesAtual">MES ATUAL</button>
     <button class="tab" data-tab="historico">HISTORICO</button>
+    <button class="tab" data-tab="indicadores">INDICADORES</button>
     <button class="tab" data-tab="detalhes">DETALHES</button>
   </div>
 
@@ -458,7 +501,38 @@ tr.total-row td { color: var(--gold); }
     <div id="historicoCheckinsWrap"><div class="empty-state">---</div></div>
   </div>
 
-  <!-- TAB 3: DETALHES -->
+  <!-- TAB 3: INDICADORES -->
+  <div id="indicadores" class="tab-content">
+    <div class="period-label" id="indicadoresLabel">---</div>
+
+    <div class="ind-grid">
+      <!-- Gympass resumo -->
+      <div class="ind-panel">
+        <div class="ind-panel-title">GYMPASS</div>
+        <div class="ind-row"><span class="lbl">Faturamento</span><span class="val" id="indGymFat">--</span></div>
+        <div class="ind-row"><span class="lbl">Check-ins</span><span class="val" id="indGymCheckins">--</span></div>
+        <div class="ind-row"><span class="lbl">Usuarios</span><span class="val" id="indGymUsers">--</span></div>
+        <div class="ind-row highlight"><span class="lbl">Ticket Medio</span><span class="val" id="indGymTicket">--</span></div>
+      </div>
+
+      <!-- Totalpass resumo -->
+      <div class="ind-panel">
+        <div class="ind-panel-title">TOTALPASS</div>
+        <div class="ind-row"><span class="lbl">Faturamento</span><span class="val" id="indTpFat">--</span></div>
+        <div class="ind-row"><span class="lbl">Check-ins</span><span class="val" id="indTpCheckins">--</span></div>
+        <div class="ind-row"><span class="lbl">Usuarios</span><span class="val" id="indTpUsers">--</span></div>
+        <div class="ind-row highlight"><span class="lbl">Ticket Medio</span><span class="val" id="indTpTicket">--</span></div>
+      </div>
+    </div>
+
+    <div class="section-title">COMPARATIVO VISITAS POR UNIDADE</div>
+    <div id="indComparativoWrap"><div class="empty-state">Dados disponiveis na proxima extracao</div></div>
+
+    <div class="section-title">RETENCAO — ALUNOS QUE NAO VOLTARAM</div>
+    <div id="indRetencaoWrap"><div class="empty-state">Dados disponiveis na proxima extracao</div></div>
+  </div>
+
+  <!-- TAB 4: DETALHES -->
   <div id="detalhes" class="tab-content">
     <div class="period-label" id="detalhesLabel">---</div>
     <div class="section-title">GYMPASS</div>
@@ -958,6 +1032,119 @@ function renderHistorico(meses) {
   cWrap.innerHTML = cHtml;
 }
 
+// --- RENDER INDICADORES ---
+let indicadoresCarregado = false;
+
+async function carregarIndicadores() {
+  if (indicadoresCarregado) return;
+  showLoading();
+  const periodo = document.getElementById('mesSelector').value;
+  try {
+    const resp = await fetchDashboardData(periodo);
+    renderIndicadores(resp, periodo);
+
+    // Carregar mês anterior para comparativo
+    const [y, m] = periodo.split('-').map(Number);
+    const prevM = m === 1 ? 12 : m - 1;
+    const prevY = m === 1 ? y - 1 : y;
+    const prevPeriodo = `${prevY}-${String(prevM).padStart(2, '0')}`;
+    const prevResp = await fetchDashboardData(prevPeriodo).catch(() => null);
+    renderComparativo(resp, prevResp, periodo, prevPeriodo);
+  } catch (e) {
+    console.error('Erro indicadores:', e);
+  }
+  indicadoresCarregado = true;
+  hideLoading();
+}
+
+function renderIndicadores(resp, periodo) {
+  const data = resp.data || {};
+  const gympass = data.gympass || {};
+  const totalpass = data.totalpass || {};
+
+  document.getElementById('indicadoresLabel').innerHTML = `INDICADORES \u2014 ${nomeDoMes(periodo)} ${periodo.split('-')[0]}`;
+
+  // Gympass
+  const gRec = gympass.total_receita || 0;
+  const gChk = gympass.total_checkins || 0;
+  const gUsers = gympass.total_usuarios || null;
+  document.getElementById('indGymFat').textContent = fmtMoeda(gRec);
+  document.getElementById('indGymCheckins').textContent = fmtNum(gChk);
+  document.getElementById('indGymUsers').textContent = gUsers != null ? fmtNum(gUsers) : 'pendente';
+  document.getElementById('indGymTicket').textContent = gUsers ? fmtMoeda(gRec / gUsers) : (gChk > 0 ? fmtMoeda(gRec / gChk) + ' /checkin' : '--');
+
+  // Totalpass
+  const tRec = totalpass.total_receita || 0;
+  const tChk = totalpass.total_checkins || 0;
+  const tUsers = totalpass.total_usuarios || null;
+  document.getElementById('indTpFat').textContent = fmtMoeda(tRec);
+  document.getElementById('indTpCheckins').textContent = fmtNum(tChk);
+  document.getElementById('indTpUsers').textContent = tUsers != null ? fmtNum(tUsers) : 'pendente';
+  document.getElementById('indTpTicket').textContent = tUsers ? fmtMoeda(tRec / tUsers) : (tChk > 0 ? fmtMoeda(tRec / tChk) + ' /checkin' : '--');
+}
+
+function renderComparativo(currResp, prevResp, currPeriodo, prevPeriodo) {
+  const wrap = document.getElementById('indComparativoWrap');
+  const currData = currResp?.data || {};
+  const prevData = prevResp?.data || {};
+
+  const currMm = currPeriodo.split('-')[1];
+  const prevMm = prevPeriodo.split('-')[1];
+  const currLabel = MESES_ABREV[currMm] + ' ' + currPeriodo.split('-')[0];
+  const prevLabel = MESES_ABREV[prevMm] + ' ' + prevPeriodo.split('-')[0];
+
+  let html = `<table><tr><th>Unidade</th><th>Checkins ${prevLabel}</th><th>Checkins ${currLabel}</th><th>Var %</th></tr>`;
+  let prevTotal = 0, currTotal = 0;
+
+  UNIDADES.forEach(nome => {
+    const gPrev = findUnit(prevData?.gympass?.unidades, nome);
+    const tPrev = findUnit(prevData?.totalpass?.unidades, nome);
+    const pVal = (gPrev?.checkins || 0) + (tPrev?.checkins || 0);
+
+    const gCurr = findUnit(currData?.gympass?.unidades, nome);
+    const tCurr = findUnit(currData?.totalpass?.unidades, nome);
+    const cVal = (gCurr?.checkins || 0) + (tCurr?.checkins || 0);
+
+    prevTotal += pVal;
+    currTotal += cVal;
+
+    let varPct = '--';
+    let cls = '';
+    if (pVal > 0) {
+      const pct = ((cVal - pVal) / pVal * 100).toFixed(1);
+      varPct = (pct > 0 ? '+' : '') + pct + '%';
+      cls = pct > 0 ? 'trend-up' : pct < 0 ? 'trend-down' : '';
+    }
+
+    html += `<tr><td>${nome}</td><td class="mono">${pVal > 0 ? fmtNum(pVal) : '\u2014'}</td><td class="mono">${cVal > 0 ? fmtNum(cVal) : '\u2014'}</td><td class="mono ${cls}">${varPct}</td></tr>`;
+  });
+
+  let totalVar = '--';
+  let totalCls = '';
+  if (prevTotal > 0) {
+    const pct = ((currTotal - prevTotal) / prevTotal * 100).toFixed(1);
+    totalVar = (pct > 0 ? '+' : '') + pct + '%';
+    totalCls = pct > 0 ? 'trend-up' : pct < 0 ? 'trend-down' : '';
+  }
+  html += `<tr class="total-row"><td>TOTAL</td><td class="mono">${fmtNum(prevTotal)}</td><td class="mono">${fmtNum(currTotal)}</td><td class="mono ${totalCls}">${totalVar}</td></tr>`;
+  html += '</table>';
+  wrap.innerHTML = html;
+
+  // Retenção placeholder
+  const retWrap = document.getElementById('indRetencaoWrap');
+  const retencao = currData?.gympass?.retencao || currData?.totalpass?.retencao;
+  if (retencao) {
+    let rHtml = '<table><tr><th>Unidade</th><th>Plataforma</th><th>Alunos que nao voltaram</th></tr>';
+    retencao.forEach(r => {
+      rHtml += `<tr><td>${r.unidade}</td><td>${r.plataforma}</td><td class="mono">${r.quantidade}</td></tr>`;
+    });
+    rHtml += '</table>';
+    retWrap.innerHTML = rHtml;
+  } else {
+    retWrap.innerHTML = '<div class="empty-state">Dados de retencao serao incluidos na proxima extracao</div>';
+  }
+}
+
 // --- LOAD ---
 async function carregarPeriodo(periodo) {
   showLoading();
@@ -976,6 +1163,7 @@ async function carregarPeriodo(periodo) {
 function carregarMesAtual() {
   const periodo = document.getElementById('mesSelector').value;
   historicoCarregado = false;
+  indicadoresCarregado = false;
   carregarPeriodo(periodo);
 }
 
@@ -988,6 +1176,7 @@ document.querySelectorAll('.tab').forEach(tab => {
     const target = tab.dataset.tab;
     document.getElementById(target).classList.add('active');
     if (target === 'historico') carregarHistorico();
+    if (target === 'indicadores') carregarIndicadores();
   });
 });
 </script>
