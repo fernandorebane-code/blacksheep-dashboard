@@ -698,6 +698,7 @@ const MESES_ABREV = {
 
 let dadosAtual = null;
 let historicoCarregado = false;
+let historicoMeses = [];
 let dadosHistorico = {};
 
 // --- UTILS ---
@@ -978,6 +979,7 @@ async function carregarHistorico() {
       if (results[i]) dadosHistorico[m] = results[i];
     });
     historicoCarregado = true;
+    historicoMeses = meses;
     renderHistorico(meses);
   } catch (e) {
     document.getElementById('historicoGympassWrap').innerHTML = `<div class="empty-state">Erro ao carregar: ${e.message}</div>`;
@@ -1099,18 +1101,20 @@ function renderHistorico(meses) {
       opt.value = u; opt.textContent = u;
       sel.appendChild(opt);
     });
-    sel.addEventListener('change', () => renderResultadoUnidade(meses));
+    sel.addEventListener('change', () => renderResultadoUnidade(historicoMeses));
   }
   const selMes = document.getElementById('filtroMes');
-  if (selMes.options.length <= 1) {
-    meses.forEach(m => {
-      const mm = m.split('-')[1];
-      const opt = document.createElement('option');
-      opt.value = m; opt.textContent = MESES_ABREV[mm] + ' ' + m.split('-')[0];
-      selMes.appendChild(opt);
-    });
-    selMes.addEventListener('change', () => renderResultadoUnidade(meses));
-  }
+  // Rebuild month options each time
+  const currentMesVal = selMes.value;
+  selMes.innerHTML = '<option value="ANO">ANO INTEIRO</option>';
+  meses.forEach(m => {
+    const mm = m.split('-')[1];
+    const opt = document.createElement('option');
+    opt.value = m; opt.textContent = MESES_ABREV[mm] + ' ' + m.split('-')[0];
+    selMes.appendChild(opt);
+  });
+  if (currentMesVal) selMes.value = currentMesVal;
+  selMes.onchange = () => renderResultadoUnidade(historicoMeses);
   renderResultadoUnidade(meses);
 }
 
