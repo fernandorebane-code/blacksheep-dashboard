@@ -1583,26 +1583,34 @@ function renderListaAlunos(wrapId, lista, tipo) {
 }
 
 function renderAlunosFallback(data, prevData) {
-  // Sem lista de alunos — usar check-ins como proxy
+  // Usar usuarios unicos (visitantes do Gympass + pessoas do Totalpass)
+  const currGymUsr = data?.gympass?.total_usuarios || 0;
+  const currTpUsr = data?.totalpass?.total_usuarios || 0;
+  const prevGymUsr = prevData?.gympass?.total_usuarios || 0;
+  const prevTpUsr = prevData?.totalpass?.total_usuarios || 0;
+
   const currGymChk = data?.gympass?.total_checkins || 0;
   const currTpChk = data?.totalpass?.total_checkins || 0;
-  const prevGymChk = prevData?.gympass?.total_checkins || 0;
-  const prevTpChk = prevData?.totalpass?.total_checkins || 0;
 
+  // Alunos unicos (aproximacao — soma simples porque nao ha cruzamento)
+  const totalUsr = currGymUsr + currTpUsr;
+  const prevTotalUsr = prevGymUsr + prevTpUsr;
+  const varUsr = prevTotalUsr > 0 ? ((totalUsr - prevTotalUsr) / prevTotalUsr * 100).toFixed(1) : '--';
+
+  // Media de visitas por aluno
   const totalChk = currGymChk + currTpChk;
-  const prevTotalChk = prevGymChk + prevTpChk;
-  const varChk = prevTotalChk > 0 ? ((totalChk - prevTotalChk) / prevTotalChk * 100).toFixed(1) : '--';
+  const mediaVisitas = totalUsr > 0 ? (totalChk / totalUsr).toFixed(1) : '--';
 
-  document.getElementById('kpiAtivos').textContent = fmtNum(totalChk) + ' ck';
-  document.getElementById('kpiNovos').textContent = 'importe dados';
-  document.getElementById('kpiChurn').textContent = 'importe dados';
-  document.getElementById('kpiRetencao').textContent = varChk !== '--' ? (varChk > 0 ? '+' : '') + varChk + '%' : '--';
-  document.getElementById('kpiGympassAtivos').textContent = fmtNum(currGymChk);
-  document.getElementById('kpiTotalpassAtivos').textContent = fmtNum(currTpChk);
-  document.getElementById('kpiMediaVisitas').textContent = '--';
+  document.getElementById('kpiAtivos').textContent = fmtNum(totalUsr);
+  document.getElementById('kpiNovos').textContent = 'importe lista';
+  document.getElementById('kpiChurn').textContent = 'importe lista';
+  document.getElementById('kpiRetencao').textContent = varUsr !== '--' ? (varUsr > 0 ? '+' : '') + varUsr + '%' : '--';
+  document.getElementById('kpiGympassAtivos').textContent = fmtNum(currGymUsr);
+  document.getElementById('kpiTotalpassAtivos').textContent = fmtNum(currTpUsr);
+  document.getElementById('kpiMediaVisitas').textContent = mediaVisitas + ' visitas/aluno';
   document.getElementById('kpiAssiduidade').textContent = '--';
 
-  // Grid por unidade com check-ins
+  // Grid por unidade com usuarios unicos
   const grid = document.getElementById('alunosUnitGrid');
   grid.innerHTML = '';
   UNIDADES.forEach(nome => {
@@ -1610,17 +1618,20 @@ function renderAlunosFallback(data, prevData) {
     const ut = findUnit(data?.totalpass?.unidades, nome);
     const prevUg = findUnit(prevData?.gympass?.unidades, nome);
     const prevUt = findUnit(prevData?.totalpass?.unidades, nome);
-    const curr = (ug?.checkins||0) + (ut?.checkins||0);
-    const prev = (prevUg?.checkins||0) + (prevUt?.checkins||0);
-    const varr = prev > 0 ? ((curr - prev)/prev * 100).toFixed(0) : '--';
+    const currUsr = (ug?.usuarios||0) + (ut?.usuarios||0);
+    const prevUsr = (prevUg?.usuarios||0) + (prevUt?.usuarios||0);
+    const currCk = (ug?.checkins||0) + (ut?.checkins||0);
+    const mediaUni = currUsr > 0 ? (currCk / currUsr).toFixed(1) : '--';
+    const varr = prevUsr > 0 ? ((currUsr - prevUsr)/prevUsr * 100).toFixed(0) : '--';
     const color = varr !== '--' && varr < 0 ? 'var(--red)' : varr > 0 ? 'var(--green)' : 'var(--white)';
 
     const card = document.createElement('div');
     card.className = 'unit-card';
     card.innerHTML = `
       <div class="unit-name">${nome.toUpperCase()}</div>
-      <div class="unit-line"><span class="label">Check-ins este mes</span><span class="val">${fmtNum(curr)}</span></div>
-      <div class="unit-line"><span class="label">Mes anterior</span><span class="val">${fmtNum(prev)}</span></div>
+      <div class="unit-line"><span class="label">Alunos unicos</span><span class="val">${fmtNum(currUsr)}</span></div>
+      <div class="unit-line"><span class="label">Mes anterior</span><span class="val">${fmtNum(prevUsr)}</span></div>
+      <div class="unit-line"><span class="label">Media visitas/aluno</span><span class="val">${mediaUni}</span></div>
       <div class="unit-line total"><span class="label">Variacao</span><span class="val" style="color:${color}">${varr !== '--' ? (varr > 0 ? '+' : '') + varr + '%' : '--'}</span></div>
     `;
     grid.appendChild(card);
