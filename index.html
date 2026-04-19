@@ -484,8 +484,9 @@ tr.total-row td { color: var(--gold); }
     <div class="period-label" id="periodLabel">---</div>
     <div class="kpi-row" id="kpiRow">
       <div class="kpi-card"><div class="kpi-label">Faturamento Plataformas</div><div class="kpi-value" id="kpiFaturamento">--</div></div>
-      <div class="kpi-card"><div class="kpi-label">Check-ins Gympass</div><div class="kpi-value" id="kpiCheckins">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Receita Gympass</div><div class="kpi-value" id="kpiGympass">--</div></div>
       <div class="kpi-card"><div class="kpi-label">Receita Totalpass</div><div class="kpi-value" id="kpiTotalpass">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Check-ins Gympass</div><div class="kpi-value" id="kpiCheckins">--</div></div>
       <div class="kpi-card"><div class="kpi-label">Planos Fechados</div><div class="kpi-value" id="kpiPlanos">--</div></div>
     </div>
     <div class="unit-grid" id="unitGrid"></div>
@@ -856,8 +857,9 @@ function renderMesAtual(resp) {
   const totalPlanos = contarPlanos(planos, periodo);
 
   document.getElementById('kpiFaturamento').textContent = fmtMoeda(faturamento);
-  document.getElementById('kpiCheckins').textContent = fmtNum(checkins);
+  document.getElementById('kpiGympass').textContent = fmtMoeda(receitaGympass);
   document.getElementById('kpiTotalpass').textContent = fmtMoeda(receitaTotalpass);
+  document.getElementById('kpiCheckins').textContent = fmtNum(checkins);
   document.getElementById('kpiPlanos').textContent = totalPlanos != null ? fmtNum(totalPlanos) : '\u2014';
 
   // Unit cards
