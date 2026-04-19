@@ -475,6 +475,7 @@ tr.total-row td { color: var(--gold); }
     <button class="tab active" data-tab="mesAtual">MES ATUAL</button>
     <button class="tab" data-tab="historico">HISTORICO</button>
     <button class="tab" data-tab="indicadores">INDICADORES</button>
+    <button class="tab" data-tab="alunos">ALUNOS</button>
     <button class="tab" data-tab="detalhes">DETALHES</button>
   </div>
 
@@ -544,7 +545,59 @@ tr.total-row td { color: var(--gold); }
     <div id="indRetencaoWrap"><div class="empty-state">Dados disponiveis na proxima extracao</div></div>
   </div>
 
-  <!-- TAB 4: DETALHES -->
+  <!-- TAB 4: ALUNOS -->
+  <div id="alunos" class="tab-content">
+    <div class="period-label" id="alunosLabel">---</div>
+
+    <!-- KPIs de retencao -->
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-label">Alunos Ativos</div><div class="kpi-value" id="kpiAtivos">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Novos</div><div class="kpi-value" id="kpiNovos" style="color:var(--green)">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Saiu (Churn)</div><div class="kpi-value" id="kpiChurn" style="color:var(--red)">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Retencao</div><div class="kpi-value" id="kpiRetencao">--</div></div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-label">Gympass Ativos</div><div class="kpi-value" id="kpiGympassAtivos">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Totalpass Ativos</div><div class="kpi-value" id="kpiTotalpassAtivos">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Media Visitas/Aluno</div><div class="kpi-value" id="kpiMediaVisitas">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Assiduidade</div><div class="kpi-value" id="kpiAssiduidade">--</div></div>
+    </div>
+
+    <!-- Ranking por unidade -->
+    <div class="section-title">SITUACAO POR UNIDADE</div>
+    <div class="unit-grid" id="alunosUnitGrid"></div>
+
+    <!-- Relatorios -->
+    <div class="section-title">ALUNOS QUE NAO VOLTARAM (CHURN)</div>
+    <div style="color:var(--gray);font-size:0.82rem;margin-bottom:0.8rem">Alunos que treinaram no mes anterior e nao voltaram. Use pra reativar.</div>
+    <div id="alunosChurnWrap"><div class="empty-state">Sem dados de alunos ainda — importe export do Totalpass/Gympass</div></div>
+
+    <div class="section-title">NOVOS ALUNOS</div>
+    <div style="color:var(--gray);font-size:0.82rem;margin-bottom:0.8rem">Alunos que apareceram este mes e nao estavam no anterior. Foco em engajar.</div>
+    <div id="alunosNovosWrap"><div class="empty-state">Sem dados</div></div>
+
+    <div class="section-title">QUEDA DE FREQUENCIA</div>
+    <div style="color:var(--gray);font-size:0.82rem;margin-bottom:0.8rem">Alunos regulares treinando menos que no mes anterior. Sinal de alerta.</div>
+    <div id="alunosQuedaWrap"><div class="empty-state">Sem dados</div></div>
+
+    <!-- Import -->
+    <div class="section-title">IMPORTAR DADOS</div>
+    <div style="background:var(--surface);border:1px solid var(--border);padding:1.2rem;font-size:0.82rem;line-height:1.6">
+      <strong style="color:var(--gold)">Como atualizar este relatorio:</strong><br>
+      1. No Totalpass: "Exportar periodo" no dashboard da rede → baixa planilha com alunos<br>
+      2. No Gympass: entrar em cada conta e exportar relatorio de check-ins<br>
+      3. Enviar os arquivos para processamento — cada export tem nome, CPF/email, unidade, numero de visitas<br>
+      <br>
+      <strong style="color:var(--gold)">O que o relatorio calcula:</strong><br>
+      • <strong>Churn</strong>: alunos no mes-1 que nao aparecem no mes atual<br>
+      • <strong>Novos</strong>: alunos no mes atual que nao estavam no mes-1<br>
+      • <strong>Queda</strong>: alunos nos 2 meses mas com visitas &lt; 50% do anterior<br>
+      • <strong>Retencao</strong> = (ativos_mes_atual ∩ ativos_mes_anterior) / ativos_mes_anterior<br>
+      • <strong>Assiduidade</strong> = media de visitas por aluno no mes (benchmark BJJ: 8-12/mes = ativo)
+    </div>
+  </div>
+
+  <!-- TAB 5: DETALHES -->
   <div id="detalhes" class="tab-content">
     <div class="period-label" id="detalhesLabel">---</div>
     <div class="section-title">GYMPASS</div>
@@ -1399,8 +1452,178 @@ document.querySelectorAll('.tab').forEach(tab => {
     document.getElementById(target).classList.add('active');
     if (target === 'historico') carregarHistorico();
     if (target === 'indicadores') carregarIndicadores();
+    if (target === 'alunos') carregarAlunos();
   });
 });
+
+// --- RENDER ALUNOS ---
+async function carregarAlunos() {
+  const periodo = document.getElementById('mesSelector').value;
+  showLoading();
+  try {
+    const resp = await fetchDashboardData(periodo);
+    // Buscar mes anterior para comparar
+    const [y, m] = periodo.split('-').map(Number);
+    const prevM = m === 1 ? 12 : m - 1;
+    const prevY = m === 1 ? y - 1 : y;
+    const prevPeriodo = `${prevY}-${String(prevM).padStart(2, '0')}`;
+    const prevResp = await fetchDashboardData(prevPeriodo).catch(() => null);
+
+    renderAlunos(resp, prevResp, periodo, prevPeriodo);
+  } catch (e) {
+    console.error('Erro alunos:', e);
+  }
+  hideLoading();
+}
+
+function renderAlunos(resp, prevResp, periodo, prevPeriodo) {
+  const data = resp.data || {};
+  const prevData = prevResp?.data || {};
+
+  document.getElementById('alunosLabel').innerHTML = `ALUNOS \u2014 ${nomeDoMes(periodo)} ${periodo.split('-')[0]}`;
+
+  // Extract aluno lists (formato esperado: data.gympass_alunos, data.totalpass_alunos)
+  // Cada aluno: { id, nome, unidade, visitas }
+  const currGym = data.gympass_alunos || [];
+  const currTp = data.totalpass_alunos || [];
+  const prevGym = prevData.gympass_alunos || [];
+  const prevTp = prevData.totalpass_alunos || [];
+
+  const currAll = [...currGym.map(a => ({...a, plataforma: 'Gympass'})),
+                   ...currTp.map(a => ({...a, plataforma: 'Totalpass'}))];
+  const prevAll = [...prevGym.map(a => ({...a, plataforma: 'Gympass'})),
+                   ...prevTp.map(a => ({...a, plataforma: 'Totalpass'}))];
+
+  // Fallback: usar contagem de check-ins como proxy se nao tiver lista de alunos
+  if (currAll.length === 0) {
+    renderAlunosFallback(data, prevData);
+    return;
+  }
+
+  // Calcular retencao
+  const prevIds = new Set(prevAll.map(a => a.id || a.email || a.nome));
+  const currIds = new Set(currAll.map(a => a.id || a.email || a.nome));
+  const novos = currAll.filter(a => !prevIds.has(a.id || a.email || a.nome));
+  const churn = prevAll.filter(a => !currIds.has(a.id || a.email || a.nome));
+  const regulares = currAll.filter(a => prevIds.has(a.id || a.email || a.nome));
+
+  const ativosCount = currAll.length;
+  const retencaoPct = prevAll.length > 0 ? (regulares.length / prevAll.length * 100).toFixed(1) : 0;
+  const mediaVisitas = currAll.length > 0 ? (currAll.reduce((s,a) => s + (a.visitas||0), 0) / currAll.length).toFixed(1) : 0;
+  const assiduos = currAll.filter(a => (a.visitas||0) >= 8).length;
+  const assiduidadePct = ativosCount > 0 ? (assiduos / ativosCount * 100).toFixed(1) : 0;
+
+  // KPIs
+  document.getElementById('kpiAtivos').textContent = fmtNum(ativosCount);
+  document.getElementById('kpiNovos').textContent = fmtNum(novos.length);
+  document.getElementById('kpiChurn').textContent = fmtNum(churn.length);
+  document.getElementById('kpiRetencao').textContent = retencaoPct + '%';
+  document.getElementById('kpiGympassAtivos').textContent = fmtNum(currGym.length);
+  document.getElementById('kpiTotalpassAtivos').textContent = fmtNum(currTp.length);
+  document.getElementById('kpiMediaVisitas').textContent = mediaVisitas;
+  document.getElementById('kpiAssiduidade').textContent = assiduidadePct + '%';
+
+  // Por unidade
+  const grid = document.getElementById('alunosUnitGrid');
+  grid.innerHTML = '';
+  UNIDADES.forEach(nome => {
+    const curUni = currAll.filter(a => (a.unidade||'').toLowerCase().includes(nome.toLowerCase()));
+    const prevUni = prevAll.filter(a => (a.unidade||'').toLowerCase().includes(nome.toLowerCase()));
+    const uniIds = new Set(curUni.map(a => a.id || a.email || a.nome));
+    const uniPrevIds = new Set(prevUni.map(a => a.id || a.email || a.nome));
+    const uniNovos = curUni.filter(a => !uniPrevIds.has(a.id || a.email || a.nome)).length;
+    const uniChurn = prevUni.filter(a => !uniIds.has(a.id || a.email || a.nome)).length;
+    const uniRet = prevUni.length > 0 ? (curUni.filter(a => uniPrevIds.has(a.id || a.email || a.nome)).length / prevUni.length * 100).toFixed(0) : '--';
+
+    const card = document.createElement('div');
+    card.className = 'unit-card';
+    card.innerHTML = `
+      <div class="unit-name">${nome.toUpperCase()}</div>
+      <div class="unit-line"><span class="label">Ativos</span><span class="val">${fmtNum(curUni.length)}</span></div>
+      <div class="unit-line"><span class="label">Novos</span><span class="val" style="color:var(--green)">+${fmtNum(uniNovos)}</span></div>
+      <div class="unit-line"><span class="label">Churn</span><span class="val" style="color:var(--red)">-${fmtNum(uniChurn)}</span></div>
+      <div class="unit-line total"><span class="label">Retencao</span><span class="val">${uniRet}${uniRet !== '--' ? '%' : ''}</span></div>
+    `;
+    grid.appendChild(card);
+  });
+
+  // Listas
+  renderListaAlunos('alunosChurnWrap', churn.slice(0, 30), 'ultimas_visitas');
+  renderListaAlunos('alunosNovosWrap', novos.slice(0, 30), 'visitas');
+
+  // Queda: regulares com visitas atuais < 50% do anterior
+  const queda = regulares.map(a => {
+    const prev = prevAll.find(p => (p.id || p.email || p.nome) === (a.id || a.email || a.nome));
+    return { ...a, visitas_prev: prev?.visitas || 0, queda_pct: prev?.visitas ? Math.round((1 - (a.visitas||0)/prev.visitas) * 100) : 0 };
+  }).filter(a => a.queda_pct >= 50 && a.visitas_prev >= 4)
+    .sort((a,b) => b.queda_pct - a.queda_pct);
+  renderListaAlunos('alunosQuedaWrap', queda.slice(0, 30), 'queda');
+}
+
+function renderListaAlunos(wrapId, lista, tipo) {
+  const wrap = document.getElementById(wrapId);
+  if (!lista || lista.length === 0) {
+    wrap.innerHTML = '<div class="empty-state">Sem dados</div>';
+    return;
+  }
+  let html = '<table><tr><th>Nome</th><th>Unidade</th><th>Plataforma</th>';
+  if (tipo === 'visitas') html += '<th>Visitas</th>';
+  if (tipo === 'queda') html += '<th>Anterior</th><th>Atual</th><th>Queda</th>';
+  html += '</tr>';
+  lista.forEach(a => {
+    html += `<tr><td>${a.nome || a.email || a.id}</td><td>${a.unidade || '--'}</td><td>${a.plataforma || '--'}</td>`;
+    if (tipo === 'visitas') html += `<td class="mono">${fmtNum(a.visitas||0)}</td>`;
+    if (tipo === 'queda') html += `<td class="mono">${fmtNum(a.visitas_prev)}</td><td class="mono">${fmtNum(a.visitas||0)}</td><td class="mono" style="color:var(--red)">-${a.queda_pct}%</td>`;
+    html += '</tr>';
+  });
+  html += '</table>';
+  wrap.innerHTML = html;
+}
+
+function renderAlunosFallback(data, prevData) {
+  // Sem lista de alunos — usar check-ins como proxy
+  const currGymChk = data?.gympass?.total_checkins || 0;
+  const currTpChk = data?.totalpass?.total_checkins || 0;
+  const prevGymChk = prevData?.gympass?.total_checkins || 0;
+  const prevTpChk = prevData?.totalpass?.total_checkins || 0;
+
+  const totalChk = currGymChk + currTpChk;
+  const prevTotalChk = prevGymChk + prevTpChk;
+  const varChk = prevTotalChk > 0 ? ((totalChk - prevTotalChk) / prevTotalChk * 100).toFixed(1) : '--';
+
+  document.getElementById('kpiAtivos').textContent = fmtNum(totalChk) + ' ck';
+  document.getElementById('kpiNovos').textContent = 'importe dados';
+  document.getElementById('kpiChurn').textContent = 'importe dados';
+  document.getElementById('kpiRetencao').textContent = varChk !== '--' ? (varChk > 0 ? '+' : '') + varChk + '%' : '--';
+  document.getElementById('kpiGympassAtivos').textContent = fmtNum(currGymChk);
+  document.getElementById('kpiTotalpassAtivos').textContent = fmtNum(currTpChk);
+  document.getElementById('kpiMediaVisitas').textContent = '--';
+  document.getElementById('kpiAssiduidade').textContent = '--';
+
+  // Grid por unidade com check-ins
+  const grid = document.getElementById('alunosUnitGrid');
+  grid.innerHTML = '';
+  UNIDADES.forEach(nome => {
+    const ug = findUnit(data?.gympass?.unidades, nome);
+    const ut = findUnit(data?.totalpass?.unidades, nome);
+    const prevUg = findUnit(prevData?.gympass?.unidades, nome);
+    const prevUt = findUnit(prevData?.totalpass?.unidades, nome);
+    const curr = (ug?.checkins||0) + (ut?.checkins||0);
+    const prev = (prevUg?.checkins||0) + (prevUt?.checkins||0);
+    const varr = prev > 0 ? ((curr - prev)/prev * 100).toFixed(0) : '--';
+    const color = varr !== '--' && varr < 0 ? 'var(--red)' : varr > 0 ? 'var(--green)' : 'var(--white)';
+
+    const card = document.createElement('div');
+    card.className = 'unit-card';
+    card.innerHTML = `
+      <div class="unit-name">${nome.toUpperCase()}</div>
+      <div class="unit-line"><span class="label">Check-ins este mes</span><span class="val">${fmtNum(curr)}</span></div>
+      <div class="unit-line"><span class="label">Mes anterior</span><span class="val">${fmtNum(prev)}</span></div>
+      <div class="unit-line total"><span class="label">Variacao</span><span class="val" style="color:${color}">${varr !== '--' ? (varr > 0 ? '+' : '') + varr + '%' : '--'}</span></div>
+    `;
+    grid.appendChild(card);
+  });
+}
 </script>
 </body>
 </html>
