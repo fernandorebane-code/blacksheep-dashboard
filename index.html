@@ -1583,11 +1583,11 @@ function renderListaAlunos(wrapId, lista, tipo) {
 }
 
 function renderAlunosFallback(data, prevData) {
-  // Usar usuarios unicos (visitantes do Gympass + pessoas do Totalpass)
-  const currGymUsr = data?.gympass?.total_usuarios || 0;
-  const currTpUsr = data?.totalpass?.total_usuarios || 0;
-  const prevGymUsr = prevData?.gympass?.total_usuarios || 0;
-  const prevTpUsr = prevData?.totalpass?.total_usuarios || 0;
+  // Usuarios unicos: preferir total_usuarios_rede (deduplica inter-unidades no Totalpass)
+  const currGymUsr = data?.gympass?.total_usuarios_rede || data?.gympass?.total_usuarios || 0;
+  const currTpUsr = data?.totalpass?.total_usuarios_rede || data?.totalpass?.total_usuarios || 0;
+  const prevGymUsr = prevData?.gympass?.total_usuarios_rede || prevData?.gympass?.total_usuarios || 0;
+  const prevTpUsr = prevData?.totalpass?.total_usuarios_rede || prevData?.totalpass?.total_usuarios || 0;
 
   const currGymChk = data?.gympass?.total_checkins || 0;
   const currTpChk = data?.totalpass?.total_checkins || 0;
