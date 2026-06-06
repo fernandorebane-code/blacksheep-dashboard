@@ -863,6 +863,8 @@ function renderMesAtual(resp) {
   document.getElementById('kpiPlanos').textContent = totalPlanos != null ? fmtNum(totalPlanos) : '\u2014';
 
   // Unit cards
+  const TP_PCT = { 'Moema': 0.26, 'Pinheiros': 0.24, 'Itaim': 0.24, 'Vila Olímpia': 0.13, 'Berrini': 0.13, 'Alphaville': 0 };
+  const tpTotalRede = receitaTotalpass;
   const grid = document.getElementById('unitGrid');
   grid.innerHTML = '';
   UNIDADES.forEach(nome => {
@@ -873,6 +875,33 @@ function renderMesAtual(resp) {
     const tReceita = ut?.receita ?? 0;
     const total = gReceita + tReceita;
 
+    // Totalpass: rateio por % devida vs capturado
+    const pct = TP_PCT[nome] || 0;
+    const devido = Math.round(tpTotalRede * pct);
+    const diff = devido - tReceita;
+    const pctLabel = pct > 0 ? ` (${(pct * 100).toFixed(0)}%)` : '';
+    let tpExtraLines = '';
+    if (pct > 0 && tpTotalRede > 0) {
+      tpExtraLines += `
+        <div class="unit-line" style="padding-left:0.6rem">
+          <span class="label" style="color:var(--gray);font-size:0.78rem">↳ Devido (${(pct * 100).toFixed(0)}%)</span>
+          <span class="val" style="color:var(--gold);font-size:0.85rem">${fmtMoeda(devido)}</span>
+        </div>`;
+      if (diff > 0) {
+        tpExtraLines += `
+          <div class="unit-line" style="padding-left:0.6rem">
+            <span class="label" style="color:var(--green);font-size:0.78rem;font-weight:600">↳ Receber</span>
+            <span class="val" style="color:var(--green);font-size:0.85rem;font-weight:600">${fmtMoeda(diff)}</span>
+          </div>`;
+      } else if (diff < 0) {
+        tpExtraLines += `
+          <div class="unit-line" style="padding-left:0.6rem">
+            <span class="label" style="color:var(--red);font-size:0.78rem;font-weight:600">↳ Pagar</span>
+            <span class="val" style="color:var(--red);font-size:0.85rem;font-weight:600">${fmtMoeda(Math.abs(diff))}</span>
+          </div>`;
+      }
+    }
+
     const card = document.createElement('div');
     card.className = 'unit-card';
     card.innerHTML = `
@@ -882,9 +911,10 @@ function renderMesAtual(resp) {
         <span class="val">${gCheckins != null ? fmtNum(gCheckins) + ' check-ins' : '\u2014'} | ${fmtMoeda(gReceita)}</span>
       </div>
       <div class="unit-line">
-        <span class="label">Totalpass</span>
+        <span class="label">Totalpass${pctLabel}</span>
         <span class="val">${fmtMoeda(tReceita)}</span>
       </div>
+      ${tpExtraLines}
       <div class="unit-line total">
         <span class="label">Total</span>
         <span class="val">${fmtMoeda(total)}</span>
