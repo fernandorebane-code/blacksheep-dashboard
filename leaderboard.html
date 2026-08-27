@@ -307,6 +307,15 @@ thead th.sticky-col{background:var(--surface2);z-index:3;}
   font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;
   color:var(--gold);border:1px solid var(--border);padding:0.15rem 0.45rem;
 }
+.wod-parte{
+  margin-top:0.45rem;font-size:0.72rem;color:var(--white);
+  display:flex;align-items:baseline;gap:0.45rem;
+}
+.wod-parte b{
+  font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--black);
+  background:var(--gold);padding:0.05rem 0.3rem;font-weight:500;
+}
+.wod-parte span{color:var(--gray);font-size:0.66rem;text-transform:lowercase;}
 .wod-desc{
   margin-top:0.7rem;font-size:0.76rem;color:var(--gray);line-height:1.6;white-space:pre-wrap;
 }
@@ -318,6 +327,7 @@ thead th.sticky-col{background:var(--surface2);z-index:3;}
   overflow-y:auto;
 }
 .modal-bg.open{display:flex;}
+#mPartes{z-index:120;} /* abre por cima do painel do organizador */
 .modal{
   background:var(--surface);
   border:1px solid var(--border);
@@ -491,6 +501,31 @@ footer{
   </div>
 </div>
 
+<!-- MODAL: partes da prova -->
+<div class="modal-bg" id="mPartes" onclick="if(event.target===this)fechar('mPartes')">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head">
+      <div><h2>PARTES DA PROVA</h2><div class="sub" id="ptTitulo"></div></div>
+      <button class="modal-x" onclick="fechar('mPartes')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <label class="lbl">Uma parte por linha — Nome; tipo</label>
+      <textarea class="field" id="ptTexto" style="width:100%;min-height:110px"
+        placeholder="Buy-in 1k remo; tempo&#10;For time; tempo"></textarea>
+      <div class="hint">
+        Tipos aceitos: <b>tempo</b> (for time), <b>reps</b> (amrap), <b>carga</b> (kg) e <b>pontos</b>.
+        Cada parte é rankeada e pontuada separadamente — no leaderboard elas aparecem
+        como <b>A</b>, <b>B</b>… dentro da mesma prova.
+        Deixe o campo vazio para a prova voltar a ter pontuação única.
+      </div>
+      <div class="msg" id="ptMsg"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-solid" onclick="salvarPartes()">SALVAR PARTES</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: painel admin -->
 <div class="modal-bg" id="mPainel">
   <div class="modal wide">
@@ -575,12 +610,12 @@ footer{
           <div>
             <label class="lbl">Sistema de pontuação</label>
             <select class="field" id="cSistema" style="width:100%">
+              <option value="posicao">Colocação por prova — 1º = 1 pt (menor total vence)</option>
               <option value="tabela">Tabela de pontos (maior total vence)</option>
-              <option value="posicao">Soma de colocações (menor total vence)</option>
             </select>
           </div>
-          <div><label class="lbl">Pontos do 1º lugar</label><input class="field" id="cP1" type="number" style="width:100%"></div>
-          <div><label class="lbl">Decréscimo por posição</label><input class="field" id="cDec" type="number" style="width:100%"></div>
+          <div class="soTabela"><label class="lbl">Pontos do 1º lugar</label><input class="field" id="cP1" type="number" style="width:100%"></div>
+          <div class="soTabela"><label class="lbl">Decréscimo por posição</label><input class="field" id="cDec" type="number" style="width:100%"></div>
         </div>
         <div class="form-row">
           <div style="flex:2">
@@ -633,7 +668,7 @@ const PADRAO = {
   sub: 'Campeonato interno de CrossFit',
   data: '',
   local: '',
-  sistema: 'tabela',
+  sistema: 'posicao',
   p1: 100,
   dec: 5,
   publicado: true,
@@ -750,17 +785,39 @@ function wodsValidos() {
                        .sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
 }
 
+const LETRAS = 'ABCDEFGH';
+
+// Cada prova pontua uma vez; se tiver partes (ex: buy-in de 1k de remo e depois
+// o for time), cada parte vira um item pontuado proprio dentro da mesma prova.
+function itensDe(w) {
+  if (!w.partes || !w.partes.length) {
+    return [{ id: w.id, nome: w.nome, curto: abrevWod(w), tipo: w.tipo, wod: w }];
+  }
+  return w.partes.map((p, i) => ({
+    id: w.id + '::' + p.id,
+    nome: w.nome + ' · ' + LETRAS[i] + ') ' + p.nome,
+    curto: abrevWod(w) + LETRAS[i],
+    tipo: p.tipo,
+    wod: w,
+    parte: p
+  }));
+}
+
+function itensPontuados() {
+  return wodsValidos().reduce((acc, w) => acc.concat(itensDe(w)), []);
+}
+
 function calcularRanking(categoria) {
   const atletas = (D.atletas || []).filter(a => a.categoria === categoria);
-  const wods = wodsValidos();
+  const itens = itensPontuados();
   const porProva = {};
-  wods.forEach(w => { porProva[w.id] = rankearProva(w, atletas); });
+  itens.forEach(w => { porProva[w.id] = rankearProva(w, atletas); });
 
   const linhas = atletas.map(a => {
     const provas = {};
     let total = 0, algum = false;
     const posicoes = [];
-    wods.forEach(w => {
+    itens.forEach(w => {
       const r = porProva[w.id][a.id];
       provas[w.id] = r;
       total += r.pts;
@@ -792,7 +849,7 @@ function calcularRanking(categoria) {
     pos = igual ? pos : i + 1;
     l.pos = pos;
   });
-  return { linhas, wods };
+  return { linhas, itens };
 }
 
 /* ---------------- CARREGAMENTO ---------------- */
@@ -868,8 +925,8 @@ function render() {
   selU.innerHTML = '<option value="">Todas as unidades</option>' +
     usadas.map(u => '<option' + (u === atual ? ' selected' : '') + '>' + esc(u) + '</option>').join('');
 
-  const { linhas, wods } = calcularRanking(catAtiva);
-  rankCache[catAtiva] = { linhas, wods };
+  const { linhas, itens } = calcularRanking(catAtiva);
+  rankCache[catAtiva] = { linhas, itens };
 
   const busca = document.getElementById('busca').value.trim().toLowerCase();
   const uni = selU.value;
@@ -877,9 +934,9 @@ function render() {
     (!busca || l.atleta.nome.toLowerCase().includes(busca)) &&
     (!uni || l.atleta.unidade === uni));
 
-  renderPodium(linhas, wods);
-  renderTabela(vis, wods);
-  renderLegenda(wods, linhas.length);
+  renderPodium(linhas, itens);
+  renderTabela(vis, itens);
+  renderLegenda(itens, linhas.length);
   renderWods();
 }
 
@@ -899,38 +956,38 @@ function destacar(txt) {
 
 function trocarCat(c) { catAtiva = c; render(); }
 
-function renderPodium(linhas, wods) {
+function renderPodium(linhas, itens) {
   const el = document.getElementById('podium');
   const top = linhas.filter(l => l.pontuou).slice(0, 3);
-  if (!top.length || !wods.length) { el.innerHTML = ''; return; }
+  if (!top.length || !itens.length) { el.innerHTML = ''; return; }
   el.innerHTML = top.map((l, i) =>
     '<div class="pod p' + (i + 1) + '" onclick="verAtleta(' + JSON.stringify(l.atleta.id).replace(/"/g, '&quot;') + ')">' +
       '<div class="pod-rank">' + (i + 1) + '</div>' +
       '<div class="pod-pos">' + ordinal(l.pos) + ' lugar</div>' +
       '<div class="pod-name">' + esc(l.atleta.nome) + '</div>' +
       '<div class="pod-unit">' + esc(l.atleta.unidade || '') + '</div>' +
-      '<div class="pod-pts">' + fmtPts(l.total) + ' <small>' + (D.sistema === 'posicao' ? 'colocações' : 'pts') + '</small></div>' +
+      '<div class="pod-pts">' + fmtPts(l.total) + ' <small>pts</small></div>' +
     '</div>').join('');
 }
 
-function renderTabela(linhas, wods) {
+function renderTabela(linhas, itens) {
   const thead = document.getElementById('thead');
   const tbody = document.getElementById('tbody');
 
   thead.innerHTML = '<tr>' +
     '<th class="sticky-col" style="width:52px">#</th>' +
     '<th class="sticky-col" style="left:52px">Atleta</th>' +
-    wods.map(w => '<th class="wodcol" title="' + esc(w.nome) + '">' + esc(abrevWod(w)) + '</th>').join('') +
+    itens.map(w => '<th class="wodcol" title="' + esc(w.nome) + '">' + esc(w.curto) + '</th>').join('') +
     '<th class="num">Total</th></tr>';
 
   if (!linhas.length) {
-    tbody.innerHTML = '<tr><td colspan="' + (wods.length + 3) + '"><div class="empty-state">Nenhum atleta encontrado.</div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="' + (itens.length + 3) + '"><div class="empty-state">Nenhum atleta encontrado.</div></td></tr>';
     return;
   }
 
   tbody.innerHTML = linhas.map(l => {
     const cls = l.pos <= 3 && l.pontuou ? ' class="top' + l.pos + '"' : '';
-    const cels = wods.map(w => {
+    const cels = itens.map(w => {
       const r = l.provas[w.id];
       const v = fmtValor(w, r && r.res);
       if (!v) return '<td class="wod vazio">—</td>';
@@ -951,17 +1008,20 @@ function abrevWod(w) {
   return String(w.nome).slice(0, 10);
 }
 
-function renderLegenda(wods, totalAtletas) {
+function renderLegenda(itens, totalAtletas) {
   const sis = D.sistema === 'posicao'
-    ? 'Cada prova vale a colocação do atleta. <b>Menor total vence.</b>'
+    ? 'Cada prova vale a colocação do atleta: <b>1º = 1 pt</b>, 2º = 2 pts, 3º = 3 pts e assim por diante. <b>Menor total vence.</b>'
     : '1º lugar vale <b>' + num(D.p1, 100) + ' pts</b>, com <b>-' + num(D.dec, 5) +
       '</b> por posição (mínimo 1). <b>Maior total vence.</b>';
   document.getElementById('legend').innerHTML =
     sis + ' Empates dividem os pontos das posições empatadas. ' +
-    (D.sistema === 'posicao' ? '' : 'Quem não pontua na prova fica em último e soma 0. ') +
+    (D.sistema === 'posicao'
+      ? 'Quem não tem resultado na prova recebe a última colocação dela. '
+      : 'Quem não pontua na prova fica em último e soma 0. ') +
     'Quem estoura o time cap entra depois de quem finalizou, ordenado por repetições. ' +
     'Critério de desempate: melhores colocações individuais. ' +
-    '<br>' + wods.length + ' prova(s) valendo · ' + totalAtletas + ' atleta(s) na categoria · toque em um atleta para ver o detalhamento.';
+    'Prova dividida em partes pontua cada parte separadamente. ' +
+    '<br>' + itens.length + ' pontuação(ões) valendo · ' + totalAtletas + ' atleta(s) na categoria · toque em um atleta para ver o detalhamento.';
 }
 
 function renderWods() {
@@ -972,7 +1032,10 @@ function renderWods() {
   grid.innerHTML = wods.map(w =>
     '<div class="wod-card">' +
       '<h3>' + esc(w.nome) + '</h3>' +
-      '<span class="wod-tag">' + esc(TIPOS[w.tipo] || w.tipo) + '</span>' +
+      (w.partes && w.partes.length
+        ? w.partes.map((p, i) => '<div class="wod-parte"><b>' + LETRAS[i] + '</b> ' + esc(p.nome) +
+            ' <span>' + esc(TIPOS[p.tipo] || p.tipo) + '</span></div>').join('')
+        : '<span class="wod-tag">' + esc(TIPOS[w.tipo] || w.tipo) + '</span>') +
       (w.pub === false ? '<span class="wod-tag" style="margin-left:0.3rem;color:var(--gray);border-color:var(--border-soft)">Oculta</span>' : '') +
       (w.desc ? '<div class="wod-desc">' + esc(w.desc) + '</div>' : '') +
     '</div>').join('');
@@ -988,7 +1051,7 @@ function verAtleta(id) {
   document.getElementById('aSub').textContent =
     [l.atleta.categoria, l.atleta.unidade].filter(Boolean).join(' · ') +
     ' · ' + (l.pontuou ? ordinal(l.pos) + ' geral' : 'sem pontuação');
-  document.getElementById('aBody').innerHTML = cache.wods.map(w => {
+  document.getElementById('aBody').innerHTML = cache.itens.map(w => {
     const r = l.provas[w.id];
     const v = fmtValor(w, r && r.res);
     return '<div class="brk">' +
@@ -1008,11 +1071,11 @@ function exportarCSV() {
   const cache = rankCache[catAtiva];
   if (!cache) return;
   const sep = ';';
-  const cab = ['Pos', 'Atleta', 'Unidade'].concat(cache.wods.map(w => w.nome + ' (result)'))
-    .concat(cache.wods.map(w => w.nome + ' (pts)')).concat(['Total']);
+  const cab = ['Pos', 'Atleta', 'Unidade'].concat(cache.itens.map(w => w.nome + ' (result)'))
+    .concat(cache.itens.map(w => w.nome + ' (pts)')).concat(['Total']);
   const linhas = cache.linhas.map(l => {
-    const res = cache.wods.map(w => fmtValor(w, l.provas[w.id].res) || '');
-    const pts = cache.wods.map(w => fmtPts(l.provas[w.id].pts));
+    const res = cache.itens.map(w => fmtValor(w, l.provas[w.id].res) || '');
+    const pts = cache.itens.map(w => fmtPts(l.provas[w.id].pts));
     return [l.pontuou ? l.pos : '', l.atleta.nome, l.atleta.unidade || ''].concat(res).concat(pts).concat([fmtPts(l.total)]);
   });
   const csv = [cab].concat(linhas).map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(sep)).join('\n');
@@ -1027,7 +1090,12 @@ function exportarCSV() {
 function abrir(id) { document.getElementById(id).classList.add('open'); }
 function fechar(id) { document.getElementById(id).classList.remove('open'); }
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') document.querySelectorAll('.modal-bg.open').forEach(m => m.classList.remove('open'));
+  if (e.key !== 'Escape') return;
+  const abertos = [...document.querySelectorAll('.modal-bg.open')];
+  if (!abertos.length) return;
+  // fecha apenas o modal do topo (o de maior z-index)
+  abertos.sort((a, b) => parseInt(getComputedStyle(a).zIndex || 0, 10) - parseInt(getComputedStyle(b).zIndex || 0, 10));
+  abertos[abertos.length - 1].classList.remove('open');
 });
 
 /* ============================================================
@@ -1120,6 +1188,7 @@ function preencherAdmin() {
   document.getElementById('cCats').value = (D.categorias || []).join('\n');
   document.getElementById('cUnis').value = (D.unidades || []).join('\n');
   document.getElementById('cPublicado').checked = D.publicado !== false;
+  alternarCamposPontuacao();
 
   // selects de atleta
   opcoes('atCat', D.categorias);
@@ -1127,9 +1196,9 @@ function preencherAdmin() {
   opcoes('rCat', D.categorias);
   const selW = document.getElementById('rWod');
   const antW = selW.value;
-  const wods = (D.wods || []).slice().sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
-  selW.innerHTML = wods.map(w => '<option value="' + esc(w.id) + '">' + esc(w.nome) + '</option>').join('');
-  if (wods.some(w => w.id === antW)) selW.value = antW;
+  const itens = itensPontuados();
+  selW.innerHTML = itens.map(w => '<option value="' + esc(w.id) + '">' + esc(w.nome) + '</option>').join('');
+  if (itens.some(w => w.id === antW)) selW.value = antW;
 
   renderListaAtletas();
   renderListaWods();
@@ -1144,6 +1213,12 @@ function opcoes(id, arr) {
 }
 
 /* ---------------- CONFIG ---------------- */
+function alternarCamposPontuacao() {
+  const tabela = document.getElementById('cSistema').value === 'tabela';
+  document.querySelectorAll('.soTabela').forEach(el => { el.style.display = tabela ? '' : 'none'; });
+}
+document.getElementById('cSistema').addEventListener('change', alternarCamposPontuacao);
+
 function salvarConfig() {
   const linhas = t => t.split('\n').map(s => s.trim()).filter(Boolean);
   const patch = {
@@ -1251,8 +1326,10 @@ function removerWod(id) {
   if (!w || !confirm('Remover "' + w.nome + '" e todos os resultados dela?')) return;
   const res = {};
   Object.keys(D.resultados || {}).forEach(aid => {
-    const copia = Object.assign({}, D.resultados[aid]);
-    delete copia[id];
+    const copia = {};
+    Object.keys(D.resultados[aid] || {}).forEach(k => {
+      if (k !== id && k.indexOf(id + '::') !== 0) copia[k] = D.resultados[aid][k];
+    });
     res[aid] = copia;
   });
   salvar({ wods: D.wods.filter(x => x.id !== id), resultados: res }, 'wMsg', 'Prova removida.');
@@ -1280,7 +1357,12 @@ function renderListaWods() {
   el.innerHTML = wods.map((w, i) =>
     '<div class="list-item">' +
       '<div class="grow"><div class="nm">' + esc(w.nome) + '</div>' +
-      '<div class="mt">' + esc(TIPOS[w.tipo] || w.tipo) + (w.pub === false ? ' · oculta' : '') + '</div></div>' +
+      '<div class="mt">' +
+        (w.partes && w.partes.length
+          ? w.partes.map((pt, k) => LETRAS[k] + ' ' + esc(pt.nome) + ' (' + esc(TIPOS[pt.tipo] || pt.tipo) + ')').join(' · ')
+          : esc(TIPOS[w.tipo] || w.tipo)) +
+        (w.pub === false ? ' · oculta' : '') + '</div></div>' +
+      '<button class="btn-ghost" onclick="abrirPartes(' + jq(w.id) + ')">PARTES</button>' +
       '<label class="toggle"><input type="checkbox"' + (w.pub !== false ? ' checked' : '') +
         ' onchange="togglePubWod(' + jq(w.id) + ',this.checked)"> pub</label>' +
       '<button class="btn-ghost" onclick="moverWod(' + jq(w.id) + ',-1)"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
@@ -1289,13 +1371,73 @@ function renderListaWods() {
     '</div>').join('');
 }
 
+/* ---------------- PARTES DA PROVA ----------------
+   Uma prova pode ter mais de uma pontuacao: ex. buy-in de 1k de remo
+   cronometrado e, na sequencia, o for time. Cada parte e rankeada e
+   pontuada separadamente, mas as duas continuam na mesma prova.
+-------------------------------------------------- */
+let partesWodId = null;
+
+function abrirPartes(id) {
+  const w = (D.wods || []).find(x => x.id === id);
+  if (!w) return;
+  partesWodId = id;
+  document.getElementById('ptTitulo').textContent = w.nome;
+  document.getElementById('ptTexto').value =
+    (w.partes || []).map(p => p.nome + '; ' + p.tipo).join('\n');
+  document.getElementById('ptMsg').textContent = '';
+  abrir('mPartes');
+}
+
+const APELIDOS_TIPO = {
+  tempo: 'tempo', 'for time': 'tempo', fortime: 'tempo', cronometrado: 'tempo',
+  reps: 'reps', amrap: 'reps', 'repeticoes': 'reps', 'repetições': 'reps',
+  carga: 'carga', kg: 'carga', peso: 'carga', forca: 'carga', 'força': 'carga',
+  pontos: 'pontos', pts: 'pontos'
+};
+
+function salvarPartes() {
+  const w = (D.wods || []).find(x => x.id === partesWodId);
+  if (!w) return;
+  const antigas = w.partes || [];
+  const novas = document.getElementById('ptTexto').value.split('\n')
+    .map(l => l.trim()).filter(Boolean)
+    .map((l, i) => {
+      const p = l.split(';').map(x => x.trim());
+      const tipo = APELIDOS_TIPO[String(p[1] || '').toLowerCase()] || 'tempo';
+      return { id: antigas[i] ? antigas[i].id : uid('p'), nome: p[0], tipo };
+    });
+
+  if (novas.length === 1) {
+    document.getElementById('ptMsg').className = 'msg err';
+    document.getElementById('ptMsg').textContent =
+      'Uma parte só não faz sentido: deixe vazio para a prova ter pontuação única, ou informe duas ou mais.';
+    return;
+  }
+
+  // partes removidas levam junto os resultados delas
+  const removidas = antigas.slice(novas.length).map(p => partesWodId + '::' + p.id);
+  const resultados = {};
+  Object.keys(D.resultados || {}).forEach(aid => {
+    const copia = {};
+    Object.keys(D.resultados[aid] || {}).forEach(k => {
+      if (!removidas.includes(k)) copia[k] = D.resultados[aid][k];
+    });
+    resultados[aid] = copia;
+  });
+
+  const wods = (D.wods || []).map(x => x.id === partesWodId ? Object.assign({}, x, { partes: novas }) : x);
+  salvar({ wods, resultados }, 'ptMsg', novas.length ? novas.length + ' partes salvas.' : 'Prova com pontuação única.')
+    .then(ok => { if (ok) setTimeout(() => fechar('mPartes'), 900); });
+}
+
 /* ---------------- LANÇAMENTO DE RESULTADOS ---------------- */
 function renderGradeResultados() {
   const grid = document.getElementById('rGrid');
   const hint = document.getElementById('rHint');
   const wid = document.getElementById('rWod').value;
   const cat = document.getElementById('rCat').value;
-  const wod = (D.wods || []).find(w => w.id === wid);
+  const wod = itensPontuados().find(w => w.id === wid);
   if (!wod) { grid.innerHTML = '<div class="empty-state">Cadastre uma prova primeiro.</div>'; hint.textContent = ''; return; }
 
   const dicas = {
@@ -1327,7 +1469,7 @@ function renderGradeResultados() {
 
 function salvarResultados() {
   const wid = document.getElementById('rWod').value;
-  const wod = (D.wods || []).find(w => w.id === wid);
+  const wod = itensPontuados().find(w => w.id === wid);
   const msg = document.getElementById('rMsg');
   if (!wod) return;
   const ehTempo = wod.tipo === 'tempo';

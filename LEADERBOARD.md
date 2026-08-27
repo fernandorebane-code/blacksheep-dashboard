@@ -35,19 +35,38 @@ Elite Masculino · Elite Feminino · RX Masculino · RX Feminino · Scaled Mascu
 | Carga | maior vence | `100` (kg) |
 | Pontos | maior vence | `85` |
 
+### Provas com mais de uma pontuação
+
+Uma prova pode valer **duas ou mais pontuações** — por exemplo um buy-in de 1k de remo
+cronometrado e, na sequência, o for time da prova. No painel, botão **PARTES** na prova:
+uma parte por linha, no formato `Nome; tipo`:
+
+```
+Buy-in 1k remo; tempo
+For time; tempo
+```
+
+Aceita os apelidos `for time`, `amrap`, `kg`/`peso` e `pts`. Cada parte é rankeada e pontuada
+separadamente e aparece no leaderboard como **A**, **B**… dentro da mesma prova (colunas
+`W3A`, `W3B`). O lançamento de resultados é feito parte por parte. Para voltar a ter
+pontuação única, é só esvaziar o campo — os resultados das partes removidas são apagados junto.
+
 ## Pontuação
 
 Dois sistemas, escolhidos em CONFIG:
 
-- **Tabela de pontos** (padrão): 1º lugar = 100 pts, -5 por posição, mínimo 1. Maior total vence.
-  Os dois valores são configuráveis.
-- **Soma de colocações**: cada prova vale a colocação do atleta. Menor total vence.
+- **Colocação por prova** (padrão do Invitational): 1º = 1 pt, 2º = 2 pts, 3º = 3 pts e assim por diante.
+  **Menor total vence.**
+- **Tabela de pontos**: 1º lugar = 100 pts, -5 por posição, mínimo 1. Maior total vence.
+  Os dois valores são configuráveis (os campos só aparecem quando esse sistema está selecionado).
 
 Regras aplicadas em toda prova:
 
-- Empates recebem a mesma colocação e **dividem os pontos** das posições empatadas.
+- Empates recebem a mesma colocação e **dividem os pontos** das posições empatadas —
+  dois atletas empatados em 1º ficam com 1,5 pt cada e o seguinte é o 3º, com 3 pts.
 - Quem estoura o time cap entra **depois** de todos que finalizaram, ordenado por repetições.
-- Quem não tem resultado fica em último e soma **0** (no sistema de colocações, carrega a última posição).
+- Quem não tem resultado na prova recebe a última colocação dela
+  (na tabela de pontos, soma 0).
 - Desempate no geral: melhores colocações individuais.
 
 ## Regras do Firestore
