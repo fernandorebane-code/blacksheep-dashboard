@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blacksheep Games — Leaderboard</title>
+<meta name="description" content="Leaderboard oficial do campeonato interno de CrossFit da Blacksheep.">
+<meta property="og:title" content="Blacksheep Games — Leaderboard">
+<meta property="og:description" content="Ranking ao vivo do campeonato interno de CrossFit da Blacksheep.">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#0a0a0a;
+  --gold:#D4FF00;
+  --gold-light:#E8FF4D;
+  --gold-dim:rgba(212,255,0,0.12);
+  --white:#f5f5f0;
+  --gray:#888880;
+  --surface:#111111;
+  --surface2:#181818;
+  --surface3:#202020;
+  --border:rgba(212,255,0,0.15);
+  --border-soft:rgba(255,255,255,0.07);
+  --green:#52C07A;
+  --red:#E05252;
+  --bronze:#C08A52;
+  --silver:#C9C9C2;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  background:var(--black);
+  color:var(--white);
+  font-family:'DM Sans',sans-serif;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font-family:'DM Sans',sans-serif;}
+::selection{background:var(--gold);color:var(--black);}
+
+/* ---------- HEADER ---------- */
+header{
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:0 1.5rem;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  height:60px;
+  position:sticky;
+  top:0;
+  z-index:60;
+}
+.logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.25rem;
+  letter-spacing:0.12em;
+  white-space:nowrap;
+}
+.logo .gold{color:var(--gold);}
+.logo .wht{color:var(--white);}
+.header-right{display:flex;align-items:center;gap:0.7rem;}
+.live-badge{
+  display:flex;align-items:center;gap:0.4rem;
+  font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--gray);
+}
+.live-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--green);
+  animation:pulse 2s infinite;
+}
+.live-dot.off{background:var(--gray);animation:none;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.25;}}
+.btn-ghost{
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--gray);
+  padding:0.45rem 0.8rem;
+  font-size:0.65rem;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold);}
+.btn-ghost:disabled{opacity:0.3;cursor:not-allowed;}
+.btn-ghost:disabled:hover{border-color:var(--border);color:var(--gray);}
+.btn-solid{
+  background:var(--gold);
+  border:1px solid var(--gold);
+  color:var(--black);
+  padding:0.5rem 0.9rem;
+  font-size:0.68rem;
+  font-weight:600;
+  letter-spacing:0.09em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:background 0.2s;
+}
+.btn-solid:hover{background:var(--gold-light);}
+.btn-solid:disabled{opacity:0.45;cursor:not-allowed;}
+.btn-danger{
+  background:transparent;border:1px solid rgba(224,82,82,0.5);color:var(--red);
+  padding:0.4rem 0.7rem;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;
+}
+.btn-danger:hover{background:rgba(224,82,82,0.12);}
+
+/* ---------- HERO ---------- */
+.hero{
+  padding:2.6rem 1.5rem 1.8rem;
+  text-align:center;
+  border-bottom:1px solid var(--border-soft);
+  background:
+    radial-gradient(circle at 50% -20%, rgba(212,255,0,0.10), transparent 60%),
+    var(--black);
+}
+.hero h1{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(2.2rem,8vw,4rem);
+  letter-spacing:0.05em;
+  line-height:0.95;
+  color:var(--white);
+}
+.hero h1 em{font-style:normal;color:var(--gold);}
+.hero-sub{
+  margin-top:0.7rem;
+  font-size:0.72rem;
+  letter-spacing:0.22em;
+  text-transform:uppercase;
+  color:var(--gray);
+}
+.hero-meta{
+  margin-top:1.1rem;
+  display:flex;justify-content:center;gap:1.6rem;flex-wrap:wrap;
+  font-family:'DM Mono',monospace;
+  font-size:0.68rem;
+  letter-spacing:0.08em;
+  color:var(--gray);
+}
+.hero-meta span b{color:var(--white);font-weight:500;}
+
+/* ---------- LAYOUT ---------- */
+.container{max-width:1400px;margin:0 auto;padding:1.5rem;}
+.toolbar{
+  display:flex;flex-wrap:wrap;gap:0.6rem;align-items:center;
+  margin-bottom:1.2rem;
+}
+.cats{display:flex;flex-wrap:wrap;gap:0.4rem;flex:1;min-width:240px;}
+.cat{
+  background:transparent;
+  border:1px solid var(--border-soft);
+  color:var(--gray);
+  padding:0.5rem 0.9rem;
+  font-size:0.68rem;
+  font-weight:500;
+  letter-spacing:0.09em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all 0.18s;
+  white-space:nowrap;
+}
+.cat:hover{color:var(--white);border-color:var(--border);}
+.cat.active{background:var(--gold);border-color:var(--gold);color:var(--black);font-weight:600;}
+.field{
+  background:var(--surface2);
+  border:1px solid var(--border-soft);
+  color:var(--white);
+  padding:0.5rem 0.7rem;
+  font-size:0.75rem;
+  outline:none;
+  transition:border-color 0.2s;
+}
+.field:focus{border-color:var(--gold);}
+.field::placeholder{color:var(--gray);}
+select.field{cursor:pointer;}
+
+/* ---------- PODIUM ---------- */
+.podium{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:0.8rem;
+  margin-bottom:1.4rem;
+}
+.pod{
+  background:var(--surface);
+  border:1px solid var(--border-soft);
+  padding:1.1rem 1rem;
+  position:relative;
+  overflow:hidden;
+}
+.pod::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--border-soft);
+}
+.pod.p1::before{background:var(--gold);}
+.pod.p2::before{background:var(--silver);}
+.pod.p3::before{background:var(--bronze);}
+.pod-rank{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2.4rem;line-height:1;
+  color:var(--surface3);
+  position:absolute;right:0.8rem;top:0.5rem;
+}
+.pod.p1 .pod-rank{color:rgba(212,255,0,0.25);}
+.pod-pos{
+  font-size:0.6rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--gray);margin-bottom:0.35rem;
+}
+.pod.p1 .pod-pos{color:var(--gold);}
+.pod-name{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.5rem;letter-spacing:0.04em;line-height:1.05;
+  padding-right:2.2rem;
+}
+.pod-unit{font-size:0.68rem;color:var(--gray);margin-top:0.15rem;}
+.pod-pts{
+  font-family:'DM Mono',monospace;
+  font-size:1.05rem;color:var(--gold);margin-top:0.6rem;
+}
+.pod-pts small{color:var(--gray);font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;}
+
+/* ---------- TABLE ---------- */
+.table-wrap{
+  border:1px solid var(--border-soft);
+  background:var(--surface);
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+table{border-collapse:collapse;width:100%;min-width:640px;}
+thead th{
+  background:var(--surface2);
+  font-size:0.6rem;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--gray);
+  font-weight:500;
+  text-align:left;
+  padding:0.7rem 0.8rem;
+  border-bottom:1px solid var(--border-soft);
+  white-space:nowrap;
+  position:sticky;top:0;z-index:2;
+}
+thead th.wodcol{text-align:center;cursor:help;}
+thead th.num{text-align:right;}
+tbody td{
+  padding:0.7rem 0.8rem;
+  font-size:0.82rem;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  white-space:nowrap;
+}
+tbody tr{cursor:pointer;transition:background 0.15s;}
+tbody tr:hover{background:var(--surface2);}
+tbody tr.me{background:rgba(212,255,0,0.06);}
+td.pos{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.15rem;
+  color:var(--gray);
+  width:52px;
+}
+tr.top1 td.pos{color:var(--gold);}
+tr.top2 td.pos{color:var(--silver);}
+tr.top3 td.pos{color:var(--bronze);}
+td.atleta{font-weight:500;}
+td.atleta .unit{display:block;font-size:0.66rem;color:var(--gray);font-weight:400;}
+td.wod{text-align:center;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--gray);}
+td.wod b{display:block;color:var(--white);font-size:0.8rem;font-weight:500;}
+td.wod .pl{font-size:0.62rem;color:var(--gold);}
+td.wod.vazio{color:#3a3a38;}
+td.total{
+  text-align:right;
+  font-family:'DM Mono',monospace;
+  font-size:0.95rem;
+  color:var(--gold);
+  font-weight:500;
+  position:sticky;right:0;
+  background:var(--surface);
+  border-left:1px solid var(--border-soft);
+}
+tbody tr:hover td.total{background:var(--surface2);}
+thead th.num{position:sticky;right:0;background:var(--surface2);z-index:3;border-left:1px solid var(--border-soft);}
+#rGrid thead th.num,#rGrid td.num{position:static;background:transparent;border-left:none;}
+.sticky-col{position:sticky;left:0;background:var(--surface);z-index:1;}
+tbody tr:hover .sticky-col{background:var(--surface2);}
+thead th.sticky-col{background:var(--surface2);z-index:3;}
+.empty-state{
+  padding:3rem 1.5rem;text-align:center;color:var(--gray);font-size:0.82rem;
+}
+.legend{
+  margin-top:0.8rem;font-size:0.65rem;color:var(--gray);line-height:1.7;
+}
+.legend b{color:var(--white);font-weight:500;}
+
+/* ---------- WOD CARDS ---------- */
+.section-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.1rem;letter-spacing:0.14em;color:var(--gold);
+  margin:2.2rem 0 0.9rem;
+  padding-bottom:0.4rem;
+  border-bottom:1px solid var(--border-soft);
+}
+.wod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:0.8rem;}
+.wod-card{background:var(--surface);border:1px solid var(--border-soft);padding:1rem;}
+.wod-card h3{
+  font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:0.06em;color:var(--white);
+}
+.wod-tag{
+  display:inline-block;margin-top:0.3rem;
+  font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--gold);border:1px solid var(--border);padding:0.15rem 0.45rem;
+}
+.wod-desc{
+  margin-top:0.7rem;font-size:0.76rem;color:var(--gray);line-height:1.6;white-space:pre-wrap;
+}
+
+/* ---------- MODAL ---------- */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,0.82);
+  display:none;align-items:center;justify-content:center;padding:1rem;z-index:100;
+  overflow-y:auto;
+}
+.modal-bg.open{display:flex;}
+.modal{
+  background:var(--surface);
+  border:1px solid var(--border);
+  width:100%;max-width:560px;
+  max-height:90vh;overflow-y:auto;
+}
+.modal.wide{max-width:1100px;}
+.modal-head{
+  padding:1.1rem 1.3rem;border-bottom:1px solid var(--border-soft);
+  display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;
+  position:sticky;top:0;background:var(--surface);z-index:2;
+}
+.modal-head h2{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:0.05em;}
+.modal-head .sub{font-size:0.68rem;color:var(--gray);margin-top:0.15rem;}
+.modal-x{background:none;border:none;color:var(--gray);font-size:1.4rem;cursor:pointer;line-height:1;}
+.modal-x:hover{color:var(--gold);}
+.modal-body{padding:1.2rem 1.3rem;}
+.modal-foot{
+  padding:1rem 1.3rem;border-top:1px solid var(--border-soft);
+  display:flex;justify-content:flex-end;gap:0.6rem;
+  position:sticky;bottom:0;background:var(--surface);
+}
+.brk{display:flex;justify-content:space-between;align-items:center;padding:0.65rem 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.brk-name{font-size:0.82rem;}
+.brk-name small{display:block;color:var(--gray);font-size:0.66rem;}
+.brk-val{font-family:'DM Mono',monospace;font-size:0.82rem;text-align:right;}
+.brk-val .pl{color:var(--gold);font-size:0.68rem;}
+
+/* ---------- FORMS / ADMIN ---------- */
+.form-row{display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.6rem;}
+.form-row > *{flex:1;min-width:130px;}
+label.lbl{
+  display:block;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--gray);margin-bottom:0.3rem;
+}
+textarea.field{min-height:80px;resize:vertical;line-height:1.5;}
+.admin-tabs{display:flex;gap:0.3rem;flex-wrap:wrap;margin-bottom:1.2rem;}
+.admin-tab{
+  background:transparent;border:1px solid var(--border-soft);color:var(--gray);
+  padding:0.45rem 0.8rem;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;
+}
+.admin-tab.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+.apane{display:none;}
+.apane.active{display:block;}
+.list-item{
+  display:flex;align-items:center;gap:0.6rem;
+  padding:0.55rem 0.7rem;border:1px solid var(--border-soft);margin-bottom:0.4rem;background:var(--surface2);
+}
+.list-item .grow{flex:1;min-width:0;}
+.list-item .nm{font-size:0.82rem;}
+.list-item .mt{font-size:0.65rem;color:var(--gray);}
+.msg{font-size:0.75rem;margin-top:0.6rem;min-height:1.1rem;}
+.msg.ok{color:var(--green);}
+.msg.err{color:var(--red);}
+.hint{font-size:0.68rem;color:var(--gray);line-height:1.6;margin-top:0.5rem;}
+.score-grid{overflow-x:auto;border:1px solid var(--border-soft);}
+.score-grid table{min-width:520px;}
+.score-grid input{
+  width:100px;background:var(--surface2);border:1px solid var(--border-soft);color:var(--white);
+  padding:0.35rem 0.45rem;font-family:'DM Mono',monospace;font-size:0.78rem;outline:none;text-align:center;
+}
+.score-grid input:focus{border-color:var(--gold);}
+.score-grid select{
+  background:var(--surface2);border:1px solid var(--border-soft);color:var(--white);
+  padding:0.35rem;font-size:0.7rem;outline:none;
+}
+.toggle{display:flex;align-items:center;gap:0.5rem;font-size:0.75rem;color:var(--gray);cursor:pointer;}
+.toggle input{accent-color:var(--gold);width:16px;height:16px;cursor:pointer;}
+
+footer{
+  padding:2.5rem 1.5rem;text-align:center;
+  font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:#4a4a46;
+  border-top:1px solid var(--border-soft);margin-top:3rem;
+}
+
+/* ---------- LOADER ---------- */
+#loader{padding:4rem 1.5rem;text-align:center;color:var(--gray);font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase;}
+
+@media (max-width:700px){
+  header{padding:0 1rem;}
+  .logo{font-size:1.05rem;}
+  .container{padding:1rem;}
+  .podium{grid-template-columns:1fr;}
+  .hero{padding:2rem 1rem 1.4rem;}
+  .hero-meta{gap:1rem;}
+  td.atleta{white-space:normal;min-width:140px;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span class="gold">BLACKSHEEP </span><span class="wht">GAMES</span></div>
+  <div class="header-right">
+    <div class="live-badge"><span class="live-dot off" id="liveDot"></span><span id="liveTxt">Conectando</span></div>
+    <button class="btn-ghost" id="btnAdmin" onclick="abrirAdmin()">ADMIN</button>
+  </div>
+</header>
+
+<div class="hero">
+  <h1 id="hTitulo">BLACKSHEEP <em>GAMES</em></h1>
+  <div class="hero-sub" id="hSub">Campeonato interno de CrossFit</div>
+  <div class="hero-meta">
+    <span id="hData"></span>
+    <span id="hLocal"></span>
+    <span id="hAtletas"></span>
+  </div>
+</div>
+
+<div id="loader">Carregando leaderboard…</div>
+
+<div class="container" id="fechado" style="display:none">
+  <div class="empty-state">O leaderboard será liberado em breve.</div>
+</div>
+
+<div class="container" id="app" style="display:none">
+
+  <div class="toolbar">
+    <div class="cats" id="cats"></div>
+    <input class="field" id="busca" placeholder="Buscar atleta…" style="max-width:190px" oninput="render()">
+    <select class="field" id="filtroUnidade" onchange="render()"><option value="">Todas as unidades</option></select>
+    <button class="btn-ghost" onclick="exportarCSV()">CSV</button>
+  </div>
+
+  <div class="podium" id="podium"></div>
+
+  <div class="table-wrap">
+    <table id="tabela">
+      <thead id="thead"></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <div class="legend" id="legend"></div>
+
+  <div class="section-title" id="wodTitle" style="display:none">PROVAS</div>
+  <div class="wod-grid" id="wodGrid"></div>
+</div>
+
+<footer>Blacksheep — Leaderboard oficial</footer>
+
+<!-- MODAL: detalhe do atleta -->
+<div class="modal-bg" id="mAtleta" onclick="if(event.target===this)fechar('mAtleta')">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h2 id="aNome"></h2>
+        <div class="sub" id="aSub"></div>
+      </div>
+      <button class="modal-x" onclick="fechar('mAtleta')">&times;</button>
+    </div>
+    <div class="modal-body" id="aBody"></div>
+  </div>
+</div>
+
+<!-- MODAL: login admin -->
+<div class="modal-bg" id="mLogin" onclick="if(event.target===this)fechar('mLogin')">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-head">
+      <div><h2>ÁREA DO ORGANIZADOR</h2><div class="sub">Acesso restrito</div></div>
+      <button class="modal-x" onclick="fechar('mLogin')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <label class="lbl">E-mail</label>
+      <input class="field" id="logEmail" style="width:100%;margin-bottom:0.7rem" type="email" autocomplete="username">
+      <label class="lbl">Senha</label>
+      <input class="field" id="logSenha" style="width:100%" type="password" autocomplete="current-password">
+      <div class="msg err" id="logMsg"></div>
+      <button class="btn-solid" style="width:100%;margin-top:0.4rem" id="logBtn" onclick="doLogin()">ENTRAR</button>
+      <div class="hint">Use o mesmo login do dashboard de gestão.</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: painel admin -->
+<div class="modal-bg" id="mPainel">
+  <div class="modal wide">
+    <div class="modal-head">
+      <div><h2>PAINEL DO CAMPEONATO</h2><div class="sub" id="pSub"></div></div>
+      <div style="display:flex;gap:0.5rem;align-items:center">
+        <button class="btn-ghost" onclick="doLogout()">SAIR</button>
+        <button class="modal-x" onclick="fechar('mPainel')">&times;</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="admin-tabs">
+        <button class="admin-tab active" data-ap="apResultados" onclick="apTab('apResultados')">RESULTADOS</button>
+        <button class="admin-tab" data-ap="apAtletas" onclick="apTab('apAtletas')">ATLETAS</button>
+        <button class="admin-tab" data-ap="apWods" onclick="apTab('apWods')">PROVAS</button>
+        <button class="admin-tab" data-ap="apConfig" onclick="apTab('apConfig')">CONFIG</button>
+      </div>
+
+      <!-- RESULTADOS -->
+      <div class="apane active" id="apResultados">
+        <div class="form-row">
+          <div>
+            <label class="lbl">Prova</label>
+            <select class="field" id="rWod" style="width:100%" onchange="renderGradeResultados()"></select>
+          </div>
+          <div>
+            <label class="lbl">Categoria</label>
+            <select class="field" id="rCat" style="width:100%" onchange="renderGradeResultados()"></select>
+          </div>
+        </div>
+        <div class="hint" id="rHint"></div>
+        <div class="score-grid" id="rGrid" style="margin-top:0.8rem"></div>
+        <div class="modal-foot" style="padding-left:0;padding-right:0">
+          <span class="msg" id="rMsg" style="flex:1;text-align:left"></span>
+          <button class="btn-solid" onclick="salvarResultados()">SALVAR RESULTADOS</button>
+        </div>
+      </div>
+
+      <!-- ATLETAS -->
+      <div class="apane" id="apAtletas">
+        <div class="form-row">
+          <input class="field" id="atNome" placeholder="Nome do atleta">
+          <select class="field" id="atCat"></select>
+          <select class="field" id="atUni"></select>
+          <button class="btn-solid" onclick="addAtleta()">ADICIONAR</button>
+        </div>
+        <div class="hint">Cole vários de uma vez (um por linha, formato <b>Nome; Categoria; Unidade</b>) no campo abaixo.</div>
+        <textarea class="field" id="atBulk" style="width:100%;margin-top:0.5rem" placeholder="João Silva; Elite Masculino; Moema&#10;Maria Souza; Scaled Feminino; Pinheiros"></textarea>
+        <button class="btn-ghost" style="margin-top:0.4rem" onclick="importarAtletas()">IMPORTAR LISTA</button>
+        <div class="msg" id="atMsg"></div>
+        <div style="margin-top:1rem" id="atLista"></div>
+      </div>
+
+      <!-- PROVAS -->
+      <div class="apane" id="apWods">
+        <div class="form-row">
+          <input class="field" id="wNome" placeholder="Nome da prova (ex: WOD 1 — Fran)">
+          <select class="field" id="wTipo">
+            <option value="tempo">Tempo (menor vence)</option>
+            <option value="reps">Repetições (maior vence)</option>
+            <option value="carga">Carga em kg (maior vence)</option>
+            <option value="pontos">Pontos (maior vence)</option>
+          </select>
+          <button class="btn-solid" onclick="addWod()">ADICIONAR</button>
+        </div>
+        <textarea class="field" id="wDesc" style="width:100%" placeholder="Descrição da prova (opcional)"></textarea>
+        <div class="msg" id="wMsg"></div>
+        <div style="margin-top:1rem" id="wLista"></div>
+      </div>
+
+      <!-- CONFIG -->
+      <div class="apane" id="apConfig">
+        <div class="form-row">
+          <div><label class="lbl">Nome do campeonato</label><input class="field" id="cNome" style="width:100%"></div>
+          <div><label class="lbl">Subtítulo</label><input class="field" id="cSub" style="width:100%"></div>
+        </div>
+        <div class="form-row">
+          <div><label class="lbl">Data</label><input class="field" id="cData" style="width:100%" placeholder="14 e 15 de março"></div>
+          <div><label class="lbl">Local</label><input class="field" id="cLocal" style="width:100%" placeholder="Blacksheep Moema"></div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label class="lbl">Sistema de pontuação</label>
+            <select class="field" id="cSistema" style="width:100%">
+              <option value="tabela">Tabela de pontos (maior total vence)</option>
+              <option value="posicao">Soma de colocações (menor total vence)</option>
+            </select>
+          </div>
+          <div><label class="lbl">Pontos do 1º lugar</label><input class="field" id="cP1" type="number" style="width:100%"></div>
+          <div><label class="lbl">Decréscimo por posição</label><input class="field" id="cDec" type="number" style="width:100%"></div>
+        </div>
+        <div class="form-row">
+          <div style="flex:2">
+            <label class="lbl">Categorias (uma por linha)</label>
+            <textarea class="field" id="cCats" style="width:100%"></textarea>
+          </div>
+          <div style="flex:2">
+            <label class="lbl">Unidades (uma por linha)</label>
+            <textarea class="field" id="cUnis" style="width:100%"></textarea>
+          </div>
+        </div>
+        <label class="toggle" style="margin-top:0.5rem">
+          <input type="checkbox" id="cPublicado"> Leaderboard visível para o público
+        </label>
+        <div class="modal-foot" style="padding-left:0;padding-right:0">
+          <span class="msg" id="cMsg" style="flex:1;text-align:left"></span>
+          <button class="btn-solid" onclick="salvarConfig()">SALVAR CONFIG</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+/* ============================================================
+   BLACKSHEEP GAMES — LEADERBOARD
+   Leitura pública + painel de organização (Firebase).
+   Documento único: campeonatos/atual
+   ============================================================ */
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAcyQMnedG-XcRzMPv8_hyLcnF_VIAF7AQ",
+  authDomain: "bjj-blacksheep.firebaseapp.com",
+  projectId: "bjj-blacksheep",
+  storageBucket: "bjj-blacksheep.firebasestorage.app",
+  messagingSenderId: "1005609332876",
+  appId: "1:1005609332876:web:a11586795be7f886454ba9"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+const db = firebase.firestore();
+const DOC = db.collection('campeonatos').doc('atual');
+
+const PADRAO = {
+  nome: 'Blacksheep Games',
+  sub: 'Campeonato interno de CrossFit',
+  data: '',
+  local: '',
+  sistema: 'tabela',
+  p1: 100,
+  dec: 5,
+  publicado: true,
+  categorias: ['Elite Masculino', 'Elite Feminino', 'RX Masculino', 'RX Feminino', 'Scaled Masculino', 'Scaled Feminino'],
+  unidades: ['Moema', 'Pinheiros', 'Berrini', 'Itaim', 'Vila Olímpia', 'Alphaville'],
+  wods: [],
+  atletas: [],
+  resultados: {}
+};
+
+let D = null;            // dados do campeonato
+let catAtiva = null;     // categoria selecionada
+let isAdmin = false;     // usuário autorizado logado
+let rankCache = {};      // ranking por categoria (cache do último render)
+
+/* ---------------- UTILS ---------------- */
+function uid(p) { return p + '_' + Math.random().toString(36).slice(2, 9); }
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function num(v, def) { const n = Number(v); return isFinite(n) ? n : def; }
+
+// "3:21" | "3:21.5" | "201" -> segundos
+function parseTempo(txt) {
+  const t = String(txt).trim().replace(',', '.');
+  if (!t) return null;
+  if (t.includes(':')) {
+    const p = t.split(':');
+    const m = parseFloat(p[0]), s = parseFloat(p[1]);
+    if (!isFinite(m) || !isFinite(s)) return null;
+    return m * 60 + s;
+  }
+  const n = parseFloat(t);
+  return isFinite(n) ? n : null;
+}
+function fmtTempo(seg) {
+  if (seg == null) return '--';
+  const m = Math.floor(seg / 60);
+  const s = seg - m * 60;
+  const ss = (s < 10 ? '0' : '') + (Math.round(s * 10) % 10 === 0 ? String(Math.round(s)) : s.toFixed(1));
+  return m + ':' + ss;
+}
+function fmtValor(wod, res) {
+  if (!res) return null;
+  if (res.v == null) {
+    if (wod.tipo === 'tempo' && res.cap != null) return res.cap + ' reps';
+    return null;
+  }
+  if (wod.tipo === 'tempo') return fmtTempo(res.v);
+  if (wod.tipo === 'carga') return res.v + ' kg';
+  if (wod.tipo === 'reps') return res.v + ' reps';
+  return String(res.v);
+}
+function fmtPts(n) {
+  if (n == null) return '--';
+  return Math.round(n * 10) % 10 === 0 ? String(Math.round(n)) : n.toFixed(1);
+}
+function ordinal(n) { return n + 'º'; }
+
+/* ---------------- MOTOR DE RANKING ----------------
+   Por prova, dentro de cada categoria:
+     1) quem completou (ordenado pelo tipo da prova)
+     2) quem bateu o time cap (ordenado por reps, decrescente)
+     3) quem não pontuou (últimos, todos empatados)
+   Empates recebem a mesma colocação e dividem os pontos do bloco.
+--------------------------------------------------- */
+function pontosDaPosicao(pos) {
+  if (D.sistema === 'posicao') return pos;
+  return Math.max(1, num(D.p1, 100) - (pos - 1) * num(D.dec, 5));
+}
+
+function chaveResultado(wod, res) {
+  // devolve [grupo, valor] — grupo 0 = completou, 1 = cap, 2 = sem nota
+  if (!res) return [2, 0];
+  if (res.v != null) return [0, wod.tipo === 'tempo' ? res.v : -res.v]; // sempre "menor é melhor"
+  if (wod.tipo === 'tempo' && res.cap != null) return [1, -res.cap];
+  return [2, 0];
+}
+
+function rankearProva(wod, atletas) {
+  const linhas = atletas.map(a => {
+    const res = (D.resultados[a.id] || {})[wod.id] || null;
+    const k = chaveResultado(wod, res);
+    return { id: a.id, res, grupo: k[0], val: k[1] };
+  });
+  linhas.sort((x, y) => x.grupo - y.grupo || x.val - y.val);
+
+  const out = {};
+  let i = 0;
+  while (i < linhas.length) {
+    let j = i;
+    while (j + 1 < linhas.length &&
+           linhas[j + 1].grupo === linhas[i].grupo &&
+           linhas[j + 1].val === linhas[i].val) j++;
+    const pos = i + 1;
+    let soma = 0;
+    for (let p = i + 1; p <= j + 1; p++) soma += pontosDaPosicao(p);
+    const pts = soma / (j - i + 1);
+    for (let k2 = i; k2 <= j; k2++) {
+      const semNota = linhas[k2].grupo === 2;
+      // sem resultado na prova: fica em ultimo e nao soma pontos (no sistema de
+      // colocacoes ja carrega a penalidade da ultima posicao).
+      const p = (semNota && D.sistema !== 'posicao') ? 0 : pts;
+      out[linhas[k2].id] = { pos, pts: p, res: linhas[k2].res, semNota };
+    }
+    i = j + 1;
+  }
+  return out;
+}
+
+function wodsValidos() {
+  return (D.wods || []).filter(w => isAdmin || w.pub !== false)
+                       .sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+}
+
+function calcularRanking(categoria) {
+  const atletas = (D.atletas || []).filter(a => a.categoria === categoria);
+  const wods = wodsValidos();
+  const porProva = {};
+  wods.forEach(w => { porProva[w.id] = rankearProva(w, atletas); });
+
+  const linhas = atletas.map(a => {
+    const provas = {};
+    let total = 0, algum = false;
+    const posicoes = [];
+    wods.forEach(w => {
+      const r = porProva[w.id][a.id];
+      provas[w.id] = r;
+      total += r.pts;
+      posicoes.push(r.pos);
+      if (!r.semNota) algum = true;
+    });
+    posicoes.sort((x, y) => x - y);
+    return { atleta: a, provas, total, posicoes, pontuou: algum };
+  });
+
+  const dir = D.sistema === 'posicao' ? 1 : -1; // posicao: menor vence
+  linhas.sort((x, y) => {
+    if (x.pontuou !== y.pontuou) return x.pontuou ? -1 : 1;
+    if (x.total !== y.total) return (x.total - y.total) * dir;
+    for (let i = 0; i < Math.max(x.posicoes.length, y.posicoes.length); i++) {
+      const a = x.posicoes[i] == null ? 999 : x.posicoes[i];
+      const b = y.posicoes[i] == null ? 999 : y.posicoes[i];
+      if (a !== b) return a - b;
+    }
+    return x.atleta.nome.localeCompare(y.atleta.nome, 'pt-BR');
+  });
+
+  // colocação geral com empate
+  let pos = 0;
+  linhas.forEach((l, i) => {
+    const ant = linhas[i - 1];
+    const igual = ant && ant.total === l.total && ant.pontuou === l.pontuou &&
+                  JSON.stringify(ant.posicoes) === JSON.stringify(l.posicoes);
+    pos = igual ? pos : i + 1;
+    l.pos = pos;
+  });
+  return { linhas, wods };
+}
+
+/* ---------------- CARREGAMENTO ---------------- */
+function normalizar(raw) {
+  const d = Object.assign({}, PADRAO, raw || {});
+  d.categorias = (d.categorias && d.categorias.length) ? d.categorias : PADRAO.categorias.slice();
+  d.unidades = (d.unidades && d.unidades.length) ? d.unidades : PADRAO.unidades.slice();
+  d.wods = d.wods || [];
+  d.atletas = d.atletas || [];
+  d.resultados = d.resultados || {};
+  return d;
+}
+
+function setLive(ok, txt) {
+  document.getElementById('liveDot').classList.toggle('off', !ok);
+  document.getElementById('liveTxt').textContent = txt;
+}
+
+DOC.onSnapshot(snap => {
+  D = normalizar(snap.exists ? snap.data() : null);
+  setLive(true, snap.exists ? 'Ao vivo' : 'Sem dados');
+  document.getElementById('loader').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  if (isAdmin) preencherAdmin();
+  render();
+}, err => {
+  console.error(err);
+  setLive(false, 'Offline');
+  document.getElementById('loader').innerHTML =
+    'Não foi possível carregar o leaderboard.<br><span style="text-transform:none;letter-spacing:0">' +
+    'Verifique as regras de leitura pública da coleção <b>campeonatos</b> no Firestore.</span>';
+});
+
+/* ---------------- RENDER ---------------- */
+function render() {
+  if (!D) return;
+
+  // cabeçalho
+  document.getElementById('hTitulo').innerHTML = destacar(D.nome || PADRAO.nome);
+  document.getElementById('hSub').textContent = D.sub || '';
+  document.getElementById('hData').innerHTML = D.data ? '<b>' + esc(D.data) + '</b>' : '';
+  document.getElementById('hLocal').innerHTML = D.local ? '<b>' + esc(D.local) + '</b>' : '';
+  document.getElementById('hAtletas').innerHTML = (D.atletas.length ? '<b>' + D.atletas.length + '</b> atletas' : '');
+  document.title = (D.nome || 'Blacksheep Games') + ' — Leaderboard';
+
+  const fechado = D.publicado === false && !isAdmin;
+  document.getElementById('fechado').style.display = fechado ? 'block' : 'none';
+  document.getElementById('app').style.display = fechado ? 'none' : 'block';
+  if (fechado) return;
+
+  // categorias com atletas
+  const cats = D.categorias.filter(c => D.atletas.some(a => a.categoria === c));
+  if (!cats.length) {
+    document.getElementById('cats').innerHTML = '';
+    document.getElementById('podium').innerHTML = '';
+    document.getElementById('thead').innerHTML = '';
+    document.getElementById('tbody').innerHTML =
+      '<tr><td class="empty-state">Nenhum atleta inscrito ainda.</td></tr>';
+    document.getElementById('legend').innerHTML = '';
+    renderWods();
+    return;
+  }
+  if (!cats.includes(catAtiva)) catAtiva = cats[0];
+  document.getElementById('cats').innerHTML = cats.map(c =>
+    '<button class="cat' + (c === catAtiva ? ' active' : '') + '" onclick="trocarCat(' + JSON.stringify(c).replace(/"/g, '&quot;') + ')">' +
+    esc(c) + '</button>').join('');
+
+  // filtro de unidade
+  const selU = document.getElementById('filtroUnidade');
+  const usadas = D.unidades.filter(u => D.atletas.some(a => a.unidade === u));
+  const atual = selU.value;
+  selU.innerHTML = '<option value="">Todas as unidades</option>' +
+    usadas.map(u => '<option' + (u === atual ? ' selected' : '') + '>' + esc(u) + '</option>').join('');
+
+  const { linhas, wods } = calcularRanking(catAtiva);
+  rankCache[catAtiva] = { linhas, wods };
+
+  const busca = document.getElementById('busca').value.trim().toLowerCase();
+  const uni = selU.value;
+  const vis = linhas.filter(l =>
+    (!busca || l.atleta.nome.toLowerCase().includes(busca)) &&
+    (!uni || l.atleta.unidade === uni));
+
+  renderPodium(linhas, wods);
+  renderTabela(vis, wods);
+  renderLegenda(wods, linhas.length);
+  renderWods();
+}
+
+function destacar(txt) {
+  const p = String(txt).trim().split(' ');
+  if (p.length < 2) return esc(txt);
+  const ult = p.pop();
+  return esc(p.join(' ')) + ' <em>' + esc(ult) + '</em>';
+}
+
+function trocarCat(c) { catAtiva = c; render(); }
+
+function renderPodium(linhas, wods) {
+  const el = document.getElementById('podium');
+  const top = linhas.filter(l => l.pontuou).slice(0, 3);
+  if (!top.length || !wods.length) { el.innerHTML = ''; return; }
+  el.innerHTML = top.map((l, i) =>
+    '<div class="pod p' + (i + 1) + '" onclick="verAtleta(' + JSON.stringify(l.atleta.id).replace(/"/g, '&quot;') + ')">' +
+      '<div class="pod-rank">' + (i + 1) + '</div>' +
+      '<div class="pod-pos">' + ordinal(l.pos) + ' lugar</div>' +
+      '<div class="pod-name">' + esc(l.atleta.nome) + '</div>' +
+      '<div class="pod-unit">' + esc(l.atleta.unidade || '') + '</div>' +
+      '<div class="pod-pts">' + fmtPts(l.total) + ' <small>' + (D.sistema === 'posicao' ? 'colocações' : 'pts') + '</small></div>' +
+    '</div>').join('');
+}
+
+function renderTabela(linhas, wods) {
+  const thead = document.getElementById('thead');
+  const tbody = document.getElementById('tbody');
+
+  thead.innerHTML = '<tr>' +
+    '<th class="sticky-col" style="width:52px">#</th>' +
+    '<th class="sticky-col" style="left:52px">Atleta</th>' +
+    wods.map(w => '<th class="wodcol" title="' + esc(w.nome) + '">' + esc(abrevWod(w)) + '</th>').join('') +
+    '<th class="num">Total</th></tr>';
+
+  if (!linhas.length) {
+    tbody.innerHTML = '<tr><td colspan="' + (wods.length + 3) + '"><div class="empty-state">Nenhum atleta encontrado.</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = linhas.map(l => {
+    const cls = l.pos <= 3 && l.pontuou ? ' class="top' + l.pos + '"' : '';
+    const cels = wods.map(w => {
+      const r = l.provas[w.id];
+      const v = fmtValor(w, r && r.res);
+      if (!v) return '<td class="wod vazio">—</td>';
+      return '<td class="wod"><b>' + esc(v) + '</b><span class="pl">' + ordinal(r.pos) + '</span></td>';
+    }).join('');
+    return '<tr' + cls + ' onclick="verAtleta(' + JSON.stringify(l.atleta.id).replace(/"/g, '&quot;') + ')">' +
+      '<td class="pos sticky-col">' + (l.pontuou ? l.pos : '—') + '</td>' +
+      '<td class="atleta sticky-col" style="left:52px">' + esc(l.atleta.nome) +
+        '<span class="unit">' + esc(l.atleta.unidade || '') + '</span></td>' +
+      cels +
+      '<td class="total">' + fmtPts(l.total) + '</td></tr>';
+  }).join('');
+}
+
+function abrevWod(w) {
+  const m = String(w.nome).match(/^\s*(WOD|PROVA)\s*(\d+)/i);
+  if (m) return 'W' + m[2];
+  return String(w.nome).slice(0, 10);
+}
+
+function renderLegenda(wods, totalAtletas) {
+  const sis = D.sistema === 'posicao'
+    ? 'Cada prova vale a colocação do atleta. <b>Menor total vence.</b>'
+    : '1º lugar vale <b>' + num(D.p1, 100) + ' pts</b>, com <b>-' + num(D.dec, 5) +
+      '</b> por posição (mínimo 1). <b>Maior total vence.</b>';
+  document.getElementById('legend').innerHTML =
+    sis + ' Empates dividem os pontos das posições empatadas. ' +
+    (D.sistema === 'posicao' ? '' : 'Quem não pontua na prova fica em último e soma 0. ') +
+    'Quem estoura o time cap entra depois de quem finalizou, ordenado por repetições. ' +
+    'Critério de desempate: melhores colocações individuais. ' +
+    '<br>' + wods.length + ' prova(s) valendo · ' + totalAtletas + ' atleta(s) na categoria · toque em um atleta para ver o detalhamento.';
+}
+
+function renderWods() {
+  const wods = wodsValidos();
+  const grid = document.getElementById('wodGrid');
+  document.getElementById('wodTitle').style.display = wods.length ? 'block' : 'none';
+  const TIPOS = { tempo: 'Menor tempo', reps: 'Mais repetições', carga: 'Maior carga', pontos: 'Mais pontos' };
+  grid.innerHTML = wods.map(w =>
+    '<div class="wod-card">' +
+      '<h3>' + esc(w.nome) + '</h3>' +
+      '<span class="wod-tag">' + esc(TIPOS[w.tipo] || w.tipo) + '</span>' +
+      (w.pub === false ? '<span class="wod-tag" style="margin-left:0.3rem;color:var(--gray);border-color:var(--border-soft)">Oculta</span>' : '') +
+      (w.desc ? '<div class="wod-desc">' + esc(w.desc) + '</div>' : '') +
+    '</div>').join('');
+}
+
+/* ---------------- DETALHE DO ATLETA ---------------- */
+function verAtleta(id) {
+  const cache = rankCache[catAtiva];
+  if (!cache) return;
+  const l = cache.linhas.find(x => x.atleta.id === id);
+  if (!l) return;
+  document.getElementById('aNome').textContent = l.atleta.nome;
+  document.getElementById('aSub').textContent =
+    [l.atleta.categoria, l.atleta.unidade].filter(Boolean).join(' · ') +
+    ' · ' + (l.pontuou ? ordinal(l.pos) + ' geral' : 'sem pontuação');
+  document.getElementById('aBody').innerHTML = cache.wods.map(w => {
+    const r = l.provas[w.id];
+    const v = fmtValor(w, r && r.res);
+    return '<div class="brk">' +
+      '<div class="brk-name">' + esc(w.nome) + '<small>' + esc(v || 'sem resultado') + '</small></div>' +
+      '<div class="brk-val">' + fmtPts(r.pts) + ' pts<span class="pl"> ' + ordinal(r.pos) + '</span></div>' +
+    '</div>';
+  }).join('') +
+  '<div class="brk" style="border-bottom:none;margin-top:0.4rem">' +
+    '<div class="brk-name" style="font-weight:600">TOTAL</div>' +
+    '<div class="brk-val" style="color:var(--gold);font-size:1rem">' + fmtPts(l.total) + '</div>' +
+  '</div>';
+  abrir('mAtleta');
+}
+
+/* ---------------- CSV ---------------- */
+function exportarCSV() {
+  const cache = rankCache[catAtiva];
+  if (!cache) return;
+  const sep = ';';
+  const cab = ['Pos', 'Atleta', 'Unidade'].concat(cache.wods.map(w => w.nome + ' (result)'))
+    .concat(cache.wods.map(w => w.nome + ' (pts)')).concat(['Total']);
+  const linhas = cache.linhas.map(l => {
+    const res = cache.wods.map(w => fmtValor(w, l.provas[w.id].res) || '');
+    const pts = cache.wods.map(w => fmtPts(l.provas[w.id].pts));
+    return [l.pontuou ? l.pos : '', l.atleta.nome, l.atleta.unidade || ''].concat(res).concat(pts).concat([fmtPts(l.total)]);
+  });
+  const csv = [cab].concat(linhas).map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(sep)).join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'leaderboard_' + catAtiva.replace(/\s+/g, '_').toLowerCase() + '.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ---------------- MODAIS ---------------- */
+function abrir(id) { document.getElementById(id).classList.add('open'); }
+function fechar(id) { document.getElementById(id).classList.remove('open'); }
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-bg.open').forEach(m => m.classList.remove('open'));
+});
+
+/* ============================================================
+   PAINEL DO ORGANIZADOR
+   ============================================================ */
+function abrirAdmin() {
+  if (isAdmin) { preencherAdmin(); abrir('mPainel'); }
+  else abrir('mLogin');
+}
+
+auth.onAuthStateChanged(async user => {
+  if (user && await autorizado(user.email)) {
+    isAdmin = true;
+    document.getElementById('btnAdmin').textContent = 'PAINEL';
+    document.getElementById('pSub').textContent = user.email;
+    if (D) { preencherAdmin(); render(); }
+  } else {
+    if (user) { auth.signOut(); }
+    isAdmin = false;
+    document.getElementById('btnAdmin').textContent = 'ADMIN';
+    if (D) render();
+  }
+});
+
+async function autorizado(email) {
+  try {
+    const d = await db.collection('dashboard_users').doc(String(email).toLowerCase()).get();
+    return d.exists && d.data().ativo !== false;
+  } catch (e) { console.error(e); return false; }
+}
+
+async function doLogin() {
+  const email = document.getElementById('logEmail').value.trim();
+  const senha = document.getElementById('logSenha').value;
+  const msg = document.getElementById('logMsg');
+  const btn = document.getElementById('logBtn');
+  if (!email || !senha) { msg.textContent = 'Preencha e-mail e senha.'; return; }
+  btn.disabled = true; btn.textContent = 'ENTRANDO...'; msg.textContent = '';
+  try {
+    const cred = await auth.signInWithEmailAndPassword(email, senha);
+    if (!(await autorizado(cred.user.email))) {
+      await auth.signOut();
+      msg.textContent = 'Este e-mail não tem acesso de organizador.';
+    } else {
+      fechar('mLogin');
+      document.getElementById('logSenha').value = '';
+      abrir('mPainel');
+    }
+  } catch (e) {
+    msg.textContent = (e.code === 'auth/too-many-requests')
+      ? 'Muitas tentativas. Tente mais tarde.'
+      : 'E-mail ou senha incorretos.';
+  }
+  btn.disabled = false; btn.textContent = 'ENTRAR';
+}
+document.getElementById('logSenha').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+function doLogout() { auth.signOut(); fechar('mPainel'); }
+
+function apTab(id) {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.toggle('active', t.dataset.ap === id));
+  document.querySelectorAll('.apane').forEach(p => p.classList.toggle('active', p.id === id));
+}
+
+async function salvar(patch, msgId, texto) {
+  const el = msgId ? document.getElementById(msgId) : null;
+  if (el) { el.className = 'msg'; el.textContent = 'Salvando…'; }
+  try {
+    // mergeFields substitui os campos informados por inteiro:
+    // sem isso, remover um atleta/prova/resultado nao apaga a chave no Firestore.
+    await DOC.set(patch, { mergeFields: Object.keys(patch) });
+    if (el) { el.className = 'msg ok'; el.textContent = texto || 'Salvo.'; setTimeout(() => { el.textContent = ''; }, 3000); }
+    return true;
+  } catch (e) {
+    console.error(e);
+    if (el) { el.className = 'msg err'; el.textContent = 'Erro ao salvar: ' + (e.message || e.code); }
+    return false;
+  }
+}
+
+function preencherAdmin() {
+  // config
+  document.getElementById('cNome').value = D.nome || '';
+  document.getElementById('cSub').value = D.sub || '';
+  document.getElementById('cData').value = D.data || '';
+  document.getElementById('cLocal').value = D.local || '';
+  document.getElementById('cSistema').value = D.sistema || 'tabela';
+  document.getElementById('cP1').value = num(D.p1, 100);
+  document.getElementById('cDec').value = num(D.dec, 5);
+  document.getElementById('cCats').value = (D.categorias || []).join('\n');
+  document.getElementById('cUnis').value = (D.unidades || []).join('\n');
+  document.getElementById('cPublicado').checked = D.publicado !== false;
+
+  // selects de atleta
+  opcoes('atCat', D.categorias);
+  opcoes('atUni', D.unidades);
+  opcoes('rCat', D.categorias);
+  const selW = document.getElementById('rWod');
+  const antW = selW.value;
+  const wods = (D.wods || []).slice().sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+  selW.innerHTML = wods.map(w => '<option value="' + esc(w.id) + '">' + esc(w.nome) + '</option>').join('');
+  if (wods.some(w => w.id === antW)) selW.value = antW;
+
+  renderListaAtletas();
+  renderListaWods();
+  renderGradeResultados();
+}
+
+function opcoes(id, arr) {
+  const s = document.getElementById(id);
+  const ant = s.value;
+  s.innerHTML = (arr || []).map(v => '<option>' + esc(v) + '</option>').join('');
+  if ((arr || []).includes(ant)) s.value = ant;
+}
+
+/* ---------------- CONFIG ---------------- */
+function salvarConfig() {
+  const linhas = t => t.split('\n').map(s => s.trim()).filter(Boolean);
+  const patch = {
+    nome: document.getElementById('cNome').value.trim() || PADRAO.nome,
+    sub: document.getElementById('cSub').value.trim(),
+    data: document.getElementById('cData').value.trim(),
+    local: document.getElementById('cLocal').value.trim(),
+    sistema: document.getElementById('cSistema').value,
+    p1: num(document.getElementById('cP1').value, 100),
+    dec: num(document.getElementById('cDec').value, 5),
+    categorias: linhas(document.getElementById('cCats').value),
+    unidades: linhas(document.getElementById('cUnis').value),
+    publicado: document.getElementById('cPublicado').checked
+  };
+  if (!patch.categorias.length) patch.categorias = PADRAO.categorias.slice();
+  salvar(patch, 'cMsg', 'Configuração salva.');
+}
+
+/* ---------------- ATLETAS ---------------- */
+function addAtleta() {
+  const nome = document.getElementById('atNome').value.trim();
+  const msg = document.getElementById('atMsg');
+  if (!nome) { msg.className = 'msg err'; msg.textContent = 'Informe o nome.'; return; }
+  const novo = {
+    id: uid('at'),
+    nome,
+    categoria: document.getElementById('atCat').value,
+    unidade: document.getElementById('atUni').value
+  };
+  salvar({ atletas: (D.atletas || []).concat([novo]) }, 'atMsg', 'Atleta adicionado.');
+  document.getElementById('atNome').value = '';
+  document.getElementById('atNome').focus();
+}
+
+function importarAtletas() {
+  const txt = document.getElementById('atBulk').value;
+  const msg = document.getElementById('atMsg');
+  const novos = [];
+  txt.split('\n').map(l => l.trim()).filter(Boolean).forEach(l => {
+    const p = l.split(/[;\t]|,(?=\s*\S)/).map(s => s.trim());
+    if (!p[0]) return;
+    novos.push({
+      id: uid('at'),
+      nome: p[0],
+      categoria: (D.categorias || []).find(c => c.toLowerCase() === String(p[1] || '').toLowerCase()) || p[1] || D.categorias[0],
+      unidade: (D.unidades || []).find(u => u.toLowerCase() === String(p[2] || '').toLowerCase()) || p[2] || ''
+    });
+  });
+  if (!novos.length) { msg.className = 'msg err'; msg.textContent = 'Nada para importar.'; return; }
+  salvar({ atletas: (D.atletas || []).concat(novos) }, 'atMsg', novos.length + ' atleta(s) importado(s).');
+  document.getElementById('atBulk').value = '';
+}
+
+function removerAtleta(id) {
+  const a = (D.atletas || []).find(x => x.id === id);
+  if (!a || !confirm('Remover ' + a.nome + ' e todos os resultados dele?')) return;
+  const res = Object.assign({}, D.resultados);
+  delete res[id];
+  salvar({ atletas: D.atletas.filter(x => x.id !== id), resultados: res }, 'atMsg', 'Atleta removido.');
+}
+
+function editarAtleta(id, campo, valor) {
+  const atletas = (D.atletas || []).map(a => a.id === id ? Object.assign({}, a, { [campo]: valor }) : a);
+  salvar({ atletas }, 'atMsg', 'Atualizado.');
+}
+
+function renderListaAtletas() {
+  const el = document.getElementById('atLista');
+  const ordenados = (D.atletas || []).slice().sort((a, b) =>
+    (a.categoria || '').localeCompare(b.categoria || '', 'pt-BR') || a.nome.localeCompare(b.nome, 'pt-BR'));
+  if (!ordenados.length) { el.innerHTML = '<div class="hint">Nenhum atleta cadastrado.</div>'; return; }
+  el.innerHTML = ordenados.map(a =>
+    '<div class="list-item">' +
+      '<div class="grow"><div class="nm">' + esc(a.nome) + '</div>' +
+      '<div class="mt">' + esc(a.categoria || '') + ' · ' + esc(a.unidade || 'sem unidade') + '</div></div>' +
+      '<select class="field" style="font-size:0.68rem;padding:0.3rem" onchange="editarAtleta(' + jq(a.id) + ',\'categoria\',this.value)">' +
+        (D.categorias || []).map(c => '<option' + (c === a.categoria ? ' selected' : '') + '>' + esc(c) + '</option>').join('') +
+      '</select>' +
+      '<button class="btn-danger" onclick="removerAtleta(' + jq(a.id) + ')">×</button>' +
+    '</div>').join('');
+}
+
+function jq(s) { return JSON.stringify(String(s)).replace(/"/g, '&quot;'); }
+
+/* ---------------- PROVAS ---------------- */
+function addWod() {
+  const nome = document.getElementById('wNome').value.trim();
+  const msg = document.getElementById('wMsg');
+  if (!nome) { msg.className = 'msg err'; msg.textContent = 'Informe o nome da prova.'; return; }
+  const novo = {
+    id: uid('w'),
+    nome,
+    tipo: document.getElementById('wTipo').value,
+    desc: document.getElementById('wDesc').value.trim(),
+    ordem: (D.wods || []).length + 1,
+    pub: true
+  };
+  salvar({ wods: (D.wods || []).concat([novo]) }, 'wMsg', 'Prova adicionada.');
+  document.getElementById('wNome').value = '';
+  document.getElementById('wDesc').value = '';
+}
+
+function removerWod(id) {
+  const w = (D.wods || []).find(x => x.id === id);
+  if (!w || !confirm('Remover "' + w.nome + '" e todos os resultados dela?')) return;
+  const res = {};
+  Object.keys(D.resultados || {}).forEach(aid => {
+    const copia = Object.assign({}, D.resultados[aid]);
+    delete copia[id];
+    res[aid] = copia;
+  });
+  salvar({ wods: D.wods.filter(x => x.id !== id), resultados: res }, 'wMsg', 'Prova removida.');
+}
+
+function togglePubWod(id, val) {
+  salvar({ wods: (D.wods || []).map(w => w.id === id ? Object.assign({}, w, { pub: val }) : w) },
+    'wMsg', val ? 'Prova publicada.' : 'Prova oculta.');
+}
+
+function moverWod(id, delta) {
+  const wods = (D.wods || []).slice().sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+  const i = wods.findIndex(w => w.id === id);
+  const j = i + delta;
+  if (i < 0 || j < 0 || j >= wods.length) return;
+  const tmp = wods[i]; wods[i] = wods[j]; wods[j] = tmp;
+  salvar({ wods: wods.map((w, k) => Object.assign({}, w, { ordem: k + 1 })) }, 'wMsg', 'Ordem atualizada.');
+}
+
+function renderListaWods() {
+  const el = document.getElementById('wLista');
+  const wods = (D.wods || []).slice().sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+  if (!wods.length) { el.innerHTML = '<div class="hint">Nenhuma prova cadastrada.</div>'; return; }
+  const TIPOS = { tempo: 'menor tempo', reps: 'mais reps', carga: 'maior carga', pontos: 'mais pontos' };
+  el.innerHTML = wods.map((w, i) =>
+    '<div class="list-item">' +
+      '<div class="grow"><div class="nm">' + esc(w.nome) + '</div>' +
+      '<div class="mt">' + esc(TIPOS[w.tipo] || w.tipo) + (w.pub === false ? ' · oculta' : '') + '</div></div>' +
+      '<label class="toggle"><input type="checkbox"' + (w.pub !== false ? ' checked' : '') +
+        ' onchange="togglePubWod(' + jq(w.id) + ',this.checked)"> pub</label>' +
+      '<button class="btn-ghost" onclick="moverWod(' + jq(w.id) + ',-1)"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
+      '<button class="btn-ghost" onclick="moverWod(' + jq(w.id) + ',1)"' + (i === wods.length - 1 ? ' disabled' : '') + '>↓</button>' +
+      '<button class="btn-danger" onclick="removerWod(' + jq(w.id) + ')">×</button>' +
+    '</div>').join('');
+}
+
+/* ---------------- LANÇAMENTO DE RESULTADOS ---------------- */
+function renderGradeResultados() {
+  const grid = document.getElementById('rGrid');
+  const hint = document.getElementById('rHint');
+  const wid = document.getElementById('rWod').value;
+  const cat = document.getElementById('rCat').value;
+  const wod = (D.wods || []).find(w => w.id === wid);
+  if (!wod) { grid.innerHTML = '<div class="empty-state">Cadastre uma prova primeiro.</div>'; hint.textContent = ''; return; }
+
+  const dicas = {
+    tempo: 'Digite o tempo como <b>mm:ss</b> (ex: 8:42). Quem não finalizou: deixe o tempo vazio e informe as <b>reps</b> feitas até o cap.',
+    reps: 'Digite o total de <b>repetições</b>.',
+    carga: 'Digite a <b>carga em kg</b>.',
+    pontos: 'Digite os <b>pontos</b> da prova.'
+  };
+  hint.innerHTML = dicas[wod.tipo] || '';
+
+  const atletas = (D.atletas || []).filter(a => a.categoria === cat)
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+  if (!atletas.length) { grid.innerHTML = '<div class="empty-state">Nenhum atleta nesta categoria.</div>'; return; }
+
+  const ehTempo = wod.tipo === 'tempo';
+  grid.innerHTML = '<table><thead><tr><th>Atleta</th><th>Unidade</th>' +
+    '<th class="num">' + (ehTempo ? 'Tempo (mm:ss)' : 'Resultado') + '</th>' +
+    (ehTempo ? '<th class="num">Reps (cap)</th>' : '') +
+    '</tr></thead><tbody>' +
+    atletas.map(a => {
+      const r = (D.resultados[a.id] || {})[wod.id] || {};
+      const valor = r.v == null ? '' : (ehTempo ? fmtTempo(r.v) : r.v);
+      return '<tr><td>' + esc(a.nome) + '</td><td style="color:var(--gray);font-size:0.72rem">' + esc(a.unidade || '') + '</td>' +
+        '<td class="num"><input data-at="' + esc(a.id) + '" data-f="v" value="' + esc(valor) + '" placeholder="' + (ehTempo ? '8:42' : '--') + '"></td>' +
+        (ehTempo ? '<td class="num"><input data-at="' + esc(a.id) + '" data-f="cap" value="' + (r.cap == null ? '' : r.cap) + '" placeholder="--"></td>' : '') +
+        '</tr>';
+    }).join('') + '</tbody></table>';
+}
+
+function salvarResultados() {
+  const wid = document.getElementById('rWod').value;
+  const wod = (D.wods || []).find(w => w.id === wid);
+  const msg = document.getElementById('rMsg');
+  if (!wod) return;
+  const ehTempo = wod.tipo === 'tempo';
+  const buffer = {};
+  let invalidos = 0;
+  document.querySelectorAll('#rGrid input').forEach(inp => {
+    const at = inp.dataset.at, f = inp.dataset.f, txt = inp.value.trim();
+    buffer[at] = buffer[at] || { v: null, cap: null };
+    inp.style.borderColor = '';
+    if (!txt) return;
+    const n = (f === 'v' && ehTempo) ? parseTempo(txt) : num(txt.replace(',', '.'), null);
+    if (n == null || n < 0) { invalidos++; inp.style.borderColor = 'var(--red)'; return; }
+    buffer[at][f] = n;
+  });
+
+  if (invalidos) {
+    msg.className = 'msg err';
+    msg.textContent = invalidos + ' valor(es) inválido(s) — corrija os campos em vermelho.';
+    return;
+  }
+
+  const resultados = Object.assign({}, D.resultados);
+  let preenchidos = 0;
+  Object.keys(buffer).forEach(at => {
+    const b = buffer[at];
+    const anterior = Object.assign({}, resultados[at] || {});
+    if (b.v == null && b.cap == null) delete anterior[wid];
+    else { anterior[wid] = { v: b.v, cap: b.cap }; preenchidos++; }
+    resultados[at] = anterior;
+  });
+  salvar({ resultados }, 'rMsg', preenchidos + ' resultado(s) salvo(s).');
+}
+</script>
+</body>
+</html>
