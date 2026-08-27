@@ -364,6 +364,17 @@ label.lbl{
   color:var(--gray);margin-bottom:0.3rem;
 }
 textarea.field{min-height:80px;resize:vertical;line-height:1.5;}
+.aviso-verif{
+  background:rgba(224,82,82,0.10);
+  border:1px solid rgba(224,82,82,0.45);
+  padding:0.8rem 1rem;
+  margin-bottom:1rem;
+  font-size:0.76rem;
+  line-height:1.6;
+  color:var(--white);
+}
+.aviso-verif b{color:var(--red);}
+.aviso-verif button{margin-top:0.6rem;}
 .admin-tabs{display:flex;gap:0.3rem;flex-wrap:wrap;margin-bottom:1.2rem;}
 .admin-tab{
   background:transparent;border:1px solid var(--border-soft);color:var(--gray);
@@ -537,6 +548,7 @@ footer{
       </div>
     </div>
     <div class="modal-body">
+      <div id="avisoVerif" class="aviso-verif" style="display:none"></div>
       <div class="admin-tabs">
         <button class="admin-tab active" data-ap="apResultados" onclick="apTab('apResultados')">RESULTADOS</button>
         <button class="admin-tab" data-ap="apAtletas" onclick="apTab('apAtletas')">ATLETAS</button>
@@ -1155,6 +1167,34 @@ document.getElementById('logSenha').addEventListener('keydown', e => { if (e.key
 
 function doLogout() { auth.signOut(); fechar('mPainel'); }
 
+// As regras do Firestore exigem e-mail verificado para quem nao e o dono do
+// projeto. O console do Firebase nao dispara esse e-mail — so a aplicacao.
+function checarVerificacao() {
+  const el = document.getElementById('avisoVerif');
+  const u = auth.currentUser;
+  if (!u || u.emailVerified) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  el.innerHTML =
+    '<b>E-mail não verificado.</b> Organizadores precisam confirmar o e-mail para lançar ' +
+    'resultados — sem isso o Firestore recusa o salvamento.' +
+    '<br><button class="btn-solid" onclick="enviarVerificacao()">ENVIAR E-MAIL DE VERIFICAÇÃO</button>';
+}
+
+function enviarVerificacao() {
+  const u = auth.currentUser;
+  const el = document.getElementById('avisoVerif');
+  if (!u) return;
+  u.sendEmailVerification()
+    .then(() => {
+      el.innerHTML = '<b>E-mail enviado para ' + esc(u.email) + '.</b> Abra o link, depois saia ' +
+        'e entre de novo aqui para o acesso valer.';
+    })
+    .catch(e => {
+      el.innerHTML = '<b>Não foi possível enviar.</b> ' + esc(e.message || e.code) +
+        '<br><button class="btn-solid" onclick="enviarVerificacao()">TENTAR DE NOVO</button>';
+    });
+}
+
 function apTab(id) {
   document.querySelectorAll('.admin-tab').forEach(t => t.classList.toggle('active', t.dataset.ap === id));
   document.querySelectorAll('.apane').forEach(p => p.classList.toggle('active', p.id === id));
@@ -1195,6 +1235,7 @@ function preencherAdmin() {
   document.getElementById('cUnis').value = (D.unidades || []).join('\n');
   document.getElementById('cPublicado').checked = D.publicado !== false;
   alternarCamposPontuacao();
+  checarVerificacao();
 
   // selects de atleta
   opcoes('atCat', D.categorias);
