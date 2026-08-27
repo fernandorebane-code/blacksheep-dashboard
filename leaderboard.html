@@ -1171,7 +1171,13 @@ async function salvar(patch, msgId, texto) {
     return true;
   } catch (e) {
     console.error(e);
-    if (el) { el.className = 'msg err'; el.textContent = 'Erro ao salvar: ' + (e.message || e.code); }
+    if (el) {
+      el.className = 'msg err';
+      el.textContent = e.code === 'permission-denied'
+        ? 'Sem permissão para salvar. Confirme o e-mail desta conta no Firebase (Authentication) ' +
+          'e verifique se ele está cadastrado em dashboard_users. Depois de confirmar, saia e entre de novo.'
+        : 'Erro ao salvar: ' + (e.message || e.code);
+    }
     return false;
   }
 }
