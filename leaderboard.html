@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Blacksheep Games — Leaderboard</title>
+<title>Blacksheep Invitational — Leaderboard</title>
 <meta name="description" content="Leaderboard oficial do campeonato interno de CrossFit da Blacksheep.">
-<meta property="og:title" content="Blacksheep Games — Leaderboard">
+<meta property="og:title" content="Blacksheep Invitational — Leaderboard">
 <meta property="og:description" content="Ranking ao vivo do campeonato interno de CrossFit da Blacksheep.">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -410,7 +410,7 @@ footer{
 <body>
 
 <header>
-  <div class="logo"><span class="gold">BLACKSHEEP </span><span class="wht">GAMES</span></div>
+  <div class="logo" id="logo"><span class="gold">BLACKSHEEP </span><span class="wht">INVITATIONAL</span></div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot off" id="liveDot"></span><span id="liveTxt">Conectando</span></div>
     <button class="btn-ghost" id="btnAdmin" onclick="abrirAdmin()">ADMIN</button>
@@ -418,7 +418,7 @@ footer{
 </header>
 
 <div class="hero">
-  <h1 id="hTitulo">BLACKSHEEP <em>GAMES</em></h1>
+  <h1 id="hTitulo">BLACKSHEEP <em>INVITATIONAL</em></h1>
   <div class="hero-sub" id="hSub">Campeonato interno de CrossFit</div>
   <div class="hero-meta">
     <span id="hData"></span>
@@ -629,7 +629,7 @@ const db = firebase.firestore();
 const DOC = db.collection('campeonatos').doc('atual');
 
 const PADRAO = {
-  nome: 'Blacksheep Games',
+  nome: 'Blacksheep Invitational',
   sub: 'Campeonato interno de CrossFit',
   data: '',
   local: '',
@@ -832,11 +832,12 @@ function render() {
 
   // cabeçalho
   document.getElementById('hTitulo').innerHTML = destacar(D.nome || PADRAO.nome);
+  document.getElementById('logo').innerHTML = logoDoNome(D.nome || PADRAO.nome);
   document.getElementById('hSub').textContent = D.sub || '';
   document.getElementById('hData').innerHTML = D.data ? '<b>' + esc(D.data) + '</b>' : '';
   document.getElementById('hLocal').innerHTML = D.local ? '<b>' + esc(D.local) + '</b>' : '';
   document.getElementById('hAtletas').innerHTML = (D.atletas.length ? '<b>' + D.atletas.length + '</b> atletas' : '');
-  document.title = (D.nome || 'Blacksheep Games') + ' — Leaderboard';
+  document.title = (D.nome || 'Blacksheep Invitational') + ' — Leaderboard';
 
   const fechado = D.publicado === false && !isAdmin;
   document.getElementById('fechado').style.display = fechado ? 'block' : 'none';
@@ -880,6 +881,13 @@ function render() {
   renderTabela(vis, wods);
   renderLegenda(wods, linhas.length);
   renderWods();
+}
+
+// no header a primeira palavra fica em destaque; no hero, a ultima
+function logoDoNome(txt) {
+  const p = String(txt).trim().split(' ');
+  const primeira = p.shift();
+  return '<span class="gold">' + esc(primeira) + ' </span><span class="wht">' + esc(p.join(' ')) + '</span>';
 }
 
 function destacar(txt) {

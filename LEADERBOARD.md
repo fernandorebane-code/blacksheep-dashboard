@@ -1,8 +1,9 @@
-# Blacksheep Games — Leaderboard
+# Blacksheep Invitational — Leaderboard
 
 Página pública do campeonato interno de CrossFit.
 
-- **Público:** https://dashboard.bjjblacksheepfit.com/leaderboard.html
+- **Endereço oficial:** https://invitational.bjjblacksheepfit.com (ver "Publicação" no fim)
+- **Endereço provisório:** https://dashboard.bjjblacksheepfit.com/leaderboard.html
 - **Arquivo:** `leaderboard.html` (auto-contido, sem build)
 - **Banco:** Firestore, documento único `campeonatos/atual` (mesmo projeto do dashboard)
 
@@ -64,3 +65,27 @@ match /campeonatos/{id} {
 
 Sem a permissão de leitura pública a página mostra "Não foi possível carregar o leaderboard".
 Enquanto as regras não forem ajustadas, o conteúdo continua visível para quem faz login como organizador.
+
+## Publicação em invitational.bjjblacksheepfit.com
+
+O GitHub Pages aceita **um domínio por repositório**, e este repositório já usa
+`dashboard.bjjblacksheepfit.com`. Por isso o site do evento vai num repositório separado.
+
+1. **Criar o repositório** `blacksheep-invitational` na conta `fernandorebane-code`, **público**
+   (o GitHub Pages do plano gratuito só publica repositório público).
+2. **Conteúdo:** `index.html` (cópia do `leaderboard.html` deste repositório) e um arquivo
+   `CNAME` com uma linha: `invitational.bjjblacksheepfit.com`
+3. **DNS** — no painel onde o domínio `bjjblacksheepfit.com` é administrado (hoje a zona
+   aponta para a Locaweb, `187.45.239.160`), criar um registro:
+
+   | Tipo | Nome | Valor |
+   |---|---|---|
+   | CNAME | `invitational` | `fernandorebane-code.github.io` |
+
+   Não mexer no apex nem no `www` — o site principal continua onde está.
+4. **GitHub Pages** — no repositório novo: Settings → Pages → Source `Deploy from a branch`,
+   branch `main`, pasta `/ (root)`. Em Custom domain, `invitational.bjjblacksheepfit.com`,
+   e marcar **Enforce HTTPS** depois que o certificado for emitido (leva alguns minutos
+   após o DNS propagar).
+
+Enquanto o DNS não propaga, a página continua acessível pelo endereço provisório.
