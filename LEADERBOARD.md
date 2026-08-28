@@ -2,9 +2,26 @@
 
 Página pública do campeonato interno de CrossFit.
 
-- **Endereço oficial:** https://invitational.bjjblacksheepfit.com (ver "Publicação" no fim)
-- **Endereço provisório:** https://dashboard.bjjblacksheepfit.com/leaderboard.html
-- **Arquivo:** `leaderboard.html` (auto-contido, sem build)
+## Onde cada coisa mora
+
+| Página | Endereço | Arquivo |
+|---|---|---|
+| Leaderboard público | https://invitational.bjjblacksheepfit.com | `publico/index.html` → repositório `blacksheep-invitational` |
+| Painel do organizador | https://dashboard.bjjblacksheepfit.com/organizador.html | `organizador.html` |
+
+As duas são **geradas** a partir de `leaderboard.html`, que é a fonte única:
+
+```
+python3 build-paginas.py
+```
+
+O leaderboard público não tem login nem qualquer referência ao host do dashboard —
+o link que vai para os atletas não revela o painel de gestão. O painel do organizador
+fica só no host do dashboard, atrás do login.
+
+Ao mexer em `leaderboard.html`, rode o gerador e publique as duas: `organizador.html`
+neste repositório e `publico/index.html` como `index.html` no `blacksheep-invitational`.
+
 - **Banco:** Firestore, documento único `campeonatos/atual` (mesmo projeto do dashboard)
 
 ## Como usar
