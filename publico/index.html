@@ -146,7 +146,15 @@ header{
   display:flex;flex-wrap:wrap;gap:0.6rem;align-items:center;
   margin-bottom:1.2rem;
 }
-.cats{display:flex;flex-wrap:wrap;gap:0.4rem;flex:1;min-width:240px;}
+.seletor-cat{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.15rem;
+  letter-spacing:0.08em;
+  color:var(--gold);
+  border-color:var(--border);
+  padding:0.45rem 0.7rem;
+  min-width:230px;
+}
 .cat{
   background:transparent;
   border:1px solid var(--border-soft);
@@ -475,9 +483,8 @@ footer{
 <div class="container" id="app" style="display:none">
 
   <div class="toolbar">
-    <div class="cats" id="cats"></div>
-    <input class="field" id="busca" placeholder="Buscar atleta…" style="max-width:190px" oninput="render()">
-    <select class="field" id="filtroUnidade" onchange="render()"><option value="">Todas as unidades</option></select>
+    <select class="field seletor-cat" id="seletorCat" onchange="trocarCat(this.value)"></select>
+    <input class="field" id="busca" placeholder="Buscar atleta…" style="flex:1;min-width:150px" oninput="render()">
     <button class="btn-ghost" onclick="exportarCSV()">CSV</button>
   </div>
 
@@ -535,8 +542,8 @@ const DOC = db.collection('campeonatos').doc('atual');
 const PADRAO = {
   nome: 'Blacksheep Invitational',
   sub: 'Campeonato interno de CrossFit',
-  data: '',
-  local: '',
+  data: 'Setembro 2026',
+  local: 'São Paulo',
   sistema: 'posicao',
   p1: 100,
   dec: 5,
@@ -791,7 +798,7 @@ function render() {
   // categorias com atletas
   const cats = D.categorias.filter(c => D.atletas.some(a => a.categoria === c));
   if (!cats.length) {
-    document.getElementById('cats').innerHTML = '';
+    document.getElementById('seletorCat').innerHTML = '';
     document.getElementById('podium').innerHTML = '';
     document.getElementById('thead').innerHTML = '';
     document.getElementById('tbody').innerHTML =
@@ -801,25 +808,15 @@ function render() {
     return;
   }
   if (!cats.includes(catAtiva)) catAtiva = cats[0];
-  document.getElementById('cats').innerHTML = cats.map(c =>
-    '<button class="cat' + (c === catAtiva ? ' active' : '') + '" onclick="trocarCat(' + JSON.stringify(c).replace(/"/g, '&quot;') + ')">' +
-    esc(c) + '</button>').join('');
-
-  // filtro de unidade
-  const selU = document.getElementById('filtroUnidade');
-  const usadas = D.unidades.filter(u => D.atletas.some(a => a.unidade === u));
-  const atual = selU.value;
-  selU.innerHTML = '<option value="">Todas as unidades</option>' +
-    usadas.map(u => '<option' + (u === atual ? ' selected' : '') + '>' + esc(u) + '</option>').join('');
+  const selC = document.getElementById('seletorCat');
+  selC.innerHTML = cats.map(c =>
+    '<option value="' + esc(c) + '"' + (c === catAtiva ? ' selected' : '') + '>' + esc(c) + '</option>').join('');
 
   const { linhas, itens } = calcularRanking(catAtiva);
   rankCache[catAtiva] = { linhas, itens };
 
   const busca = document.getElementById('busca').value.trim().toLowerCase();
-  const uni = selU.value;
-  const vis = linhas.filter(l =>
-    (!busca || l.atleta.nome.toLowerCase().includes(busca)) &&
-    (!uni || l.atleta.unidade === uni));
+  const vis = linhas.filter(l => !busca || l.atleta.nome.toLowerCase().includes(busca));
 
   renderPodium(linhas, itens);
   renderTabela(vis, itens);
