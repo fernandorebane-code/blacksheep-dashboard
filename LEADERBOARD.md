@@ -9,7 +9,8 @@ Página pública do campeonato interno de CrossFit.
 | Leaderboard público | https://invitational.bjjblacksheepfit.com | `publico/index.html` → repositório `blacksheep-invitational` |
 | Painel do organizador | https://dashboard.bjjblacksheepfit.com/organizador.html | `organizador.html` |
 
-As duas são **geradas** a partir de `leaderboard.html`, que é a fonte única:
+As duas são **geradas** a partir de `src/leaderboard-fonte.html`, que é a fonte única
+(não é publicada: junta as duas áreas na mesma página — ver `_config.yml`):
 
 ```
 python3 build-paginas.py
@@ -19,8 +20,9 @@ O leaderboard público não tem login nem qualquer referência ao host do dashbo
 o link que vai para os atletas não revela o painel de gestão. O painel do organizador
 fica só no host do dashboard, atrás do login.
 
-Ao mexer em `leaderboard.html`, rode o gerador e publique as duas: `organizador.html`
-neste repositório e `publico/index.html` como `index.html` no `blacksheep-invitational`.
+Ao mexer na fonte, rode o gerador e publique as duas: `organizador.html` neste repositório
+e `publico/index.html` como `index.html` no `blacksheep-invitational`. O endereço antigo
+`dashboard.bjjblacksheepfit.com/leaderboard.html` redireciona para o subdomínio.
 
 - **Banco:** Firestore, documento único `campeonatos/atual` (mesmo projeto do dashboard)
 
@@ -102,26 +104,25 @@ match /campeonatos/{id} {
 Sem a permissão de leitura pública a página mostra "Não foi possível carregar o leaderboard".
 Enquanto as regras não forem ajustadas, o conteúdo continua visível para quem faz login como organizador.
 
-## Publicação em invitational.bjjblacksheepfit.com
+## Como está publicado
 
-O GitHub Pages aceita **um domínio por repositório**, e este repositório já usa
-`dashboard.bjjblacksheepfit.com`. Por isso o site do evento vai num repositório separado.
+| Onde | Repositório | Servido por |
+|---|---|---|
+| `invitational.bjjblacksheepfit.com` | `blacksheep-invitational` (`index.html`) | GitHub Pages, custom domain + HTTPS |
+| `dashboard.bjjblacksheepfit.com` | `blacksheep-dashboard` | GitHub Pages, custom domain + HTTPS |
 
-1. **Criar o repositório** `blacksheep-invitational` na conta `fernandorebane-code`, **público**
-   (o GitHub Pages do plano gratuito só publica repositório público).
-2. **Conteúdo:** `index.html` (cópia do `leaderboard.html` deste repositório) e um arquivo
-   `CNAME` com uma linha: `invitational.bjjblacksheepfit.com`
-3. **DNS** — no painel onde o domínio `bjjblacksheepfit.com` é administrado (hoje a zona
-   aponta para a Locaweb, `187.45.239.160`), criar um registro:
+DNS: registro **CNAME**, host `invitational`, valor `fernandorebane-code.github.io`,
+na zona do `bjjblacksheepfit.com` na Locaweb. O apex e o `www` continuam apontando para
+o site principal, em outro servidor.
 
-   | Tipo | Nome | Valor |
-   |---|---|---|
-   | CNAME | `invitational` | `fernandorebane-code.github.io` |
+O GitHub Pages aceita um domínio por repositório — é por isso que o leaderboard público
+mora num repositório separado. O arquivo `CNAME` de lá foi criado pelo próprio Pages ao
+salvar o Custom domain; não editar à mão.
 
-   Não mexer no apex nem no `www` — o site principal continua onde está.
-4. **GitHub Pages** — no repositório novo: Settings → Pages → Source `Deploy from a branch`,
-   branch `main`, pasta `/ (root)`. Em Custom domain, `invitational.bjjblacksheepfit.com`,
-   e marcar **Enforce HTTPS** depois que o certificado for emitido (leva alguns minutos
-   após o DNS propagar).
+### Atualizar o leaderboard público
 
-Enquanto o DNS não propaga, a página continua acessível pelo endereço provisório.
+1. Mexer em `src/leaderboard-fonte.html`
+2. `python3 build-paginas.py`
+3. Commitar `organizador.html` e `publico/index.html` aqui
+4. Copiar `publico/index.html` para o `index.html` do `blacksheep-invitational`
+   (o conteúdo fica disponível em `raw.githubusercontent.com/fernandorebane-code/blacksheep-dashboard/main/publico/index.html`)
