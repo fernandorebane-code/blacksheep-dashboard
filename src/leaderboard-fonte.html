@@ -321,6 +321,16 @@ thead th.sticky-col{background:var(--surface2);z-index:3;}
 }
 
 /* ---------- MODAL ---------- */
+.aviso{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  padding:0.9rem 1.2rem;text-align:center;
+  font-size:0.82rem;font-weight:500;
+  display:none;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);
+}
+.aviso.ok{display:block;background:var(--green);color:#062a13;}
+.aviso.err{display:block;background:var(--red);color:#2a0606;}
+.aviso.info{display:block;background:var(--gold);color:var(--black);}
 .modal-bg{
   position:fixed;inset:0;background:rgba(0,0,0,0.82);
   display:none;align-items:center;justify-content:center;padding:1rem;z-index:100;
@@ -455,6 +465,8 @@ footer{
     <span id="hAtletas"></span>
   </div>
 </div>
+
+<div id="aviso" class="aviso"></div>
 
 <div id="loader">Carregando leaderboard…</div>
 
@@ -598,10 +610,10 @@ footer{
           <select class="field" id="atUni"></select>
           <button class="btn-solid" onclick="addAtleta()">ADICIONAR</button>
         </div>
+        <div class="msg" id="atMsg"></div>
         <div class="hint">Cole vários de uma vez (um por linha, formato <b>Nome; Categoria; Unidade</b>) no campo abaixo.</div>
         <textarea class="field" id="atBulk" style="width:100%;margin-top:0.5rem" placeholder="João Silva; Elite Masculino; Moema&#10;Maria Souza; Scaled Feminino; Pinheiros"></textarea>
         <button class="btn-ghost" style="margin-top:0.4rem" onclick="importarAtletas()">IMPORTAR LISTA</button>
-        <div class="msg" id="atMsg"></div>
         <div style="margin-top:1rem" id="atLista"></div>
       </div>
 
@@ -922,9 +934,10 @@ DOC.onSnapshot(snap => {
 }, err => {
   console.error(err);
   setLive(false, 'Offline');
-  document.getElementById('loader').innerHTML =
-    'Não foi possível carregar o leaderboard.<br><span style="text-transform:none;letter-spacing:0">' +
-    'Verifique as regras de leitura pública da coleção <b>campeonatos</b> no Firestore.</span>';
+  avisar('err', 'Não foi possível ler o campeonato (' + (err.code || 'sem código') + '). ' +
+                'Verifique as regras da coleção campeonatos no Firestore.');
+  const l = document.getElementById('loader');
+  if (l) l.textContent = 'Não foi possível carregar o leaderboard.';
 });
 
 /* ---------------- RENDER ---------------- */
@@ -1214,24 +1227,36 @@ function apTab(id) {
   document.querySelectorAll('.apane').forEach(p => p.classList.toggle('active', p.id === id));
 }
 
+// Aviso fixo no topo da tela: o retorno de um salvamento nao pode depender de
+// onde a pessoa esta com a rolagem.
+function avisar(tipo, texto, segundos) {
+  const el = document.getElementById('aviso');
+  if (!el) return;
+  el.className = 'aviso ' + tipo;
+  el.textContent = texto;
+  clearTimeout(avisar._t);
+  if (segundos) avisar._t = setTimeout(() => { el.className = 'aviso'; }, segundos * 1000);
+}
+
 async function salvar(patch, msgId, texto) {
   const el = msgId ? document.getElementById(msgId) : null;
   if (el) { el.className = 'msg'; el.textContent = 'Salvando…'; }
+  avisar('info', 'Salvando…');
   try {
     // mergeFields substitui os campos informados por inteiro:
     // sem isso, remover um atleta/prova/resultado nao apaga a chave no Firestore.
     await DOC.set(patch, { mergeFields: Object.keys(patch) });
     if (el) { el.className = 'msg ok'; el.textContent = texto || 'Salvo.'; setTimeout(() => { el.textContent = ''; }, 3000); }
+    avisar('ok', texto || 'Salvo.', 4);
     return true;
   } catch (e) {
     console.error(e);
-    if (el) {
-      el.className = 'msg err';
-      el.textContent = e.code === 'permission-denied'
-        ? 'Sem permissão para salvar. Confirme o e-mail desta conta no Firebase (Authentication) ' +
-          'e verifique se ele está cadastrado em dashboard_users. Depois de confirmar, saia e entre de novo.'
-        : 'Erro ao salvar: ' + (e.message || e.code);
-    }
+    const msg = e.code === 'permission-denied'
+      ? 'Sem permissão para salvar. Confirme o e-mail desta conta no Firebase (Authentication) ' +
+        'e verifique se ele está cadastrado em dashboard_users. Depois saia e entre de novo.'
+      : 'Erro ao salvar (' + (e.code || 'sem código') + '): ' + (e.message || '');
+    if (el) { el.className = 'msg err'; el.textContent = msg; }
+    avisar('err', msg);
     return false;
   }
 }

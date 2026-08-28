@@ -68,6 +68,8 @@ org = org.replace('<meta property="og:title" content="Blacksheep Invitational â€
 org = org.replace('<meta property="og:description" content="Ranking ao vivo do campeonato interno de CrossFit da Blacksheep.">', '')
 org += '''<body>
 
+<div id="aviso" class="aviso"></div>
+
 <header>
   <div class="logo"><span class="gold">BLACKSHEEP </span><span class="wht">INVITATIONAL</span></div>
   <div class="header-right">
