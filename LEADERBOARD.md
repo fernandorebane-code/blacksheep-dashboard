@@ -142,35 +142,48 @@ com permissão de escrita no `blacksheep-invitational`:
 
 Sem o segredo a Action não falha: ela avisa e sai, e a cópia volta a ser manual.
 
-## Acesso e regras — decisões registradas
+## Acesso e regras
 
-A regra de escrita em `campeonatos` **não exige e-mail verificado**. Foi uma decisão
-consciente, tomada em agosto/2026: o e-mail de verificação do Firebase não chega de
-forma confiável e o console não permite marcar uma conta como verificada, então a
-exigência travaria a equipe no meio do evento sem caminho de saída.
+A regra de escrita em `campeonatos` autoriza por **UID em lista** ou por e-mail
+cadastrado em `dashboard_users` **com e-mail verificado**:
 
-O que protege o acesso no lugar disso é a **ordem do cadastro**:
+```
+    match /campeonatos/{id} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && (request.auth.uid in [
+              'eOMZrPKQlHdEQif3EkmOMsM7Bwo2'
+            ]
+            || (request.auth.token.email_verified == true
+                && exists(/databases/$(database)/documents/dashboard_users/$(request.auth.token.email.lower()))));
+    }
+```
 
-> Criar a conta no **Authentication** antes de criar o documento em `dashboard_users`.
+### Como dar acesso a alguém da organização
 
-Um e-mail autorizado sem conta correspondente é uma porta aberta: qualquer pessoa que
-saiba esse e-mail pode registrá-lo e entrar. Foi exatamente o que existia até
-28/08/2026 — um `novousuario@email.com` esquecido desde abril, removido depois de uma
-auditoria da coleção.
+**Pelo UID, não pelo e-mail.** Crie a conta em Authentication, copie o UID e acrescente
+uma linha na lista da regra. Só isso.
 
-**Nenhum código deste repositório escreve em `dashboard_users`** — as três ocorrências
-(`index.html`, `organizador.html`, e a fonte) apenas leem, para checar autorização.
-Documentos dessa coleção nascem no console do Firebase. Não existe tela de "adicionar
-admin" para endurecer aqui.
+Por que não pelo `dashboard_users`: aquela coleção é a whitelist do **dashboard
+financeiro da rede** — pôr alguém lá dá acesso à receita das seis unidades, não só ao
+leaderboard. E um e-mail cadastrado lá **antes** de a conta existir é uma porta aberta:
+quem souber o endereço registra a conta e entra. Foi exatamente o que existia até
+28/08/2026, um `novousuario@email.com` esquecido desde abril, encontrado numa auditoria
+e removido. O `email_verified` na regra fecha essa janela, mas a lista de UIDs a evita
+por completo.
 
-### Pendências combinadas
+**Nenhum código deste repositório escreve em `dashboard_users`** — `index.html`,
+`organizador.html` e a fonte apenas leem, para checar autorização. Documentos dessa
+coleção nascem no console do Firebase.
 
-1. **Depois do campeonato:** remover a conta da mesa de lançamento do `dashboard_users`
-   e devolver `request.auth.token.email_verified == true` à regra de escrita.
-2. **Correção definitiva:** trocar a whitelist de e-mail por **UID**. Um UID não pode ser
-   reivindicado registrando um e-mail, o que elimina a classe inteira de ataque sem
-   depender de ninguém lembrar da ordem do cadastro. Mexe também no login do dashboard,
-   então é trabalho para fora da véspera do evento.
-
-Não desativar **Authentication → Settings → User actions → Ativar criação (inscrição)**:
+**Não desativar** Authentication → Settings → User actions → *Ativar criação (inscrição)*:
 o cadastro de alunos passa por ali (396 contas, de uma a três novas por dia).
+
+### Histórico
+
+Em 28/08/2026 a exigência de `email_verified` foi removida por algumas horas e depois
+restaurada. O motivo da remoção não era um bug de login: ninguém estava sendo barrado —
+o acesso do dono passa pela lista de UIDs e nunca chega a avaliar `email_verified`. Era
+o aviso do painel pedindo verificação, um e-mail de verificação que não chega, e a
+intenção de usar uma senha única para a mesa de lançamento. A lista de UIDs atende esse
+caso sem afrouxar regra nenhuma.
