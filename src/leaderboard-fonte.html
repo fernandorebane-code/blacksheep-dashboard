@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Blacksheep Invitational — Leaderboard</title>
-<meta name="description" content="Leaderboard oficial do campeonato interno de CrossFit da Blacksheep.">
+<meta name="description" content="Leaderboard oficial do Blacksheep Invitational — Setembro 2026, São Paulo.">
 <meta property="og:title" content="Blacksheep Invitational — Leaderboard">
-<meta property="og:description" content="Ranking ao vivo do campeonato interno de CrossFit da Blacksheep.">
+<meta property="og:description" content="Ranking ao vivo do Blacksheep Invitational — Setembro 2026, São Paulo.">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -469,7 +469,6 @@ footer{
   <h1 id="hTitulo">BLACKSHEEP <em>INVITATIONAL</em></h1>
   <div class="hero-quando" id="hQuando">Setembro 2026 · São Paulo</div>
   <div class="hero-meta">
-    <span id="hSub">Campeonato interno de CrossFit</span>
     <span id="hAtletas"></span>
   </div>
 </div>
@@ -646,7 +645,6 @@ footer{
       <div class="apane" id="apConfig">
         <div class="form-row">
           <div><label class="lbl">Nome do campeonato</label><input class="field" id="cNome" style="width:100%"></div>
-          <div><label class="lbl">Subtítulo</label><input class="field" id="cSub" style="width:100%"></div>
         </div>
         <div class="form-row">
           <div><label class="lbl">Data</label><input class="field" id="cData" style="width:100%" placeholder="14 e 15 de março"></div>
@@ -711,7 +709,6 @@ const DOC = db.collection('campeonatos').doc('atual');
 
 const PADRAO = {
   nome: 'Blacksheep Invitational',
-  sub: 'Campeonato interno de CrossFit',
   data: 'Setembro 2026',
   local: 'São Paulo',
   sistema: 'posicao',
@@ -958,7 +955,6 @@ function render() {
   // data e local ficam logo abaixo do nome; sem valor salvo, usa o padrao do evento
   const quando = [D.data || PADRAO.data, D.local || PADRAO.local].filter(Boolean).join(' · ');
   document.getElementById('hQuando').textContent = quando;
-  document.getElementById('hSub').textContent = D.sub || PADRAO.sub || '';
   document.getElementById('hAtletas').innerHTML = (D.atletas.length ? '<b>' + D.atletas.length + '</b> atletas' : '');
   document.title = (D.nome || 'Blacksheep Invitational') + ' — Leaderboard';
 
@@ -1263,7 +1259,6 @@ async function salvar(patch, msgId, texto) {
 function preencherAdmin() {
   // config
   document.getElementById('cNome').value = D.nome || '';
-  document.getElementById('cSub').value = D.sub || '';
   document.getElementById('cData').value = D.data || '';
   document.getElementById('cLocal').value = D.local || '';
   document.getElementById('cSistema').value = D.sistema || 'tabela';
@@ -1308,7 +1303,6 @@ function salvarConfig() {
   const linhas = t => t.split('\n').map(s => s.trim()).filter(Boolean);
   const patch = {
     nome: document.getElementById('cNome').value.trim() || PADRAO.nome,
-    sub: document.getElementById('cSub').value.trim(),
     data: document.getElementById('cData').value.trim(),
     local: document.getElementById('cLocal').value.trim(),
     sistema: document.getElementById('cSistema').value,

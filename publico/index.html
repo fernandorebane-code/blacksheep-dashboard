@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Blacksheep Invitational — Leaderboard</title>
-<meta name="description" content="Leaderboard oficial do campeonato interno de CrossFit da Blacksheep.">
+<meta name="description" content="Leaderboard oficial do Blacksheep Invitational — Setembro 2026, São Paulo.">
 <meta property="og:title" content="Blacksheep Invitational — Leaderboard">
-<meta property="og:description" content="Ranking ao vivo do campeonato interno de CrossFit da Blacksheep.">
+<meta property="og:description" content="Ranking ao vivo do Blacksheep Invitational — Setembro 2026, São Paulo.">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -467,7 +467,6 @@ footer{
   <h1 id="hTitulo">BLACKSHEEP <em>INVITATIONAL</em></h1>
   <div class="hero-quando" id="hQuando">Setembro 2026 · São Paulo</div>
   <div class="hero-meta">
-    <span id="hSub">Campeonato interno de CrossFit</span>
     <span id="hAtletas"></span>
   </div>
 </div>
@@ -541,7 +540,6 @@ const DOC = db.collection('campeonatos').doc('atual');
 
 const PADRAO = {
   nome: 'Blacksheep Invitational',
-  sub: 'Campeonato interno de CrossFit',
   data: 'Setembro 2026',
   local: 'São Paulo',
   sistema: 'posicao',
@@ -787,7 +785,6 @@ function render() {
   // data e local ficam logo abaixo do nome; sem valor salvo, usa o padrao do evento
   const quando = [D.data || PADRAO.data, D.local || PADRAO.local].filter(Boolean).join(' · ');
   document.getElementById('hQuando').textContent = quando;
-  document.getElementById('hSub').textContent = D.sub || PADRAO.sub || '';
   document.getElementById('hAtletas').innerHTML = (D.atletas.length ? '<b>' + D.atletas.length + '</b> atletas' : '');
   document.title = (D.nome || 'Blacksheep Invitational') + ' — Leaderboard';
 
