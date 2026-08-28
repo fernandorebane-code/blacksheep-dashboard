@@ -123,12 +123,13 @@ header{
   color:var(--white);
 }
 .hero h1 em{font-style:normal;color:var(--gold);}
-.hero-sub{
-  margin-top:0.7rem;
-  font-size:0.72rem;
-  letter-spacing:0.22em;
+.hero-quando{
+  margin-top:0.8rem;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(1rem,3.6vw,1.5rem);
+  letter-spacing:0.18em;
   text-transform:uppercase;
-  color:var(--gray);
+  color:var(--gold);
 }
 .hero-meta{
   margin-top:1.1rem;
@@ -466,10 +467,9 @@ footer{
 
 <div class="hero">
   <h1 id="hTitulo">BLACKSHEEP <em>INVITATIONAL</em></h1>
-  <div class="hero-sub" id="hSub">Campeonato interno de CrossFit</div>
+  <div class="hero-quando" id="hQuando">Setembro 2026 · São Paulo</div>
   <div class="hero-meta">
-    <span id="hData"></span>
-    <span id="hLocal"></span>
+    <span id="hSub">Campeonato interno de CrossFit</span>
     <span id="hAtletas"></span>
   </div>
 </div>
@@ -955,9 +955,10 @@ function render() {
   // cabeçalho
   document.getElementById('hTitulo').innerHTML = destacar(D.nome || PADRAO.nome);
   document.getElementById('logo').innerHTML = logoDoNome(D.nome || PADRAO.nome);
-  document.getElementById('hSub').textContent = D.sub || '';
-  document.getElementById('hData').innerHTML = D.data ? '<b>' + esc(D.data) + '</b>' : '';
-  document.getElementById('hLocal').innerHTML = D.local ? '<b>' + esc(D.local) + '</b>' : '';
+  // data e local ficam logo abaixo do nome; sem valor salvo, usa o padrao do evento
+  const quando = [D.data || PADRAO.data, D.local || PADRAO.local].filter(Boolean).join(' · ');
+  document.getElementById('hQuando').textContent = quando;
+  document.getElementById('hSub').textContent = D.sub || PADRAO.sub || '';
   document.getElementById('hAtletas').innerHTML = (D.atletas.length ? '<b>' + D.atletas.length + '</b> atletas' : '');
   document.title = (D.nome || 'Blacksheep Invitational') + ' — Leaderboard';
 
