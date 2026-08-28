@@ -1,0 +1,60 @@
+# Mantem o leaderboard publico em dia sem etapa manual.
+#
+# A pagina publica mora no repositorio blacksheep-invitational (o GitHub Pages
+# aceita um dominio por repositorio, e este ja usa dashboard.bjjblacksheepfit.com).
+# A fonte continua aqui: src/leaderboard-fonte.html gera publico/index.html.
+# A cada push na main que mexa nesse arquivo, ele e copiado para la.
+#
+# Precisa do segredo INVITATIONAL_TOKEN — um token com permissao de escrita em
+# blacksheep-invitational. Sem o segredo, o job avisa e sai sem falhar.
+
+name: Publicar leaderboard publico
+
+on:
+  push:
+    branches: [main]
+    paths: ['publico/index.html']
+  workflow_dispatch:
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Conferir o segredo
+        id: segredo
+        env:
+          TOKEN: ${{ secrets.INVITATIONAL_TOKEN }}
+        run: |
+          if [ -z "${TOKEN:-}" ]; then
+            echo "ausente=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::Segredo INVITATIONAL_TOKEN nao configurado — copia pulada."
+          else
+            echo "ausente=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Baixar este repositorio
+        if: steps.segredo.outputs.ausente == 'false'
+        uses: actions/checkout@v4
+
+      - name: Copiar para o blacksheep-invitational
+        if: steps.segredo.outputs.ausente == 'false'
+        env:
+          TOKEN: ${{ secrets.INVITATIONAL_TOKEN }}
+        run: |
+          set -euo pipefail
+          git clone --depth 1 \
+            "https://x-access-token:${TOKEN}@github.com/fernandorebane-code/blacksheep-invitational.git" \
+            destino
+          # so o index.html: o CNAME e do Pages e nao pode ser tocado
+          cp publico/index.html destino/index.html
+          cd destino
+          if git diff --quiet -- index.html; then
+            echo "O leaderboard publico ja esta igual a fonte. Nada a fazer."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Sincroniza o leaderboard publico (fonte: ${GITHUB_SHA:0:7})"
+          git push
+          echo "Publicado em invitational.bjjblacksheepfit.com."
