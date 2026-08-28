@@ -321,6 +321,16 @@ thead th.sticky-col{background:var(--surface2);z-index:3;}
 }
 
 /* ---------- MODAL ---------- */
+.aviso{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  padding:0.9rem 1.2rem;text-align:center;
+  font-size:0.82rem;font-weight:500;
+  display:none;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);
+}
+.aviso.ok{display:block;background:var(--green);color:#062a13;}
+.aviso.err{display:block;background:var(--red);color:#2a0606;}
+.aviso.info{display:block;background:var(--gold);color:var(--black);}
 .modal-bg{
   position:fixed;inset:0;background:rgba(0,0,0,0.82);
   display:none;align-items:center;justify-content:center;padding:1rem;z-index:100;
@@ -453,6 +463,8 @@ footer{
     <span id="hAtletas"></span>
   </div>
 </div>
+
+<div id="aviso" class="aviso"></div>
 
 <div id="loader">Carregando leaderboard…</div>
 
@@ -752,9 +764,10 @@ DOC.onSnapshot(snap => {
 }, err => {
   console.error(err);
   setLive(false, 'Offline');
-  document.getElementById('loader').innerHTML =
-    'Não foi possível carregar o leaderboard.<br><span style="text-transform:none;letter-spacing:0">' +
-    'Verifique as regras de leitura pública da coleção <b>campeonatos</b> no Firestore.</span>';
+  avisar('err', 'Não foi possível ler o campeonato (' + (err.code || 'sem código') + '). ' +
+                'Verifique as regras da coleção campeonatos no Firestore.');
+  const l = document.getElementById('loader');
+  if (l) l.textContent = 'Não foi possível carregar o leaderboard.';
 });
 
 /* ---------------- RENDER ---------------- */
