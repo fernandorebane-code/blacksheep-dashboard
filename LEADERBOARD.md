@@ -124,5 +124,20 @@ salvar o Custom domain; não editar à mão.
 1. Mexer em `src/leaderboard-fonte.html`
 2. `python3 build-paginas.py`
 3. Commitar `organizador.html` e `publico/index.html` aqui
-4. Copiar `publico/index.html` para o `index.html` do `blacksheep-invitational`
-   (o conteúdo fica disponível em `raw.githubusercontent.com/fernandorebane-code/blacksheep-dashboard/main/publico/index.html`)
+
+A cópia para o `blacksheep-invitational` é automática: a GitHub Action
+`.github/workflows/publicar-leaderboard.yml` roda a cada push na `main` que
+mexa em `publico/index.html` e copia só esse arquivo — o `CNAME` de lá, que
+sustenta o domínio e o certificado, nunca é tocado.
+
+**Configuração, uma vez só.** A Action precisa do segredo `INVITATIONAL_TOKEN`,
+com permissão de escrita no `blacksheep-invitational`:
+
+1. github.com/settings/personal-access-tokens → **Generate new token** (fine-grained)
+2. Repository access: **Only select repositories** → `blacksheep-invitational`
+3. Permissions → Repository permissions → **Contents: Read and write**
+4. Gerar, copiar o token
+5. No `blacksheep-dashboard`: Settings → Secrets and variables → Actions →
+   **New repository secret**, nome `INVITATIONAL_TOKEN`, valor o token
+
+Sem o segredo a Action não falha: ela avisa e sai, e a cópia volta a ser manual.
