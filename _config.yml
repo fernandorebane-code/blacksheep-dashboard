@@ -1,0 +1,9 @@
+# Arquivos que ficam no repositorio mas nao vao para o site publicado.
+# src/leaderboard-fonte.html e a fonte das duas paginas (ver build-paginas.py):
+# ela junta leaderboard publico e painel do organizador, entao nao pode ser
+# servida como pagina — seria uma terceira porta para o login da organizacao.
+exclude:
+  - src
+  - publico
+  - build-paginas.py
+  - LEADERBOARD.md

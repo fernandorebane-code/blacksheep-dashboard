@@ -5,11 +5,12 @@
                          blacksheep-invitational, servido em invitational.*)
   organizador.html    -> painel do organizador, fica no host do dashboard
 
+Fonte: src/leaderboard-fonte.html (nao publicada — ver _config.yml)
 Rodar: python3 build-paginas.py
 """
 import io, re, os
 
-src = io.open('leaderboard.html', encoding='utf-8').read()
+src = io.open('src/leaderboard-fonte.html', encoding='utf-8').read()
 
 def bloco(ini, fim, texto=None):
     """Recorta de `ini` (inclusive) ate `fim` (exclusive)."""
