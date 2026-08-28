@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Blacksheep Invitational — Leaderboard</title>
-<meta name="description" content="Leaderboard oficial do campeonato interno de CrossFit da Blacksheep.">
-<meta property="og:title" content="Blacksheep Invitational — Leaderboard">
-<meta property="og:description" content="Ranking ao vivo do campeonato interno de CrossFit da Blacksheep.">
+<title>Blacksheep Invitational — Organização</title>
+<meta name="description" content="Painel de organização do Blacksheep Invitational.">
+<meta name="robots" content="noindex">
+
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -426,131 +426,49 @@ footer{
   .hero-meta{gap:1rem;}
   td.atleta{white-space:normal;min-width:140px;}
 }
+
+.painel-box{background:var(--surface);border:1px solid var(--border);padding:2rem 1.6rem;margin-top:3rem;}
+.painel-titulo{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:0.06em;}
+.painel-sub{font-size:0.72rem;color:var(--gray);margin:0.2rem 0 1.4rem;}
+.user-email{font-size:0.7rem;color:var(--gray);}
+.resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0.7rem;margin-bottom:1.6rem;}
+.resumo-item{background:var(--surface);border:1px solid var(--border-soft);padding:0.8rem 1rem;}
+.resumo-rot{font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--gray);}
+.resumo-val{font-family:'DM Mono',monospace;font-size:1rem;margin-top:0.3rem;}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo" id="logo"><span class="gold">BLACKSHEEP </span><span class="wht">INVITATIONAL</span></div>
+  <div class="logo"><span class="gold">BLACKSHEEP </span><span class="wht">INVITATIONAL</span></div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot off" id="liveDot"></span><span id="liveTxt">Conectando</span></div>
-    <button class="btn-ghost" id="btnAdmin" onclick="abrirAdmin()">ADMIN</button>
+    <a class="btn-ghost" href="https://invitational.bjjblacksheepfit.com/" target="_blank"
+       style="text-decoration:none">VER LEADERBOARD</a>
+    <span class="user-email" id="pSub"></span>
+    <button class="btn-ghost" id="btnSair" onclick="doLogout()" style="display:none">SAIR</button>
   </div>
 </header>
 
-<div class="hero">
-  <h1 id="hTitulo">BLACKSHEEP <em>INVITATIONAL</em></h1>
-  <div class="hero-sub" id="hSub">Campeonato interno de CrossFit</div>
-  <div class="hero-meta">
-    <span id="hData"></span>
-    <span id="hLocal"></span>
-    <span id="hAtletas"></span>
+<div class="container" id="telaLogin" style="max-width:420px">
+  <div class="painel-box">
+    <h2 class="painel-titulo">ÁREA DO ORGANIZADOR</h2>
+    <div class="painel-sub">Use o mesmo login do dashboard de gestão.</div>
+    <label class="lbl">E-mail</label>
+    <input class="field" id="logEmail" style="width:100%;margin-bottom:0.7rem" type="email" autocomplete="username">
+    <label class="lbl">Senha</label>
+    <input class="field" id="logSenha" style="width:100%" type="password" autocomplete="current-password">
+    <div class="msg err" id="logMsg"></div>
+    <button class="btn-solid" style="width:100%;margin-top:0.4rem" id="logBtn" onclick="doLogin()">ENTRAR</button>
   </div>
 </div>
 
-<div id="loader">Carregando leaderboard…</div>
+<div class="container" id="telaPainel" style="display:none">
+  <div id="avisoVerif" class="aviso-verif" style="display:none"></div>
+  <div class="resumo" id="resumo"></div>
 
-<div class="container" id="fechado" style="display:none">
-  <div class="empty-state">O leaderboard será liberado em breve.</div>
-</div>
-
-<div class="container" id="app" style="display:none">
-
-  <div class="toolbar">
-    <div class="cats" id="cats"></div>
-    <input class="field" id="busca" placeholder="Buscar atleta…" style="max-width:190px" oninput="render()">
-    <select class="field" id="filtroUnidade" onchange="render()"><option value="">Todas as unidades</option></select>
-    <button class="btn-ghost" onclick="exportarCSV()">CSV</button>
-  </div>
-
-  <div class="podium" id="podium"></div>
-
-  <div class="table-wrap">
-    <table id="tabela">
-      <thead id="thead"></thead>
-      <tbody id="tbody"></tbody>
-    </table>
-  </div>
-  <div class="legend" id="legend"></div>
-
-  <div class="section-title" id="wodTitle" style="display:none">PROVAS</div>
-  <div class="wod-grid" id="wodGrid"></div>
-</div>
-
-<footer>Blacksheep — Leaderboard oficial</footer>
-
-<!-- MODAL: detalhe do atleta -->
-<div class="modal-bg" id="mAtleta" onclick="if(event.target===this)fechar('mAtleta')">
-  <div class="modal">
-    <div class="modal-head">
-      <div>
-        <h2 id="aNome"></h2>
-        <div class="sub" id="aSub"></div>
-      </div>
-      <button class="modal-x" onclick="fechar('mAtleta')">&times;</button>
-    </div>
-    <div class="modal-body" id="aBody"></div>
-  </div>
-</div>
-
-<!-- MODAL: login admin -->
-<div class="modal-bg" id="mLogin" onclick="if(event.target===this)fechar('mLogin')">
-  <div class="modal" style="max-width:380px">
-    <div class="modal-head">
-      <div><h2>ÁREA DO ORGANIZADOR</h2><div class="sub">Acesso restrito</div></div>
-      <button class="modal-x" onclick="fechar('mLogin')">&times;</button>
-    </div>
-    <div class="modal-body">
-      <label class="lbl">E-mail</label>
-      <input class="field" id="logEmail" style="width:100%;margin-bottom:0.7rem" type="email" autocomplete="username">
-      <label class="lbl">Senha</label>
-      <input class="field" id="logSenha" style="width:100%" type="password" autocomplete="current-password">
-      <div class="msg err" id="logMsg"></div>
-      <button class="btn-solid" style="width:100%;margin-top:0.4rem" id="logBtn" onclick="doLogin()">ENTRAR</button>
-      <div class="hint">Use o mesmo login do dashboard de gestão.</div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: partes da prova -->
-<div class="modal-bg" id="mPartes" onclick="if(event.target===this)fechar('mPartes')">
-  <div class="modal" style="max-width:460px">
-    <div class="modal-head">
-      <div><h2>PARTES DA PROVA</h2><div class="sub" id="ptTitulo"></div></div>
-      <button class="modal-x" onclick="fechar('mPartes')">&times;</button>
-    </div>
-    <div class="modal-body">
-      <label class="lbl">Uma parte por linha — Nome; tipo</label>
-      <textarea class="field" id="ptTexto" style="width:100%;min-height:110px"
-        placeholder="Buy-in 1k remo; tempo&#10;For time; tempo"></textarea>
-      <div class="hint">
-        Tipos aceitos: <b>tempo</b> (for time), <b>reps</b> (amrap), <b>carga</b> (kg) e <b>pontos</b>.
-        Cada parte é rankeada e pontuada separadamente — no leaderboard elas aparecem
-        como <b>A</b>, <b>B</b>… dentro da mesma prova.
-        Deixe o campo vazio para a prova voltar a ter pontuação única.
-      </div>
-      <div class="msg" id="ptMsg"></div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn-solid" onclick="salvarPartes()">SALVAR PARTES</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: painel admin -->
-<div class="modal-bg" id="mPainel">
-  <div class="modal wide">
-    <div class="modal-head">
-      <div><h2>PAINEL DO CAMPEONATO</h2><div class="sub" id="pSub"></div></div>
-      <div style="display:flex;gap:0.5rem;align-items:center">
-        <button class="btn-ghost" onclick="doLogout()">SAIR</button>
-        <button class="modal-x" onclick="fechar('mPainel')">&times;</button>
-      </div>
-    </div>
-    <div class="modal-body">
-      <div id="avisoVerif" class="aviso-verif" style="display:none"></div>
-      <div class="admin-tabs">
-        <button class="admin-tab active" data-ap="apResultados" onclick="apTab('apResultados')">RESULTADOS</button>
+  <div class="admin-tabs">
+    <button class="admin-tab active" data-ap="apResultados" onclick="apTab('apResultados')">RESULTADOS</button>
         <button class="admin-tab" data-ap="apAtletas" onclick="apTab('apAtletas')">ATLETAS</button>
         <button class="admin-tab" data-ap="apWods" onclick="apTab('apWods')">PROVAS</button>
         <button class="admin-tab" data-ap="apConfig" onclick="apTab('apConfig')">CONFIG</button>
@@ -647,6 +565,30 @@ footer{
           <button class="btn-solid" onclick="salvarConfig()">SALVAR CONFIG</button>
         </div>
       </div>
+
+</div>
+
+<!-- MODAL: partes da prova -->
+<div class="modal-bg" id="mPartes" onclick="if(event.target===this)fechar('mPartes')">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head">
+      <div><h2>PARTES DA PROVA</h2><div class="sub" id="ptTitulo"></div></div>
+      <button class="modal-x" onclick="fechar('mPartes')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <label class="lbl">Uma parte por linha — Nome; tipo</label>
+      <textarea class="field" id="ptTexto" style="width:100%;min-height:110px"
+        placeholder="Buy-in 1k remo; tempo&#10;For time; tempo"></textarea>
+      <div class="hint">
+        Tipos aceitos: <b>tempo</b> (for time), <b>reps</b> (amrap), <b>carga</b> (kg) e <b>pontos</b>.
+        Cada parte é rankeada e pontuada separadamente — no leaderboard elas aparecem
+        como <b>A</b>, <b>B</b>… dentro da mesma prova.
+        Deixe o campo vazio para a prova voltar a ter pontuação única.
+      </div>
+      <div class="msg" id="ptMsg"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-solid" onclick="salvarPartes()">SALVAR PARTES</button>
     </div>
   </div>
 </div>
@@ -901,8 +843,6 @@ function setLive(ok, txt) {
 DOC.onSnapshot(snap => {
   D = normalizar(snap.exists ? snap.data() : null);
   setLive(true, snap.exists ? 'Ao vivo' : 'Sem dados');
-  document.getElementById('loader').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
   if (isAdmin) preencherAdmin();
   render();
 }, err => {
@@ -913,222 +853,45 @@ DOC.onSnapshot(snap => {
     'Verifique as regras de leitura pública da coleção <b>campeonatos</b> no Firestore.</span>';
 });
 
-/* ---------------- RENDER ---------------- */
+
+/* ---------------- RESUMO (no lugar do leaderboard publico) ---------------- */
 function render() {
-  if (!D) return;
-
-  // cabeçalho
-  document.getElementById('hTitulo').innerHTML = destacar(D.nome || PADRAO.nome);
-  document.getElementById('logo').innerHTML = logoDoNome(D.nome || PADRAO.nome);
-  document.getElementById('hSub').textContent = D.sub || '';
-  document.getElementById('hData').innerHTML = D.data ? '<b>' + esc(D.data) + '</b>' : '';
-  document.getElementById('hLocal').innerHTML = D.local ? '<b>' + esc(D.local) + '</b>' : '';
-  document.getElementById('hAtletas').innerHTML = (D.atletas.length ? '<b>' + D.atletas.length + '</b> atletas' : '');
-  document.title = (D.nome || 'Blacksheep Invitational') + ' — Leaderboard';
-
-  const fechado = D.publicado === false && !isAdmin;
-  document.getElementById('fechado').style.display = fechado ? 'block' : 'none';
-  document.getElementById('app').style.display = fechado ? 'none' : 'block';
-  if (fechado) return;
-
-  // categorias com atletas
-  const cats = D.categorias.filter(c => D.atletas.some(a => a.categoria === c));
-  if (!cats.length) {
-    document.getElementById('cats').innerHTML = '';
-    document.getElementById('podium').innerHTML = '';
-    document.getElementById('thead').innerHTML = '';
-    document.getElementById('tbody').innerHTML =
-      '<tr><td class="empty-state">Nenhum atleta inscrito ainda.</td></tr>';
-    document.getElementById('legend').innerHTML = '';
-    renderWods();
-    return;
+  const el = document.getElementById('resumo');
+  if (!el || !D) return;
+  const itens = (D.wods || []).reduce((n, w) => n + ((w.partes && w.partes.length) || 1), 0);
+  const publicado = D.publicado !== false;
+  el.innerHTML =
+    item('Campeonato', esc(D.nome || '—')) +
+    item('Atletas', (D.atletas || []).length) +
+    item('Provas', (D.wods || []).length + ' (' + itens + ' pontuações)') +
+    item('Leaderboard público', publicado
+      ? '<span style="color:var(--green)">liberado</span>'
+      : '<span style="color:var(--red)">oculto</span>');
+  function item(rot, val) {
+    return '<div class="resumo-item"><div class="resumo-rot">' + rot + '</div>' +
+           '<div class="resumo-val">' + val + '</div></div>';
   }
-  if (!cats.includes(catAtiva)) catAtiva = cats[0];
-  document.getElementById('cats').innerHTML = cats.map(c =>
-    '<button class="cat' + (c === catAtiva ? ' active' : '') + '" onclick="trocarCat(' + JSON.stringify(c).replace(/"/g, '&quot;') + ')">' +
-    esc(c) + '</button>').join('');
-
-  // filtro de unidade
-  const selU = document.getElementById('filtroUnidade');
-  const usadas = D.unidades.filter(u => D.atletas.some(a => a.unidade === u));
-  const atual = selU.value;
-  selU.innerHTML = '<option value="">Todas as unidades</option>' +
-    usadas.map(u => '<option' + (u === atual ? ' selected' : '') + '>' + esc(u) + '</option>').join('');
-
-  const { linhas, itens } = calcularRanking(catAtiva);
-  rankCache[catAtiva] = { linhas, itens };
-
-  const busca = document.getElementById('busca').value.trim().toLowerCase();
-  const uni = selU.value;
-  const vis = linhas.filter(l =>
-    (!busca || l.atleta.nome.toLowerCase().includes(busca)) &&
-    (!uni || l.atleta.unidade === uni));
-
-  renderPodium(linhas, itens);
-  renderTabela(vis, itens);
-  renderLegenda(itens, linhas.length);
-  renderWods();
 }
-
-// no header a primeira palavra fica em destaque; no hero, a ultima
-function logoDoNome(txt) {
-  const p = String(txt).trim().split(' ');
-  const primeira = p.shift();
-  return '<span class="gold">' + esc(primeira) + ' </span><span class="wht">' + esc(p.join(' ')) + '</span>';
-}
-
-function destacar(txt) {
-  const p = String(txt).trim().split(' ');
-  if (p.length < 2) return esc(txt);
-  const ult = p.pop();
-  return esc(p.join(' ')) + ' <em>' + esc(ult) + '</em>';
-}
-
-function trocarCat(c) { catAtiva = c; render(); }
-
-function renderPodium(linhas, itens) {
-  const el = document.getElementById('podium');
-  const top = linhas.filter(l => l.pontuou).slice(0, 3);
-  if (!top.length || !itens.length) { el.innerHTML = ''; return; }
-  el.innerHTML = top.map((l, i) =>
-    '<div class="pod p' + (i + 1) + '" onclick="verAtleta(' + JSON.stringify(l.atleta.id).replace(/"/g, '&quot;') + ')">' +
-      '<div class="pod-rank">' + (i + 1) + '</div>' +
-      '<div class="pod-pos">' + ordinal(l.pos) + ' lugar</div>' +
-      '<div class="pod-name">' + esc(l.atleta.nome) + '</div>' +
-      '<div class="pod-unit">' + esc(l.atleta.unidade || '') + '</div>' +
-      '<div class="pod-pts">' + fmtPts(l.total) + ' <small>pts</small></div>' +
-    '</div>').join('');
-}
-
-function renderTabela(linhas, itens) {
-  const thead = document.getElementById('thead');
-  const tbody = document.getElementById('tbody');
-
-  thead.innerHTML = '<tr>' +
-    '<th class="sticky-col" style="width:52px">#</th>' +
-    '<th class="sticky-col" style="left:52px">Atleta</th>' +
-    itens.map(w => '<th class="wodcol" title="' + esc(w.nome) + '">' + esc(w.curto) + '</th>').join('') +
-    '<th class="num">Total</th></tr>';
-
-  if (!linhas.length) {
-    tbody.innerHTML = '<tr><td colspan="' + (itens.length + 3) + '"><div class="empty-state">Nenhum atleta encontrado.</div></td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = linhas.map(l => {
-    const cls = l.pos <= 3 && l.pontuou ? ' class="top' + l.pos + '"' : '';
-    const cels = itens.map(w => {
-      const r = l.provas[w.id];
-      const v = fmtValor(w, r && r.res);
-      if (!v) return '<td class="wod vazio">—</td>';
-      return '<td class="wod"><b>' + esc(v) + '</b><span class="pl">' + ordinal(r.pos) + '</span></td>';
-    }).join('');
-    return '<tr' + cls + ' onclick="verAtleta(' + JSON.stringify(l.atleta.id).replace(/"/g, '&quot;') + ')">' +
-      '<td class="pos sticky-col">' + (l.pontuou ? l.pos : '—') + '</td>' +
-      '<td class="atleta sticky-col" style="left:52px">' + esc(l.atleta.nome) +
-        '<span class="unit">' + esc(l.atleta.unidade || '') + '</span></td>' +
-      cels +
-      '<td class="total">' + fmtPts(l.total) + '</td></tr>';
-  }).join('');
-}
-
-function renderLegenda(itens, totalAtletas) {
-  const sis = D.sistema === 'posicao'
-    ? 'Cada prova vale a colocação do atleta: <b>1º = 1 pt</b>, 2º = 2 pts, 3º = 3 pts e assim por diante. <b>Menor total vence.</b>'
-    : '1º lugar vale <b>' + num(D.p1, 100) + ' pts</b>, com <b>-' + num(D.dec, 5) +
-      '</b> por posição (mínimo 1). <b>Maior total vence.</b>';
-  document.getElementById('legend').innerHTML =
-    sis + ' Empates dividem os pontos das posições empatadas. ' +
-    (D.sistema === 'posicao'
-      ? 'Quem não tem resultado na prova recebe a última colocação dela. '
-      : 'Quem não pontua na prova fica em último e soma 0. ') +
-    'Quem estoura o time cap entra depois de quem finalizou, ordenado por repetições. ' +
-    'Critério de desempate: melhores colocações individuais. ' +
-    'Prova dividida em partes pontua cada parte separadamente. ' +
-    '<br>' + itens.length + ' pontuação(ões) valendo · ' + totalAtletas + ' atleta(s) na categoria · toque em um atleta para ver o detalhamento.';
-}
-
-function renderWods() {
-  const wods = wodsValidos();
-  const grid = document.getElementById('wodGrid');
-  document.getElementById('wodTitle').style.display = wods.length ? 'block' : 'none';
-  const TIPOS = { tempo: 'Menor tempo', reps: 'Mais repetições', carga: 'Maior carga', pontos: 'Mais pontos' };
-  grid.innerHTML = wods.map(w =>
-    '<div class="wod-card">' +
-      '<h3>' + esc(w.nome) + '</h3>' +
-      (w.partes && w.partes.length
-        ? w.partes.map((p, i) => '<div class="wod-parte"><b>' + LETRAS[i] + '</b> ' + esc(p.nome) +
-            ' <span>' + esc(TIPOS[p.tipo] || p.tipo) + '</span></div>').join('')
-        : '<span class="wod-tag">' + esc(TIPOS[w.tipo] || w.tipo) + '</span>') +
-      (w.pub === false ? '<span class="wod-tag" style="margin-left:0.3rem;color:var(--gray);border-color:var(--border-soft)">Oculta</span>' : '') +
-      (w.desc ? '<div class="wod-desc">' + esc(w.desc) + '</div>' : '') +
-    '</div>').join('');
-}
-
-/* ---------------- DETALHE DO ATLETA ---------------- */
-function verAtleta(id) {
-  const cache = rankCache[catAtiva];
-  if (!cache) return;
-  const l = cache.linhas.find(x => x.atleta.id === id);
-  if (!l) return;
-  document.getElementById('aNome').textContent = l.atleta.nome;
-  document.getElementById('aSub').textContent =
-    [l.atleta.categoria, l.atleta.unidade].filter(Boolean).join(' · ') +
-    ' · ' + (l.pontuou ? ordinal(l.pos) + ' geral' : 'sem pontuação');
-  document.getElementById('aBody').innerHTML = cache.itens.map(w => {
-    const r = l.provas[w.id];
-    const v = fmtValor(w, r && r.res);
-    return '<div class="brk">' +
-      '<div class="brk-name">' + esc(w.nome) + '<small>' + esc(v || 'sem resultado') + '</small></div>' +
-      '<div class="brk-val">' + fmtPts(r.pts) + ' pts<span class="pl"> ' + ordinal(r.pos) + '</span></div>' +
-    '</div>';
-  }).join('') +
-  '<div class="brk" style="border-bottom:none;margin-top:0.4rem">' +
-    '<div class="brk-name" style="font-weight:600">TOTAL</div>' +
-    '<div class="brk-val" style="color:var(--gold);font-size:1rem">' + fmtPts(l.total) + '</div>' +
-  '</div>';
-  abrir('mAtleta');
-}
-
-/* ---------------- CSV ---------------- */
-function exportarCSV() {
-  const cache = rankCache[catAtiva];
-  if (!cache) return;
-  const sep = ';';
-  const cab = ['Pos', 'Atleta', 'Unidade'].concat(cache.itens.map(w => w.nome + ' (result)'))
-    .concat(cache.itens.map(w => w.nome + ' (pts)')).concat(['Total']);
-  const linhas = cache.linhas.map(l => {
-    const res = cache.itens.map(w => fmtValor(w, l.provas[w.id].res) || '');
-    const pts = cache.itens.map(w => fmtPts(l.provas[w.id].pts));
-    return [l.pontuou ? l.pos : '', l.atleta.nome, l.atleta.unidade || ''].concat(res).concat(pts).concat([fmtPts(l.total)]);
-  });
-  const csv = [cab].concat(linhas).map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(sep)).join('\n');
-  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'leaderboard_' + catAtiva.replace(/\s+/g, '_').toLowerCase() + '.csv';
-  document.body.appendChild(a); a.click(); a.remove();
-}
-
 /* ============================================================
    PAINEL DO ORGANIZADOR
    ============================================================ */
-function abrirAdmin() {
-  if (isAdmin) { preencherAdmin(); abrir('mPainel'); }
-  else abrir('mLogin');
+function mostrarPainel(logado) {
+  document.getElementById('telaLogin').style.display = logado ? 'none' : 'block';
+  document.getElementById('telaPainel').style.display = logado ? 'block' : 'none';
+  document.getElementById('btnSair').style.display = logado ? '' : 'none';
 }
 
 auth.onAuthStateChanged(async user => {
   if (user && await autorizado(user.email)) {
     isAdmin = true;
-    document.getElementById('btnAdmin').textContent = 'PAINEL';
     document.getElementById('pSub').textContent = user.email;
+    mostrarPainel(true);
     if (D) { preencherAdmin(); render(); }
   } else {
     if (user) { auth.signOut(); }
     isAdmin = false;
-    document.getElementById('btnAdmin').textContent = 'ADMIN';
-    if (D) render();
+    document.getElementById('pSub').textContent = '';
+    mostrarPainel(false);
   }
 });
 
@@ -1152,9 +915,7 @@ async function doLogin() {
       await auth.signOut();
       msg.textContent = 'Este e-mail não tem acesso de organizador.';
     } else {
-      fechar('mLogin');
       document.getElementById('logSenha').value = '';
-      abrir('mPainel');
     }
   } catch (e) {
     msg.textContent = (e.code === 'auth/too-many-requests')
@@ -1165,7 +926,7 @@ async function doLogin() {
 }
 document.getElementById('logSenha').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
-function doLogout() { auth.signOut(); fechar('mPainel'); }
+function doLogout() { auth.signOut(); }
 
 // As regras do Firestore exigem e-mail verificado para quem nao e o dono do
 // projeto. O console do Firebase nao dispara esse e-mail — so a aplicacao.
@@ -1549,6 +1310,7 @@ function salvarResultados() {
   });
   salvar({ resultados }, 'rMsg', preenchidos + ' resultado(s) salvo(s).');
 }
+
 </script>
 </body>
 </html>
