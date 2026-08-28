@@ -383,6 +383,14 @@ textarea.field{min-height:80px;resize:vertical;line-height:1.5;}
 .admin-tab.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
 .apane{display:none;}
 .apane.active{display:block;}
+.carga{
+  background:var(--gold-dim);
+  border:1px solid var(--border);
+  padding:0.9rem 1rem;
+  margin-bottom:1.2rem;
+  font-size:0.76rem;
+  line-height:1.6;
+}
 .list-item{
   display:flex;align-items:center;gap:0.6rem;
   padding:0.55rem 0.7rem;border:1px solid var(--border-soft);margin-bottom:0.4rem;background:var(--surface2);
@@ -496,6 +504,12 @@ footer{
 
       <!-- ATLETAS -->
       <div class="apane" id="apAtletas">
+        <div class="carga">
+          <div><b>Carga inicial</b> — importa de uma vez as categorias, as unidades e a lista
+          oficial de atletas do campeonato.</div>
+          <button class="btn-solid" style="margin-top:0.6rem" onclick="cargaInicial()">IMPORTAR LISTA OFICIAL</button>
+          <div class="msg" id="cargaMsg"></div>
+        </div>
         <div class="form-row">
           <input class="field" id="atNome" placeholder="Nome do atleta">
           <select class="field" id="atCat"></select>
@@ -1046,6 +1060,46 @@ function salvarConfig() {
 }
 
 /* ---------------- ATLETAS ---------------- */
+// Carga inicial: le a lista oficial gerada da planilha de inscricao e grava
+// categorias, unidades e atletas de uma vez. Roda com o login do organizador.
+async function cargaInicial() {
+  const msg = document.getElementById('cargaMsg');
+  msg.className = 'msg'; msg.textContent = 'Carregando a lista…';
+  let d;
+  try {
+    const r = await fetch('dados/campeonato-inicial.json', { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    d = await r.json();
+  } catch (e) {
+    msg.className = 'msg err';
+    msg.textContent = 'Não foi possível ler a lista oficial (' + (e.message || e) + ').';
+    return;
+  }
+  if (!d.atletas || !d.atletas.length) {
+    msg.className = 'msg err'; msg.textContent = 'A lista oficial está vazia.'; return;
+  }
+
+  const atuais = (D.atletas || []).length;
+  if (atuais && !confirm('Isso substitui os ' + atuais + ' atleta(s) já cadastrados. ' +
+      'Resultados lançados para atletas que saírem da lista serão descartados. Continuar?')) {
+    msg.textContent = ''; return;
+  }
+
+  // preserva os resultados de quem continua na lista
+  const ids = {};
+  d.atletas.forEach(a => { ids[a.id] = true; });
+  const resultados = {};
+  Object.keys(D.resultados || {}).forEach(aid => { if (ids[aid]) resultados[aid] = D.resultados[aid]; });
+
+  await salvar({
+    categorias: d.categorias,
+    unidades: d.unidades,
+    atletas: d.atletas,
+    resultados
+  }, 'cargaMsg', d.atletas.length + ' atletas, ' + d.categorias.length + ' categorias e ' +
+     d.unidades.length + ' unidades importados.');
+}
+
 function addAtleta() {
   const nome = document.getElementById('atNome').value.trim();
   const msg = document.getElementById('atMsg');
