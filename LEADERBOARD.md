@@ -141,3 +141,36 @@ com permissão de escrita no `blacksheep-invitational`:
    **New repository secret**, nome `INVITATIONAL_TOKEN`, valor o token
 
 Sem o segredo a Action não falha: ela avisa e sai, e a cópia volta a ser manual.
+
+## Acesso e regras — decisões registradas
+
+A regra de escrita em `campeonatos` **não exige e-mail verificado**. Foi uma decisão
+consciente, tomada em agosto/2026: o e-mail de verificação do Firebase não chega de
+forma confiável e o console não permite marcar uma conta como verificada, então a
+exigência travaria a equipe no meio do evento sem caminho de saída.
+
+O que protege o acesso no lugar disso é a **ordem do cadastro**:
+
+> Criar a conta no **Authentication** antes de criar o documento em `dashboard_users`.
+
+Um e-mail autorizado sem conta correspondente é uma porta aberta: qualquer pessoa que
+saiba esse e-mail pode registrá-lo e entrar. Foi exatamente o que existia até
+28/08/2026 — um `novousuario@email.com` esquecido desde abril, removido depois de uma
+auditoria da coleção.
+
+**Nenhum código deste repositório escreve em `dashboard_users`** — as três ocorrências
+(`index.html`, `organizador.html`, e a fonte) apenas leem, para checar autorização.
+Documentos dessa coleção nascem no console do Firebase. Não existe tela de "adicionar
+admin" para endurecer aqui.
+
+### Pendências combinadas
+
+1. **Depois do campeonato:** remover a conta da mesa de lançamento do `dashboard_users`
+   e devolver `request.auth.token.email_verified == true` à regra de escrita.
+2. **Correção definitiva:** trocar a whitelist de e-mail por **UID**. Um UID não pode ser
+   reivindicado registrando um e-mail, o que elimina a classe inteira de ataque sem
+   depender de ninguém lembrar da ordem do cadastro. Mexe também no login do dashboard,
+   então é trabalho para fora da véspera do evento.
+
+Não desativar **Authentication → Settings → User actions → Ativar criação (inscrição)**:
+o cadastro de alunos passa por ali (396 contas, de uma a três novas por dia).
