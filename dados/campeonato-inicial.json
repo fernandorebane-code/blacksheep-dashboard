@@ -1,0 +1,824 @@
+{
+ "_comentario": "Carga inicial do Blacksheep Invitational, gerada de CAMPEONATO_BS_2026.xlsx (aba ATUAL LISTA GERAL).",
+ "categorias": [
+  "Elite Masculino",
+  "Elite Feminino",
+  "RX Masculino",
+  "RX Feminino",
+  "Intermediário Masculino",
+  "Intermediário Feminino",
+  "Scaled Masculino",
+  "Scaled Feminino",
+  "Master 45+ Masculino",
+  "Master 45+ Feminino"
+ ],
+ "unidades": [
+  "Moema",
+  "Pinheiros",
+  "Berrini",
+  "Itaim",
+  "Vila Olímpia",
+  "Alphaville",
+  "Convidado"
+ ],
+ "atletas": [
+  {
+   "id": "at_evandro-volante",
+   "nome": "Evandro Volante",
+   "categoria": "Elite Masculino",
+   "unidade": "Convidado"
+  },
+  {
+   "id": "at_kaue",
+   "nome": "Kaue",
+   "categoria": "Elite Masculino",
+   "unidade": "Convidado"
+  },
+  {
+   "id": "at_luis-pessoa",
+   "nome": "Luis Pessoa",
+   "categoria": "Elite Masculino",
+   "unidade": "Convidado"
+  },
+  {
+   "id": "at_luiz-felipe-outor",
+   "nome": "Luiz Felipe Outor",
+   "categoria": "Elite Masculino",
+   "unidade": "Convidado"
+  },
+  {
+   "id": "at_bruna-baxhix",
+   "nome": "Bruna Baxhix",
+   "categoria": "Elite Feminino",
+   "unidade": "Convidado"
+  },
+  {
+   "id": "at_caroline-ribeiro",
+   "nome": "Caroline Ribeiro",
+   "categoria": "Elite Feminino",
+   "unidade": "Convidado"
+  },
+  {
+   "id": "at_leticia-cerqueira",
+   "nome": "Leticia Cerqueira",
+   "categoria": "Elite Feminino",
+   "unidade": "Convidado"
+  },
+  {
+   "id": "at_roxy-rebane",
+   "nome": "Roxy Rebane",
+   "categoria": "Elite Feminino",
+   "unidade": "Convidado"
+  },
+  {
+   "id": "at_daniel-correa",
+   "nome": "Daniel Correa",
+   "categoria": "RX Masculino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_danilo-pimenta-de-castro",
+   "nome": "Danilo Pimenta de Castro",
+   "categoria": "RX Masculino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_felippe-perondi",
+   "nome": "Felippe Perondi",
+   "categoria": "RX Masculino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_fellipe-camargo-franca",
+   "nome": "Fellipe Camargo França",
+   "categoria": "RX Masculino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_fernando-borborema",
+   "nome": "Fernando Borborema",
+   "categoria": "RX Masculino",
+   "unidade": "Itaim"
+  },
+  {
+   "id": "at_gabriel-gomes-aguiar",
+   "nome": "Gabriel Gomes Aguiar",
+   "categoria": "RX Masculino",
+   "unidade": "Itaim"
+  },
+  {
+   "id": "at_humberto-neves",
+   "nome": "Humberto Neves",
+   "categoria": "RX Masculino",
+   "unidade": "Itaim"
+  },
+  {
+   "id": "at_jhony-river-do-nascimento",
+   "nome": "Jhony River do Nascimento",
+   "categoria": "RX Masculino",
+   "unidade": "Vila Olímpia"
+  },
+  {
+   "id": "at_joao-paulo-fiorin",
+   "nome": "Joao Paulo Fiorin",
+   "categoria": "RX Masculino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_kaique-arakaki",
+   "nome": "Kaique Arakaki",
+   "categoria": "RX Masculino",
+   "unidade": "Pinheiros"
+  },
+  {
+   "id": "at_leonardo-adriano-ribeiro",
+   "nome": "Leonardo Adriano Ribeiro",
+   "categoria": "RX Masculino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_lucas-duro",
+   "nome": "Lucas Duro",
+   "categoria": "RX Masculino",
+   "unidade": "Itaim"
+  },
+  {
+   "id": "at_luiz-guilherme",
+   "nome": "Luiz Guilherme",
+   "categoria": "RX Masculino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_marcelo-tigre",
+   "nome": "Marcelo Tigre",
+   "categoria": "RX Masculino",
+   "unidade": "Pinheiros"
+  },
+  {
+   "id": "at_mario-vinicius-cassaca",
+   "nome": "Mario Vinicius Cassaca",
+   "categoria": "RX Masculino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_matheus-azevedo",
+   "nome": "Matheus Azevedo",
+   "categoria": "RX Masculino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_matheus-da-silva-pinheiro",
+   "nome": "Matheus da Silva Pinheiro",
+   "categoria": "RX Masculino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_messias-araujo",
+   "nome": "Messias Araujo",
+   "categoria": "RX Masculino",
+   "unidade": "Pinheiros"
+  },
+  {
+   "id": "at_thiago-malicia",
+   "nome": "Thiago Malicia",
+   "categoria": "RX Masculino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_tiago-abel",
+   "nome": "Tiago Abel",
+   "categoria": "RX Masculino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_tiago-cappelano-barbosa-de-melo",
+   "nome": "Tiago Cappelano Barbosa de Melo",
+   "categoria": "RX Masculino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_vinicius-fonseca",
+   "nome": "Vinicius Fonseca",
+   "categoria": "RX Masculino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_william-borjas",
+   "nome": "William Borjas",
+   "categoria": "RX Masculino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_barbara-iamin",
+   "nome": "Barbara Iamin",
+   "categoria": "RX Feminino",
+   "unidade": "Pinheiros"
+  },
+  {
+   "id": "at_barbara-lang",
+   "nome": "Barbara Lang",
+   "categoria": "RX Feminino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_camila-ozanan-costa",
+   "nome": "Camila Ozanan Costa",
+   "categoria": "RX Feminino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_dani-marcouizos",
+   "nome": "Dani Marcouizos",
+   "categoria": "RX Feminino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_douglas-ferraz",
+   "nome": "Douglas Ferraz",
+   "categoria": "RX Feminino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_fabiana-de-luca",
+   "nome": "Fabiana de Luca",
+   "categoria": "RX Feminino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_giovanna-maldonado",
+   "nome": "Giovanna Maldonado",
+   "categoria": "RX Feminino",
+   "unidade": "Pinheiros"
+  },
+  {
+   "id": "at_liana-alonso-gonzales",
+   "nome": "Liana Alonso Gonzales",
+   "categoria": "RX Feminino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_lorena-morais-miranda",
+   "nome": "Lorena Morais Miranda",
+   "categoria": "RX Feminino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_marcela-martins",
+   "nome": "Marcela Martins",
+   "categoria": "RX Feminino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_marcela-menezes",
+   "nome": "Marcela Menezes",
+   "categoria": "RX Feminino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_maria-luiza-nunes",
+   "nome": "Maria Luiza Nunes",
+   "categoria": "RX Feminino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_marina-lima",
+   "nome": "Marina Lima",
+   "categoria": "RX Feminino",
+   "unidade": "Itaim"
+  },
+  {
+   "id": "at_michelle-amanda-santos",
+   "nome": "Michelle Amanda Santos",
+   "categoria": "RX Feminino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_nathalia-rospi-araujo",
+   "nome": "Nathalia Rospi Araujo",
+   "categoria": "RX Feminino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_samara",
+   "nome": "Samara",
+   "categoria": "RX Feminino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_stephani-vicco",
+   "nome": "Stephani Vicco",
+   "categoria": "RX Feminino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_alexandre-oliveira-pires-de-sa",
+   "nome": "Alexandre Oliveira Pires de SÁ",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_andre-furegate-de-carvalho",
+   "nome": "Andre Furegate de Carvalho",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Pinheiros"
+  },
+  {
+   "id": "at_bernardo-lima-carvalho",
+   "nome": "Bernardo Lima Carvalho",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Itaim"
+  },
+  {
+   "id": "at_breno-marcos",
+   "nome": "Breno Marcos",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_caio-cezar-de-lima-maciel",
+   "nome": "Caio Cezar de Lima Maciel",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Pinheiros"
+  },
+  {
+   "id": "at_cesar-werner",
+   "nome": "Cesar Werner",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_felipe-gandolfi",
+   "nome": "Felipe Gandolfi",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_fernando-cunha",
+   "nome": "Fernando Cunha",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Pinheiros"
+  },
+  {
+   "id": "at_gabriel-amaya",
+   "nome": "Gabriel Amaya",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_gabriel-dias",
+   "nome": "Gabriel Dias",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_guilherme-de-moura",
+   "nome": "Guilherme de Moura",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_igor-ribeiro-lima",
+   "nome": "Igor Ribeiro Lima",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_jeferson-bordin",
+   "nome": "Jeferson Bordin",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_junior-costa",
+   "nome": "Junior Costa",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Pinheiros"
+  },
+  {
+   "id": "at_lucas",
+   "nome": "Lucas",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_mateus-aquino",
+   "nome": "Mateus Aquino",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_nilo-sirote",
+   "nome": "Nilo Sirote",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_pedroza",
+   "nome": "Pedroza",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_rafael-araujo",
+   "nome": "Rafael Araujo",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_rafael-peres",
+   "nome": "Rafael Peres",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Vila Olímpia"
+  },
+  {
+   "id": "at_raphael-almeida",
+   "nome": "Raphael Almeida",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Pinheiros"
+  },
+  {
+   "id": "at_richard-kato",
+   "nome": "Richard Kato",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_rivaldo",
+   "nome": "Rivaldo",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_rufino-carvalho",
+   "nome": "Rufino Carvalho",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_victor-fernandes",
+   "nome": "Victor Fernandes",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_vinicius-sesso",
+   "nome": "Vinicius Sesso",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Pinheiros"
+  },
+  {
+   "id": "at_vitor-bezerra-de-medeiros",
+   "nome": "Vitor Bezerra de Medeiros",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_william",
+   "nome": "William",
+   "categoria": "Intermediário Masculino",
+   "unidade": "Vila Olímpia"
+  },
+  {
+   "id": "at_alessandra-quagliata",
+   "nome": "Alessandra Quagliata",
+   "categoria": "Intermediário Feminino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_aline-silvestre",
+   "nome": "Aline Silvestre",
+   "categoria": "Intermediário Feminino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_heloisa-machado-agostini",
+   "nome": "Heloisa Machado Agostini",
+   "categoria": "Intermediário Feminino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_isa-derti",
+   "nome": "Isa Derti",
+   "categoria": "Intermediário Feminino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_isabella-saad-yacar",
+   "nome": "Isabella Saad Yacar",
+   "categoria": "Intermediário Feminino",
+   "unidade": "Pinheiros"
+  },
+  {
+   "id": "at_isadora",
+   "nome": "Isadora",
+   "categoria": "Intermediário Feminino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_jamyle-suellen",
+   "nome": "Jamyle Suellen",
+   "categoria": "Intermediário Feminino",
+   "unidade": "Pinheiros"
+  },
+  {
+   "id": "at_julia-lopes-reis",
+   "nome": "Julia Lopes Reis",
+   "categoria": "Intermediário Feminino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_katia-amorim",
+   "nome": "Katia Amorim",
+   "categoria": "Intermediário Feminino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_maisa-percy-sanches",
+   "nome": "Maisa Percy Sanches",
+   "categoria": "Intermediário Feminino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_marcella-hammel",
+   "nome": "Marcella Hammel",
+   "categoria": "Intermediário Feminino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_maria-fernanda-costa-de-melo",
+   "nome": "Maria Fernanda Costa de Melo",
+   "categoria": "Intermediário Feminino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_mariane-bolson-camponogara",
+   "nome": "Mariane Bolson Camponogara",
+   "categoria": "Intermediário Feminino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_millena-carriel",
+   "nome": "Millena Carriel",
+   "categoria": "Intermediário Feminino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_nati-mingo",
+   "nome": "Nati Mingo",
+   "categoria": "Intermediário Feminino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_patricia-carvalho",
+   "nome": "Patricia Carvalho",
+   "categoria": "Intermediário Feminino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_raphaela-xavier",
+   "nome": "Raphaela Xavier",
+   "categoria": "Intermediário Feminino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_roberta",
+   "nome": "Roberta",
+   "categoria": "Intermediário Feminino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_stefhani-mattos",
+   "nome": "Stefhani Mattos",
+   "categoria": "Intermediário Feminino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_cristiano-de-abreu-amorim",
+   "nome": "Cristiano de Abreu Amorim",
+   "categoria": "Scaled Masculino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_danilo-nogueira",
+   "nome": "Danilo Nogueira",
+   "categoria": "Scaled Masculino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_felipe-diniz",
+   "nome": "Felipe Diniz",
+   "categoria": "Scaled Masculino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_luiz-felype-kazue-de-oliveira",
+   "nome": "Luiz Felype Kazue de Oliveira",
+   "categoria": "Scaled Masculino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_rafael-tararam",
+   "nome": "Rafael Tararam",
+   "categoria": "Scaled Masculino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_rafael-ujvari",
+   "nome": "Rafael Ujvari",
+   "categoria": "Scaled Masculino",
+   "unidade": "Vila Olímpia"
+  },
+  {
+   "id": "at_ana-carolina-haddad",
+   "nome": "Ana Carolina Haddad",
+   "categoria": "Scaled Feminino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_bruna-da-cruz-cyrillo-martins",
+   "nome": "Bruna da Cruz Cyrillo Martins",
+   "categoria": "Scaled Feminino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_emanuelle-carvalho",
+   "nome": "Emanuelle Carvalho",
+   "categoria": "Scaled Feminino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_emilia-campelo",
+   "nome": "Emilia Campelo",
+   "categoria": "Scaled Feminino",
+   "unidade": "Itaim"
+  },
+  {
+   "id": "at_generia-paula-souza",
+   "nome": "Generia Paula Souza",
+   "categoria": "Scaled Feminino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_graziela-padula-figueiredo",
+   "nome": "Graziela Padula Figueiredo",
+   "categoria": "Scaled Feminino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_karoline-teixeira",
+   "nome": "Karoline Teixeira",
+   "categoria": "Scaled Feminino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_luiza-campello",
+   "nome": "Luiza Campello",
+   "categoria": "Scaled Feminino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_marcella-rosa-carvalho",
+   "nome": "Marcella Rosa Carvalho",
+   "categoria": "Scaled Feminino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_mariana-teixeira",
+   "nome": "Mariana Teixeira",
+   "categoria": "Scaled Feminino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_mayra-pinheiro",
+   "nome": "Mayra Pinheiro",
+   "categoria": "Scaled Feminino",
+   "unidade": "Itaim"
+  },
+  {
+   "id": "at_natyzinha",
+   "nome": "Natyzinha",
+   "categoria": "Scaled Feminino",
+   "unidade": "Itaim"
+  },
+  {
+   "id": "at_nia",
+   "nome": "Nia",
+   "categoria": "Scaled Feminino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_renata-dalbem",
+   "nome": "Renata Dalbem",
+   "categoria": "Scaled Feminino",
+   "unidade": "Pinheiros"
+  },
+  {
+   "id": "at_stefani-lopes",
+   "nome": "Stefani Lopes",
+   "categoria": "Scaled Feminino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_susanne-goncalves",
+   "nome": "Susanne Gonçalves",
+   "categoria": "Scaled Feminino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_thaiza-lima",
+   "nome": "Thaiza Lima",
+   "categoria": "Scaled Feminino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_vanessa-carla-da-silva",
+   "nome": "Vanessa Carla da Silva",
+   "categoria": "Scaled Feminino",
+   "unidade": "Itaim"
+  },
+  {
+   "id": "at_vanessa-passos",
+   "nome": "Vanessa Passos",
+   "categoria": "Scaled Feminino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_andre-gomes-viera",
+   "nome": "Andre Gomes Viera",
+   "categoria": "Master 45+ Masculino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_carlao",
+   "nome": "Carlão",
+   "categoria": "Master 45+ Masculino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_daniel-de-faria-diniz-dan",
+   "nome": "Daniel de Faria Diniz Dan",
+   "categoria": "Master 45+ Masculino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_fabio-cristofoli",
+   "nome": "Fabio Cristofoli",
+   "categoria": "Master 45+ Masculino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_hugo-claret",
+   "nome": "Hugo Claret",
+   "categoria": "Master 45+ Masculino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_philippe-fremau",
+   "nome": "Philippe Fremau",
+   "categoria": "Master 45+ Masculino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_ricardo-furtado-silva",
+   "nome": "Ricardo Furtado Silva",
+   "categoria": "Master 45+ Masculino",
+   "unidade": "Moema"
+  },
+  {
+   "id": "at_rodrigao",
+   "nome": "Rodrigao",
+   "categoria": "Master 45+ Masculino",
+   "unidade": "Itaim"
+  },
+  {
+   "id": "at_titio",
+   "nome": "Titio",
+   "categoria": "Master 45+ Masculino",
+   "unidade": "Itaim"
+  },
+  {
+   "id": "at_bianca-gonzalez",
+   "nome": "Bianca Gonzalez",
+   "categoria": "Master 45+ Feminino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_karina-kobori",
+   "nome": "Karina Kobori",
+   "categoria": "Master 45+ Feminino",
+   "unidade": "Berrini"
+  },
+  {
+   "id": "at_maria-gabriela",
+   "nome": "Maria Gabriela",
+   "categoria": "Master 45+ Feminino",
+   "unidade": "Alphaville"
+  },
+  {
+   "id": "at_vivi-gitti",
+   "nome": "Vivi Gitti",
+   "categoria": "Master 45+ Feminino",
+   "unidade": "Pinheiros"
+  }
+ ]
+}
