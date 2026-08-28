@@ -95,7 +95,6 @@ org += '''<body>
 </div>
 
 <div class="container" id="telaPainel" style="display:none">
-  <div id="avisoVerif" class="aviso-verif" style="display:none"></div>
   <div class="resumo" id="resumo"></div>
 
   <div class="admin-tabs">
