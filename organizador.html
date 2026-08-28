@@ -146,7 +146,15 @@ header{
   display:flex;flex-wrap:wrap;gap:0.6rem;align-items:center;
   margin-bottom:1.2rem;
 }
-.cats{display:flex;flex-wrap:wrap;gap:0.4rem;flex:1;min-width:240px;}
+.seletor-cat{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.15rem;
+  letter-spacing:0.08em;
+  color:var(--gold);
+  border-color:var(--border);
+  padding:0.45rem 0.7rem;
+  min-width:230px;
+}
 .cat{
   background:transparent;
   border:1px solid var(--border-soft);
@@ -517,8 +525,9 @@ footer{
       <!-- ATLETAS -->
       <div class="apane" id="apAtletas">
         <div class="carga">
-          <div><b>Carga inicial</b> — importa de uma vez as categorias, as unidades e a lista
-          oficial de atletas do campeonato.</div>
+          <div><b>Carga inicial</b> — importa de uma vez os dados do evento (nome, data e local),
+          as categorias, as unidades e a lista oficial de atletas. Pode rodar mais de uma vez: os
+          atletas têm identificador fixo, então nada duplica e os resultados já lançados ficam.</div>
           <button class="btn-solid" style="margin-top:0.6rem" onclick="cargaInicial()">IMPORTAR LISTA OFICIAL</button>
           <div class="msg" id="cargaMsg"></div>
         </div>
@@ -646,8 +655,8 @@ const DOC = db.collection('campeonatos').doc('atual');
 const PADRAO = {
   nome: 'Blacksheep Invitational',
   sub: 'Campeonato interno de CrossFit',
-  data: '',
-  local: '',
+  data: 'Setembro 2026',
+  local: 'São Paulo',
   sistema: 'posicao',
   p1: 100,
   dec: 5,
@@ -1116,13 +1125,17 @@ async function cargaInicial() {
   const resultados = {};
   Object.keys(D.resultados || {}).forEach(aid => { if (ids[aid]) resultados[aid] = D.resultados[aid]; });
 
-  await salvar({
+  const patch = {
     categorias: d.categorias,
     unidades: d.unidades,
     atletas: d.atletas,
     resultados
-  }, 'cargaMsg', d.atletas.length + ' atletas, ' + d.categorias.length + ' categorias e ' +
-     d.unidades.length + ' unidades importados.');
+  };
+  // nome, subtitulo, data e local do evento
+  Object.keys(d.config || {}).forEach(k => { patch[k] = d.config[k]; });
+
+  await salvar(patch, 'cargaMsg', d.atletas.length + ' atletas, ' + d.categorias.length +
+     ' categorias e ' + d.unidades.length + ' unidades importados.');
 }
 
 function addAtleta() {
