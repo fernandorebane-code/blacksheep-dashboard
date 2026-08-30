@@ -28,12 +28,40 @@ def desenhar(tamanho):
            texto, font=f, fill=PRETO)
     return img
 
-def de_arquivo(caminho, tamanho):
-    img = Image.open(caminho).convert('RGBA')
-    img.thumbnail((tamanho, tamanho), Image.LANCZOS)
-    fundo = Image.new('RGBA', (tamanho, tamanho), (0, 0, 0, 0))
-    fundo.paste(img, ((tamanho - img.width) // 2, (tamanho - img.height) // 2), img)
-    return fundo
+def silhueta(caminho):
+    """Extrai a silhueta de uma arte clara sobre fundo escuro.
+
+    O logo da marca e feito de palavras: no tamanho de uma aba (16px) os vaos
+    entre letras viram ruido. Um fechamento morfologico funde as palavras numa
+    massa solida, que e o que se reconhece nesse tamanho.
+    """
+    from PIL import ImageFilter, ImageOps
+    img = Image.open(caminho).convert('L')
+    lado = max(img.size)
+    if lado > 1200:                       # normaliza para o fechamento ser previsivel
+        img = img.resize((int(img.width * 1200 / lado), int(img.height * 1200 / lado)), Image.LANCZOS)
+    bin_ = img.point(lambda v: 255 if v > 110 else 0)
+    fecha = max(3, int(min(img.size) * 0.022)) | 1     # impar, ~2% do lado menor
+    bin_ = bin_.filter(ImageFilter.MaxFilter(fecha))   # une as palavras
+    bin_ = bin_.filter(ImageFilter.MinFilter(fecha))   # devolve o contorno
+    caixa = bin_.getbbox()
+    return bin_.crop(caixa) if caixa else bin_
+
+
+def de_arquivo(caminho, tamanho, solida=True):
+    """Monta o icone: silhueta preta sobre o verde da marca."""
+    marca = silhueta(caminho) if solida else Image.open(caminho).convert('L')
+    margem = int(tamanho * 0.14)
+    alvo = tamanho - 2 * margem
+    esc = min(alvo / marca.width, alvo / marca.height)
+    marca = marca.resize((max(1, int(marca.width * esc)), max(1, int(marca.height * esc))), Image.LANCZOS)
+
+    img = Image.new('RGBA', (tamanho, tamanho), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle([0, 0, tamanho - 1, tamanho - 1], radius=int(6 * tamanho / 32), fill=VERDE)
+    preto = Image.new('RGBA', marca.size, PRETO + (255,))
+    img.paste(preto, ((tamanho - marca.width) // 2, (tamanho - marca.height) // 2), marca)
+    return img
 
 def datauri(img):
     buf = io.BytesIO()
