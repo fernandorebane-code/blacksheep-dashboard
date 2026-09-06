@@ -187,49 +187,6 @@ header{
 .field::placeholder{color:var(--gray);}
 select.field{cursor:pointer;}
 
-/* ---------- PODIUM ---------- */
-.podium{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:0.8rem;
-  margin-bottom:1.4rem;
-}
-.pod{
-  background:var(--surface);
-  border:1px solid var(--border-soft);
-  padding:1.1rem 1rem;
-  position:relative;
-  overflow:hidden;
-}
-.pod::before{
-  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--border-soft);
-}
-.pod.p1::before{background:var(--gold);}
-.pod.p2::before{background:var(--silver);}
-.pod.p3::before{background:var(--bronze);}
-.pod-rank{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:2.4rem;line-height:1;
-  color:var(--surface3);
-  position:absolute;right:0.8rem;top:0.5rem;
-}
-.pod.p1 .pod-rank{color:rgba(212,255,0,0.25);}
-.pod-pos{
-  font-size:0.6rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--gray);margin-bottom:0.35rem;
-}
-.pod.p1 .pod-pos{color:var(--gold);}
-.pod-name{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:1.5rem;letter-spacing:0.04em;line-height:1.05;
-  padding-right:2.2rem;
-}
-.pod-unit{font-size:0.68rem;color:var(--gray);margin-top:0.15rem;}
-.pod-pts{
-  font-family:'DM Mono',monospace;
-  font-size:1.05rem;color:var(--gold);margin-top:0.6rem;
-}
-.pod-pts small{color:var(--gray);font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;}
-
 /* ---------- TABLE ---------- */
 .table-wrap{
   border:1px solid var(--border-soft);
@@ -440,7 +397,6 @@ footer{
   header{padding:0 1rem;}
   .logo{font-size:1.05rem;}
   .container{padding:1rem;}
-  .podium{grid-template-columns:1fr;}
   .hero{padding:2rem 1rem 1.4rem;}
   .hero-meta{gap:1rem;}
   td.atleta{white-space:normal;min-width:140px;}
@@ -478,8 +434,6 @@ footer{
     <input class="field" id="busca" placeholder="Buscar atleta…" style="flex:1;min-width:150px" oninput="render()">
     <button class="btn-ghost" onclick="exportarCSV()">CSV</button>
   </div>
-
-  <div class="podium" id="podium"></div>
 
   <div class="table-wrap">
     <table id="tabela">
@@ -789,7 +743,6 @@ function render() {
   const cats = D.categorias.filter(c => D.atletas.some(a => a.categoria === c));
   if (!cats.length) {
     document.getElementById('seletorCat').innerHTML = '';
-    document.getElementById('podium').innerHTML = '';
     document.getElementById('thead').innerHTML = '';
     document.getElementById('tbody').innerHTML =
       '<tr><td class="empty-state">Nenhum atleta inscrito ainda.</td></tr>';
@@ -808,7 +761,6 @@ function render() {
   const busca = document.getElementById('busca').value.trim().toLowerCase();
   const vis = linhas.filter(l => !busca || l.atleta.nome.toLowerCase().includes(busca));
 
-  renderPodium(linhas, itens);
   renderTabela(vis, itens);
   renderLegenda(itens, linhas.length);
   renderWods();
@@ -829,20 +781,6 @@ function destacar(txt) {
 }
 
 function trocarCat(c) { catAtiva = c; render(); }
-
-function renderPodium(linhas, itens) {
-  const el = document.getElementById('podium');
-  const top = linhas.filter(l => l.pontuou).slice(0, 3);
-  if (!top.length || !itens.length) { el.innerHTML = ''; return; }
-  el.innerHTML = top.map((l, i) =>
-    '<div class="pod p' + (i + 1) + '" onclick="verAtleta(' + JSON.stringify(l.atleta.id).replace(/"/g, '&quot;') + ')">' +
-      '<div class="pod-rank">' + (i + 1) + '</div>' +
-      '<div class="pod-pos">' + ordinal(l.pos) + ' lugar</div>' +
-      '<div class="pod-name">' + esc(l.atleta.nome) + '</div>' +
-      '<div class="pod-unit">' + esc(l.atleta.unidade || '') + '</div>' +
-      '<div class="pod-pts">' + fmtPts(l.total) + ' <small>pts</small></div>' +
-    '</div>').join('');
-}
 
 function renderTabela(linhas, itens) {
   const thead = document.getElementById('thead');
