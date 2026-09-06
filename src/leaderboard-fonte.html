@@ -717,6 +717,17 @@ function fmtPts(n) {
 }
 function ordinal(n) { return n + 'º'; }
 
+// Aviso fixo no topo da tela: o retorno de um salvamento nao pode depender de
+// onde a pessoa esta com a rolagem.
+function avisar(tipo, texto, segundos) {
+  const el = document.getElementById('aviso');
+  if (!el) return;
+  el.className = 'aviso ' + tipo;
+  el.textContent = texto;
+  clearTimeout(avisar._t);
+  if (segundos) avisar._t = setTimeout(() => { el.className = 'aviso'; }, segundos * 1000);
+}
+
 /* ---------------- MODAIS ---------------- */
 function abrir(id) { document.getElementById(id).classList.add('open'); }
 function fechar(id) { document.getElementById(id).classList.remove('open'); }
@@ -874,7 +885,24 @@ function setLive(ok, txt) {
   document.getElementById('liveTxt').textContent = txt;
 }
 
+// Se o Firestore travar sem devolver erro, o loader giraria para sempre.
+// Passados 12s sem resposta, a pagina oferece uma saida — e continua esperando,
+// porque a resposta ainda pode chegar.
+let respondeu = false;
+const semResposta = setTimeout(() => {
+  if (respondeu) return;
+  const l = document.getElementById('loader');
+  if (l) l.innerHTML = 'O leaderboard está demorando para responder.' + botaoTentarDeNovo();
+}, 12000);
+
+function botaoTentarDeNovo() {
+  return '<br><button class="btn-solid" style="margin-top:1rem" onclick="location.reload()">' +
+         'TENTAR DE NOVO</button>';
+}
+
 DOC.onSnapshot(snap => {
+  respondeu = true;
+  clearTimeout(semResposta);
   D = normalizar(snap.exists ? snap.data() : null);
   setLive(true, snap.exists ? 'Ao vivo' : 'Sem dados');
   document.getElementById('loader').style.display = 'none';
@@ -883,11 +911,13 @@ DOC.onSnapshot(snap => {
   render();
 }, err => {
   console.error(err);
+  respondeu = true;
+  clearTimeout(semResposta);
   setLive(false, 'Offline');
   avisar('err', 'Não foi possível ler o campeonato (' + (err.code || 'sem código') + '). ' +
                 'Verifique as regras da coleção campeonatos no Firestore.');
   const l = document.getElementById('loader');
-  if (l) l.textContent = 'Não foi possível carregar o leaderboard.';
+  if (l) l.innerHTML = 'Não foi possível carregar o leaderboard.' + botaoTentarDeNovo();
 });
 
 /* ---------------- RENDER ---------------- */
@@ -1121,17 +1151,6 @@ function doLogout() { auth.signOut(); fechar('mPainel'); }
 function apTab(id) {
   document.querySelectorAll('.admin-tab').forEach(t => t.classList.toggle('active', t.dataset.ap === id));
   document.querySelectorAll('.apane').forEach(p => p.classList.toggle('active', p.id === id));
-}
-
-// Aviso fixo no topo da tela: o retorno de um salvamento nao pode depender de
-// onde a pessoa esta com a rolagem.
-function avisar(tipo, texto, segundos) {
-  const el = document.getElementById('aviso');
-  if (!el) return;
-  el.className = 'aviso ' + tipo;
-  el.textContent = texto;
-  clearTimeout(avisar._t);
-  if (segundos) avisar._t = setTimeout(() => { el.className = 'aviso'; }, segundos * 1000);
 }
 
 async function salvar(patch, msgId, texto) {

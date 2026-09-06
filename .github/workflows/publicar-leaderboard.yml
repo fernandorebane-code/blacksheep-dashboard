@@ -5,8 +5,9 @@
 # A fonte continua aqui: src/leaderboard-fonte.html gera publico/index.html.
 # A cada push na main que mexa nesse arquivo, ele e copiado para la.
 #
-# Precisa do segredo INVITATIONAL_TOKEN — um token com permissao de escrita em
-# blacksheep-invitational. Sem o segredo, o job avisa e sai sem falhar.
+# Precisa do segredo INVITATIONAL_TOKEN — uma credencial com permissao de escrita
+# em blacksheep-invitational. Sem ela o job FALHA, de proposito: uma copia que nao
+# acontece em silencio vira leaderboard desatualizado no ar sem ninguem perceber.
 
 name: Publicar leaderboard publico
 
@@ -20,24 +21,21 @@ jobs:
   publicar:
     runs-on: ubuntu-latest
     steps:
-      - name: Conferir o segredo
-        id: segredo
+      - name: Conferir a credencial
         env:
           TOKEN: ${{ secrets.INVITATIONAL_TOKEN }}
         run: |
           if [ -z "${TOKEN:-}" ]; then
-            echo "ausente=true" >> "$GITHUB_OUTPUT"
-            echo "::warning::Segredo INVITATIONAL_TOKEN nao configurado — copia pulada."
-          else
-            echo "ausente=false" >> "$GITHUB_OUTPUT"
+            echo "::error::Segredo INVITATIONAL_TOKEN ausente ou vazio. O leaderboard publico" \
+                 "NAO foi atualizado — invitational.bjjblacksheepfit.com segue com a versao anterior." \
+                 "Configure em Settings > Secrets and variables > Actions."
+            exit 1
           fi
 
       - name: Baixar este repositorio
-        if: steps.segredo.outputs.ausente == 'false'
         uses: actions/checkout@v4
 
       - name: Copiar para o blacksheep-invitational
-        if: steps.segredo.outputs.ausente == 'false'
         env:
           TOKEN: ${{ secrets.INVITATIONAL_TOKEN }}
         run: |
