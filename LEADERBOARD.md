@@ -124,14 +124,26 @@ salvar o Custom domain; não editar à mão.
 1. Mexer em `src/leaderboard-fonte.html`
 2. `python3 build-paginas.py`
 3. Commitar `organizador.html` e `publico/index.html` aqui
+4. Copiar `publico/index.html` por cima de `index.html` no `blacksheep-invitational`
+   e commitar lá — o `CNAME` daquele repositório, que sustenta o domínio e o
+   certificado, nunca é tocado.
 
-A cópia para o `blacksheep-invitational` é automática: a GitHub Action
-`.github/workflows/publicar-leaderboard.yml` roda a cada push na `main` que
-mexa em `publico/index.html` e copia só esse arquivo — o `CNAME` de lá, que
-sustenta o domínio e o certificado, nunca é tocado.
+O passo 4 é o único que sai deste repositório, e existem dois caminhos para ele.
 
-**Configuração, uma vez só.** A Action precisa do segredo `INVITATIONAL_TOKEN`,
-com permissão de escrita no `blacksheep-invitational`:
+**A pé, do jeito que está funcionando hoje.** Quem tem os dois repositórios em
+mão copia o arquivo e faz o push no `blacksheep-invitational`. O Pages reconstrói
+sozinho em menos de um minuto.
+
+**Automático, se alguém configurar o segredo.** A Action
+`.github/workflows/publicar-leaderboard.yml` roda a cada push na `main` que mexa
+em `publico/index.html`. Ela primeiro compara o arquivo com o que está no ar:
+
+- iguais → passa e não faz nada (é o caso quando a cópia já foi feita a pé);
+- diferentes e com o segredo `INVITATIONAL_TOKEN` → copia e publica;
+- diferentes e sem o segredo → **falha de propósito**, porque uma cópia que não
+  acontece em silêncio vira leaderboard desatualizado no ar sem ninguém perceber.
+
+Para criar o segredo, uma vez só:
 
 1. github.com/settings/personal-access-tokens → **Generate new token** (fine-grained)
 2. Repository access: **Only select repositories** → `blacksheep-invitational`
@@ -140,7 +152,8 @@ com permissão de escrita no `blacksheep-invitational`:
 5. No `blacksheep-dashboard`: Settings → Secrets and variables → Actions →
    **New repository secret**, nome `INVITATIONAL_TOKEN`, valor o token
 
-Sem o segredo a Action não falha: ela avisa e sai, e a cópia volta a ser manual.
+Um PAT expira e está preso a uma pessoa. Depois do evento, vale trocar por uma
+**deploy key** do `blacksheep-invitational`, que não expira nem depende de conta.
 
 ## Acesso e regras
 
