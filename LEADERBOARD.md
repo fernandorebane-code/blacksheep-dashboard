@@ -186,6 +186,34 @@ Um PAT expira e está preso a uma pessoa. Depois do evento, vale trocar por uma
 
 ## Acesso e regras
 
+### Login do organizador
+
+A tela em `organizador.html` pede **usuário e senha**, não e-mail. Quem lança os
+resultados é quem estiver de plantão na mesa, e essa pessoa não deve precisar da
+conta pessoal de ninguém.
+
+O Firebase Auth só trabalha com e-mail, então o que for digitado sem `@` vira
+`usuario@invitational.bjjblacksheepfit.com` (a constante `DOMINIO_ORGANIZADOR`
+na fonte). Um e-mail inteiro continua valendo — é assim que as contas do
+dashboard de gestão entram. O cabeçalho mostra só o usuário, sem o domínio.
+
+Esse domínio não precisa receber e-mail: é apenas o formato que o Firebase exige.
+
+**Criar a conta da mesa**, uma vez só:
+
+1. Firebase Console → Authentication → Users → **Add user**
+2. E-mail `organizador@invitational.bjjblacksheepfit.com`, e a senha que for usar
+3. Copiar o **UID** que aparece na lista
+4. Firestore → Rules → acrescentar esse UID à lista de UIDs autorizados
+
+O passo 4 é o que dá permissão de escrita. A outra via da regra — estar em
+`dashboard_users` — exige `email_verified`, e essa conta não tem e-mail de
+verdade para verificar; por isso ela entra pela lista de UIDs.
+
+Depois do evento, remover o UID da lista encerra o acesso sem mexer em mais nada.
+
+
+
 A regra de escrita em `campeonatos` autoriza por **UID em lista** ou por e-mail
 cadastrado em `dashboard_users` **com e-mail verificado**:
 

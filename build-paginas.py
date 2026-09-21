@@ -19,6 +19,21 @@ def bloco(ini, fim, texto=None):
     b = t.index(fim, a)
     return t[a:b]
 
+def troca(texto, velho, novo, quantas=1):
+    """str.replace que reclama quando nao acha o que procurava.
+
+    As substituicoes abaixo recortam trechos exatos da fonte. Um replace que nao
+    casa nao levanta erro: ele devolve o texto intacto e a pagina sai quebrada
+    sem aviso — foi assim que uma edicao no `pSub` deixou no organizador uma
+    referencia a `btnAdmin`, que so existe na pagina publica, e o login passou a
+    estourar em tempo de execucao. Entao aqui nao casar e erro de build."""
+    achadas = texto.count(velho)
+    if achadas != quantas:
+        raise SystemExit(
+            'build-paginas.py: esperava %d ocorrencia(s) e achei %d de:\n---\n%s\n---\n'
+            'A fonte mudou; ajuste esta substituicao.' % (quantas, achadas, velho[:300]))
+    return texto.replace(velho, novo)
+
 CABECA   = bloco('<!DOCTYPE html>', '<body>')
 HEAD_TAG = bloco('<header>', '<div class="hero">')
 HERO_ATE_FOOTER = bloco('<div class="hero">', '<!-- MODAL: login admin -->')
@@ -33,15 +48,15 @@ JS_RENDER = bloco('/* ---------------- RENDER ----', '/* =======================
 JS_ADMIN  = JS[JS.index('/* ============================================================\n   PAINEL DO ORGANIZADOR'):]
 
 # ---------------------------------------------------------------- PUBLICO
-pub = CABECA.replace('<title>Blacksheep Invitational — Leaderboard</title>',
+pub = troca(CABECA, '<title>Blacksheep Invitational — Leaderboard</title>',
                      '<title>Blacksheep Invitational — Leaderboard</title>')
 pub += '<body>\n'
-pub += HEAD_TAG.replace(
+pub += troca(HEAD_TAG, 
     '    <button class="btn-ghost" id="btnAdmin" onclick="abrirAdmin()">ADMIN</button>\n', '')
 pub += HERO_ATE_FOOTER
-pub += SDKS.replace('<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>\n', '')
+pub += troca(SDKS, '<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>\n', '')
 pub += '<script>\n'
-pub += JS_BASE.replace(
+pub += troca(JS_BASE, 
     'const auth = firebase.auth();\nauth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);\n', '')
 pub += JS_RENDER
 pub += '''
@@ -51,21 +66,21 @@ pub += '''
 </body>
 </html>
 '''
-pub = pub.replace("let isAdmin = false;     // usuário autorizado logado",
+pub = troca(pub, "let isAdmin = false;     // usuário autorizado logado",
                   "const isAdmin = false;   // esta pagina e somente leitura")
-pub = pub.replace("  if (isAdmin) preencherAdmin();\n", "")
+pub = troca(pub, "  if (isAdmin) preencherAdmin();\n", "")
 
 os.makedirs('publico', exist_ok=True)
 io.open('publico/index.html', 'w', encoding='utf-8').write(pub)
 
 # ------------------------------------------------------------ ORGANIZADOR
-org = CABECA.replace('<title>Blacksheep Invitational — Leaderboard</title>',
+org = troca(CABECA, '<title>Blacksheep Invitational — Leaderboard</title>',
                      '<title>Blacksheep Invitational — Organização</title>')
-org = org.replace('<meta name="description" content="Leaderboard oficial do campeonato interno de CrossFit da Blacksheep.">',
+org = troca(org, '<meta name="description" content="Leaderboard oficial do Blacksheep Invitational — Setembro 2026, São Paulo.">',
                   '<meta name="description" content="Painel de organização do Blacksheep Invitational.">')
-org = org.replace('<meta property="og:title" content="Blacksheep Invitational — Leaderboard">',
+org = troca(org, '<meta property="og:title" content="Blacksheep Invitational — Leaderboard">',
                   '<meta name="robots" content="noindex">')
-org = org.replace('<meta property="og:description" content="Ranking ao vivo do campeonato interno de CrossFit da Blacksheep.">', '')
+org = troca(org, '<meta property="og:description" content="Ranking ao vivo do Blacksheep Invitational — Setembro 2026, São Paulo.">', '')
 org += '''<body>
 
 <div id="aviso" class="aviso"></div>
@@ -84,9 +99,10 @@ org += '''<body>
 <div class="container" id="telaLogin" style="max-width:420px">
   <div class="painel-box">
     <h2 class="painel-titulo">ÁREA DO ORGANIZADOR</h2>
-    <div class="painel-sub">Use o mesmo login do dashboard de gestão.</div>
-    <label class="lbl">E-mail</label>
-    <input class="field" id="logEmail" style="width:100%;margin-bottom:0.7rem" type="email" autocomplete="username">
+    <div class="painel-sub">Usuário do evento, ou o e-mail do dashboard de gestão.</div>
+    <label class="lbl">Usuário</label>
+    <input class="field" id="logEmail" style="width:100%;margin-bottom:0.7rem" type="text"
+           autocomplete="username" autocapitalize="none" spellcheck="false">
     <label class="lbl">Senha</label>
     <input class="field" id="logSenha" style="width:100%" type="password" autocomplete="current-password">
     <div class="msg err" id="logMsg"></div>
@@ -130,7 +146,7 @@ org += JS_ADMIN
 org += '\n</script>\n</body>\n</html>\n'
 
 # ajustes de fluxo: sem modal de painel, as telas trocam direto
-org = org.replace("""function abrirAdmin() {
+org = troca(org, """function abrirAdmin() {
   if (isAdmin) { preencherAdmin(); abrir('mPainel'); }
   else abrir('mLogin');
 }""", """function mostrarPainel(logado) {
@@ -138,9 +154,9 @@ org = org.replace("""function abrirAdmin() {
   document.getElementById('telaPainel').style.display = logado ? 'block' : 'none';
   document.getElementById('btnSair').style.display = logado ? '' : 'none';
 }""")
-org = org.replace("""    isAdmin = true;
+org = troca(org, """    isAdmin = true;
     document.getElementById('btnAdmin').textContent = 'PAINEL';
-    document.getElementById('pSub').textContent = user.email;
+    document.getElementById('pSub').textContent = nomeDeExibicao(user.email);
     if (D) { preencherAdmin(); render(); }
   } else {
     if (user) { auth.signOut(); }
@@ -148,7 +164,7 @@ org = org.replace("""    isAdmin = true;
     document.getElementById('btnAdmin').textContent = 'ADMIN';
     if (D) render();
   }""", """    isAdmin = true;
-    document.getElementById('pSub').textContent = user.email;
+    document.getElementById('pSub').textContent = nomeDeExibicao(user.email);
     mostrarPainel(true);
     if (D) { preencherAdmin(); render(); }
   } else {
@@ -157,21 +173,21 @@ org = org.replace("""    isAdmin = true;
     document.getElementById('pSub').textContent = '';
     mostrarPainel(false);
   }""")
-org = org.replace("""    } else {
+org = troca(org, """    } else {
       fechar('mLogin');
       document.getElementById('logSenha').value = '';
       abrir('mPainel');
     }""", """    } else {
       document.getElementById('logSenha').value = '';
     }""")
-org = org.replace("function doLogout() { auth.signOut(); fechar('mPainel'); }",
+org = troca(org, "function doLogout() { auth.signOut(); fechar('mPainel'); }",
                   "function doLogout() { auth.signOut(); }")
-org = org.replace("""  document.getElementById('loader').style.display = 'none';
+org = troca(org, """  document.getElementById('loader').style.display = 'none';
   document.getElementById('app').style.display = 'block';
 """, "")
 
 # estilos proprios da pagina de organizacao
-org = org.replace('</style>', '''
+org = troca(org, '</style>', '''
 .painel-box{background:var(--surface);border:1px solid var(--border);padding:2rem 1.6rem;margin-top:3rem;}
 .painel-titulo{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:0.06em;}
 .painel-sub{font-size:0.72rem;color:var(--gray);margin:0.2rem 0 1.4rem;}

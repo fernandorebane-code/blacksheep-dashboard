@@ -466,6 +466,9 @@ footer{
 </div>
 
 <!-- MODAL: login admin -->
+<!-- Nao e emitido em nenhuma pagina: serve de marco de corte para o
+     build-paginas.py, que monta a tela de login do organizador por conta
+     propria. Mexer aqui no visual nao muda nada — o que vale esta la. -->
 <div class="modal-bg" id="mLogin" onclick="if(event.target===this)fechar('mLogin')">
   <div class="modal" style="max-width:380px">
     <div class="modal-head">
@@ -473,13 +476,14 @@ footer{
       <button class="modal-x" onclick="fechar('mLogin')">&times;</button>
     </div>
     <div class="modal-body">
-      <label class="lbl">E-mail</label>
-      <input class="field" id="logEmail" style="width:100%;margin-bottom:0.7rem" type="email" autocomplete="username">
+      <label class="lbl">Usuário</label>
+      <input class="field" id="logEmail" style="width:100%;margin-bottom:0.7rem" type="text"
+             autocomplete="username" autocapitalize="none" spellcheck="false">
       <label class="lbl">Senha</label>
       <input class="field" id="logSenha" style="width:100%" type="password" autocomplete="current-password">
       <div class="msg err" id="logMsg"></div>
       <button class="btn-solid" style="width:100%;margin-top:0.4rem" id="logBtn" onclick="doLogin()">ENTRAR</button>
-      <div class="hint">Use o mesmo login do dashboard de gestão.</div>
+      <div class="hint">Usuário do evento, ou o e-mail do dashboard de gestão.</div>
     </div>
   </div>
 </div>
@@ -1103,7 +1107,7 @@ auth.onAuthStateChanged(async user => {
   if (user && await autorizado(user.email)) {
     isAdmin = true;
     document.getElementById('btnAdmin').textContent = 'PAINEL';
-    document.getElementById('pSub').textContent = user.email;
+    document.getElementById('pSub').textContent = nomeDeExibicao(user.email);
     if (D) { preencherAdmin(); render(); }
   } else {
     if (user) { auth.signOut(); }
@@ -1113,6 +1117,26 @@ auth.onAuthStateChanged(async user => {
   }
 });
 
+// O acesso do organizador e por usuario, nao por e-mail: quem lanca os
+// resultados esta de plantao na mesa e nao deve precisar da conta pessoal de
+// ninguem. O Firebase Auth so trabalha com e-mail, entao um usuario digitado
+// sem "@" vira usuario@DOMINIO_ORGANIZADOR. Quem tem conta no dashboard de
+// gestao continua entrando com o e-mail inteiro.
+const DOMINIO_ORGANIZADOR = 'invitational.bjjblacksheepfit.com';
+
+function emailDoLogin(valor) {
+  const v = String(valor || '').trim().toLowerCase();
+  if (!v) return '';
+  return v.includes('@') ? v : v + '@' + DOMINIO_ORGANIZADOR;
+}
+
+// Como mostrar no cabecalho quem esta logado: o usuario do evento aparece so
+// pelo nome, sem o dominio inventado que o Firebase exige.
+function nomeDeExibicao(email) {
+  const e = String(email || '');
+  return e.endsWith('@' + DOMINIO_ORGANIZADOR) ? e.slice(0, -(DOMINIO_ORGANIZADOR.length + 1)) : e;
+}
+
 async function autorizado(email) {
   try {
     const d = await db.collection('dashboard_users').doc(String(email).toLowerCase()).get();
@@ -1121,17 +1145,17 @@ async function autorizado(email) {
 }
 
 async function doLogin() {
-  const email = document.getElementById('logEmail').value.trim();
+  const email = emailDoLogin(document.getElementById('logEmail').value);
   const senha = document.getElementById('logSenha').value;
   const msg = document.getElementById('logMsg');
   const btn = document.getElementById('logBtn');
-  if (!email || !senha) { msg.textContent = 'Preencha e-mail e senha.'; return; }
+  if (!email || !senha) { msg.textContent = 'Preencha usuário e senha.'; return; }
   btn.disabled = true; btn.textContent = 'ENTRANDO...'; msg.textContent = '';
   try {
     const cred = await auth.signInWithEmailAndPassword(email, senha);
     if (!(await autorizado(cred.user.email))) {
       await auth.signOut();
-      msg.textContent = 'Este e-mail não tem acesso de organizador.';
+      msg.textContent = 'Este usuário não tem acesso de organizador.';
     } else {
       fechar('mLogin');
       document.getElementById('logSenha').value = '';
@@ -1140,7 +1164,7 @@ async function doLogin() {
   } catch (e) {
     msg.textContent = (e.code === 'auth/too-many-requests')
       ? 'Muitas tentativas. Tente mais tarde.'
-      : 'E-mail ou senha incorretos.';
+      : 'Usuário ou senha incorretos.';
   }
   btn.disabled = false; btn.textContent = 'ENTRAR';
 }
