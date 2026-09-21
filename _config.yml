@@ -7,3 +7,7 @@ exclude:
   - publico
   - build-paginas.py
   - LEADERBOARD.md
+  - testes
+  # dados/ continua publicado: o organizador busca campeonato-inicial.json de la.
+  # So o script que gera esse arquivo fica de fora.
+  - dados/atualizar-atletas.py
