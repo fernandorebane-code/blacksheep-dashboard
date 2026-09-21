@@ -1,0 +1,183 @@
+// Smoke test do painel do organizador, cobrindo o caminho de uso real:
+// entrar, lancar resultados (inclusive WOD de duas partes), salvar, importar a
+// lista oficial e mexer na configuracao. Falha se o JS estourar em qualquer ponto.
+const { chromium } = require('playwright');
+// Caminho do Chromium. Vazio = deixa o Playwright achar o dele.
+const CHROME = process.env.CHROME_PATH || '';
+const fs = require('fs');
+const BASE = process.env.BASE || 'http://127.0.0.1:8931';
+const DADOS = JSON.parse(fs.readFileSync(require('path').resolve(__dirname, '..', 'dados', 'campeonato-inicial.json'), 'utf8'));
+
+const WODS = [
+  { id: 'w1', nome: 'WOD 1 — Remo + For Time', pub: true,
+    partes: [ { id: 'p1', nome: '1k remo', tipo: 'tempo' },
+              { id: 'p2', nome: 'For time', tipo: 'tempo' } ] },
+  { id: 'w2', nome: 'WOD 2 — Snatch', pub: true, tipo: 'carga' },
+];
+
+(async () => {
+  const nav = await chromium.launch(CHROME ? { executablePath: CHROME } : {});
+  const pag = await nav.newPage();
+  const erros = [];
+  pag.on('pageerror', e => erros.push('pageerror: ' + e));
+  pag.on('console', m => {
+    const t = m.text();
+    // o proxy desta sessao bloqueia o CDN de fontes; isso nao e bug da pagina
+    if (m.type() === 'error' && !/ERR_TUNNEL|ERR_CERT|fonts\.g/.test(t)) erros.push('console: ' + t);
+  });
+
+  await pag.addInitScript(({ dados, wods }) => {
+    window.__gravado = [];
+    let estado = {
+      ...dados.config, publicado: true,
+      categorias: dados.categorias, unidades: dados.unidades,
+      atletas: dados.atletas, wods, resultados: {},
+    };
+    let avisarSnap = null;
+    const doc = {
+      onSnapshot: (ok) => { avisarSnap = ok; ok({ exists: true, data: () => estado }); return () => {}; },
+      get: async () => ({ exists: true, data: () => ({ ativo: true }) }),
+      set: async (patch, opts) => {
+        window.__gravado.push({ patch, opts });
+        estado = { ...estado, ...patch };           // o Firestore devolveria isso no snapshot
+        avisarSnap && avisarSnap({ exists: true, data: () => estado });
+      },
+    };
+    window.firebase = {
+      initializeApp: () => {},
+      auth: () => ({
+        setPersistence: async () => {},
+        onAuthStateChanged: (cb) => { window.__authCb = cb; cb(null); },
+        signInWithEmailAndPassword: async (email) => {
+          const user = { email, uid: 'u1' };
+          window.__authCb(user); return { user };
+        },
+        signOut: async () => window.__authCb(null),
+      }),
+      firestore: () => ({ collection: () => ({ doc: () => doc }) }),
+    };
+    window.firebase.auth.Auth = { Persistence: { LOCAL: 'local' } };
+  }, { dados: DADOS, wods: WODS });
+
+  await pag.goto(BASE + '/organizador.html');
+  await pag.waitForTimeout(400);
+
+  const res = [];
+  const ok = (n, c, x = '') => { res.push([n, !!c, x]); };
+  const ultimo = () => pag.evaluate(() => window.__gravado[window.__gravado.length - 1]);
+  const limpar = () => pag.evaluate(() => { window.__gravado = []; });
+
+  ok('login aparece sem auth', await pag.isVisible('#telaLogin'));
+  await pag.fill('#logEmail', 'organizador');
+  await pag.fill('#logSenha', 'x');
+  await pag.click('#logBtn');
+  await pag.waitForTimeout(500);
+  ok('entrou', await pag.isVisible('#telaPainel'));
+
+  // ---------- ENVIO DOS RESULTADOS ----------
+  await pag.click('.admin-tab[data-ap="apResultados"]');
+  await pag.waitForTimeout(200);
+
+  const itens = await pag.$$eval('#rWod option', os => os.map(o => ({ v: o.value, t: o.textContent })));
+  ok('WOD de 2 partes vira 2 itens pontuados', itens.length === 3, JSON.stringify(itens.map(i => i.v)));
+
+  // parte A do WOD 1: tempo
+  await pag.selectOption('#rWod', 'w1::p1');
+  await pag.selectOption('#rCat', 'Elite Masculino');
+  await pag.waitForTimeout(250);
+  const campos = await pag.locator('#rGrid input').count();
+  ok('grade abre com os atletas da categoria', campos >= 4, `inputs=${campos}`);
+
+  await limpar();
+  const ids = await pag.$$eval('#rGrid input[data-f="v"]', es => es.map(e => e.dataset.at));
+  await pag.fill(`#rGrid input[data-f="v"][data-at="${ids[0]}"]`, '3:42');
+  await pag.fill(`#rGrid input[data-f="v"][data-at="${ids[1]}"]`, '3:58');
+  await pag.click('button:has-text("SALVAR RESULTADOS")');
+  await pag.waitForTimeout(400);
+  let g = await ultimo();
+  ok('salvou resultados da parte A', g && g.patch.resultados &&
+     g.patch.resultados[ids[0]]['w1::p1'].v === 222, JSON.stringify(g && g.patch.resultados[ids[0]]));
+  ok('3:42 virou 222 segundos', g && g.patch.resultados[ids[0]]['w1::p1'].v === 222);
+  ok('salvamento usa mergeFields', g && g.opts && Array.isArray(g.opts.mergeFields) &&
+     g.opts.mergeFields.includes('resultados'), JSON.stringify(g && g.opts));
+
+  // tempo invalido nao pode gravar
+  await limpar();
+  await pag.fill(`#rGrid input[data-f="v"][data-at="${ids[0]}"]`, 'nao é tempo');
+  await pag.click('button:has-text("SALVAR RESULTADOS")');
+  await pag.waitForTimeout(300);
+  const nGravou = await pag.evaluate(() => window.__gravado.length);
+  const msgInv = (await pag.textContent('#rMsg')).trim();
+  ok('tempo invalido bloqueia o salvamento', nGravou === 0, `gravou=${nGravou}`);
+  ok('e avisa qual campo', /inv[aá]lido/i.test(msgInv), msgInv);
+  await pag.fill(`#rGrid input[data-f="v"][data-at="${ids[0]}"]`, '3:42');
+
+  // parte B do mesmo WOD: pontuacao separada
+  await limpar();
+  await pag.selectOption('#rWod', 'w1::p2');
+  await pag.waitForTimeout(250);
+  const idsB = await pag.$$eval('#rGrid input[data-f="v"]', es => es.map(e => e.dataset.at));
+  await pag.fill(`#rGrid input[data-f="v"][data-at="${idsB[0]}"]`, '8:10');
+  await pag.click('button:has-text("SALVAR RESULTADOS")');
+  await pag.waitForTimeout(400);
+  g = await ultimo();
+  ok('parte B salva sem apagar a parte A',
+     g && g.patch.resultados[ids[0]]['w1::p1'] && g.patch.resultados[idsB[0]]['w1::p2'],
+     JSON.stringify(g && g.patch.resultados[ids[0]]));
+
+  // WOD de carga
+  await limpar();
+  await pag.selectOption('#rWod', 'w2');
+  await pag.waitForTimeout(250);
+  const idsC = await pag.$$eval('#rGrid input[data-f="v"]', es => es.map(e => e.dataset.at));
+  await pag.fill(`#rGrid input[data-f="v"][data-at="${idsC[0]}"]`, '85,5');
+  await pag.click('button:has-text("SALVAR RESULTADOS")');
+  await pag.waitForTimeout(400);
+  g = await ultimo();
+  ok('carga aceita virgula decimal', g && g.patch.resultados[idsC[0]].w2.v === 85.5,
+     JSON.stringify(g && g.patch.resultados[idsC[0]]));
+
+  // ---------- SUBIR A LISTA DOS ATLETAS ----------
+  await pag.click('.admin-tab[data-ap="apAtletas"]');
+  await pag.waitForTimeout(300);
+  const itensLista = await pag.locator('#atLista .list-item').count();
+  ok('lista mostra os 121', itensLista === 121, `itens=${itensLista}`);
+  ok('quem nao tem unidade aparece como "sem unidade"',
+     (await pag.textContent('#atLista')).includes('sem unidade'));
+
+  await limpar();
+  pag.once('dialog', d => d.accept());        // o confirm de substituicao
+  await pag.click('button:has-text("IMPORTAR LISTA OFICIAL")');
+  await pag.waitForTimeout(900);
+  g = await ultimo();
+  ok('carga inicial buscou e gravou', g && Array.isArray(g.patch.atletas), JSON.stringify(g && Object.keys(g.patch || {})));
+  ok('carga inicial subiu 121 atletas', g && g.patch.atletas.length === 121, `n=${g && g.patch.atletas && g.patch.atletas.length}`);
+  ok('carga inicial manda categorias e unidades', g && g.patch.categorias && g.patch.unidades);
+  const msgCarga = (await pag.textContent('#cargaMsg')).trim();
+  ok('carga avisa o que fez', /121/.test(msgCarga), msgCarga);
+
+  // ---------- CONFIGURACAO ----------
+  await pag.click('.admin-tab[data-ap="apConfig"]');
+  await pag.waitForTimeout(250);
+  ok('config vem preenchida', (await pag.inputValue('#cNome')) === 'Blacksheep Invitational',
+     await pag.inputValue('#cNome'));
+  await limpar();
+  await pag.fill('#cData', 'Setembro 2026');
+  await pag.fill('#cLocal', 'São Paulo');
+  await pag.click('button:has-text("SALVAR CONFIG")');
+  await pag.waitForTimeout(400);
+  g = await ultimo();
+  ok('config salva data e local', g && g.patch.data === 'Setembro 2026' && g.patch.local === 'São Paulo',
+     JSON.stringify(g && g.patch));
+
+  await pag.click('#btnSair');
+  await pag.waitForTimeout(400);
+  ok('sair volta ao login', await pag.isVisible('#telaLogin'));
+
+  let falhas = 0;
+  for (const [n, c, x] of res) { if (!c) falhas++; console.log(`${c ? 'ok    ' : 'FALHOU'} ${n}${x ? '  [' + x + ']' : ''}`); }
+  if (erros.length) { falhas++; console.log('\nERROS DE JS:'); [...new Set(erros)].forEach(e => console.log('  ' + e)); }
+  console.log(falhas ? `\n${falhas} FALHA(S)` : '\nTUDO PASSOU');
+  await nav.close();
+  process.exit(falhas ? 1 : 0);
+})();

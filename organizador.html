@@ -980,8 +980,9 @@ async function salvar(patch, msgId, texto) {
   } catch (e) {
     console.error(e);
     const msg = e.code === 'permission-denied'
-      ? 'Sem permissão para salvar. Este e-mail precisa estar cadastrado na coleção ' +
-        'dashboard_users do Firestore. Confira o cadastro e entre de novo.'
+      ? 'Sem permissão para salvar. Este usuário não está autorizado a escrever no ' +
+        'campeonato — o UID dele precisa estar na lista das regras do Firestore ' +
+        '(ver LEADERBOARD.md). Confira e entre de novo.'
       : 'Erro ao salvar (' + (e.code || 'sem código') + '): ' + (e.message || '');
     if (el) { el.className = 'msg err'; el.textContent = msg; }
     avisar('err', msg);

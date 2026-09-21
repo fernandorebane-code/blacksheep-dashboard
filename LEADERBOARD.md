@@ -133,6 +133,18 @@ aplicar: é ali que um erro apareceria. Um casamento errado troca a unidade de
 alguém; um casamento que falta só perde a unidade, que se preenche na tela do
 organizador.
 
+## Testes
+
+`testes/` tem dois smoke tests opcionais, para quem for mexer no código — o
+evento não depende deles. Eles abrem as páginas geradas num Chromium com o
+Firebase trocado por um dublê, então não tocam no Firestore nem precisam de
+login. Instruções em `testes/README.md`.
+
+`painel.js` cobre o caminho de uso real: entrar, lançar resultados (inclusive um
+WOD de duas partes pontuadas), salvar, importar a lista oficial e salvar a
+configuração. Existem porque o build monta as páginas recortando trechos da
+fonte: uma edição pode deixar o organizador quebrado sem que nada acuse.
+
 ## Como está publicado
 
 | Onde | Repositório | Servido por |
