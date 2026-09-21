@@ -104,6 +104,35 @@ match /campeonatos/{id} {
 Sem a permissão de leitura pública a página mostra "Não foi possível carregar o leaderboard".
 Enquanto as regras não forem ajustadas, o conteúdo continua visível para quem faz login como organizador.
 
+## Atualizar a lista de atletas
+
+A lista oficial vem da planilha de inscrição (uma categoria por coluna; a partir
+da linha `ATLETAS DESISTENTES`, quem saiu do campeonato).
+
+```
+python3 dados/atualizar-atletas.py ATLETAS_TOTAIS.xlsx            # só mostra o que mudaria
+python3 dados/atualizar-atletas.py ATLETAS_TOTAIS.xlsx --aplicar  # grava o JSON
+```
+
+Depois: commitar `dados/campeonato-inicial.json`, publicar, e clicar em
+**CARGA INICIAL** no organizador — é essa tela que leva a lista para o Firestore.
+A carga substitui a lista inteira e descarta os resultados de quem saiu; os de
+quem fica são preservados pelo `id`.
+
+A planilha não traz a unidade de cada atleta, e os nomes mudam de forma entre uma
+versão e outra — encurtam ("Heloisa Machado Agostini" vira "Heloisa Machado") e
+trocam de grafia (Thiago/Tiago, Victor/Vitor, Cesar/Cezar). Por isso o script não
+casa por igualdade: ele pontua cada par possível (nome igual, apelido entre
+parênteses, um nome sendo a versão curta do outro, semelhança fonética, sobrenome
+incomum na mesma categoria) e resolve do par mais parecido para o menos, para que
+um nome curto não roube o atleta de outro. Quem é reconhecido mantém **id** e
+**unidade**; quem não é entra como novo, sem unidade.
+
+Isso é heurística, então **conferir a seção `CASARAM POR APROXIMAÇÃO`** antes de
+aplicar: é ali que um erro apareceria. Um casamento errado troca a unidade de
+alguém; um casamento que falta só perde a unidade, que se preenche na tela do
+organizador.
+
 ## Como está publicado
 
 | Onde | Repositório | Servido por |
