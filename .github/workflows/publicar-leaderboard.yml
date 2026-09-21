@@ -3,10 +3,12 @@
 # A pagina publica mora no repositorio blacksheep-invitational (o GitHub Pages
 # aceita um dominio por repositorio, e este ja usa dashboard.bjjblacksheepfit.com).
 # A fonte continua aqui: src/leaderboard-fonte.html gera publico/index.html.
-# A cada push na main que mexa nesse arquivo, ele e copiado para la.
+# A cada push na main que mexa nesse arquivo, ele e comparado com o que esta no ar.
 #
-# Precisa do segredo INVITATIONAL_TOKEN — uma credencial com permissao de escrita
-# em blacksheep-invitational. Sem ela o job FALHA, de proposito: uma copia que nao
+# O job so precisa do segredo INVITATIONAL_TOKEN (credencial com escrita em
+# blacksheep-invitational) quando os dois arquivos divergem. Se ja estiverem
+# iguais — por exemplo porque alguem publicou direto la — ele passa e nao faz nada.
+# Se divergirem e nao houver credencial, ele FALHA de proposito: uma copia que nao
 # acontece em silencio vira leaderboard desatualizado no ar sem ninguem perceber.
 
 name: Publicar leaderboard publico
@@ -21,21 +23,41 @@ jobs:
   publicar:
     runs-on: ubuntu-latest
     steps:
+      - name: Baixar este repositorio
+        uses: actions/checkout@v4
+
+      - name: Comparar com o que esta publicado
+        id: comparar
+        run: |
+          set -euo pipefail
+          url=https://raw.githubusercontent.com/fernandorebane-code/blacksheep-invitational/main/index.html
+          if curl -fsSL --retry 3 "$url" -o publicado.html; then
+            if cmp -s publicado.html publico/index.html; then
+              echo "divergiu=nao" >> "$GITHUB_OUTPUT"
+              echo "O leaderboard publico ja esta igual a fonte. Nada a fazer."
+              exit 0
+            fi
+          else
+            echo "Nao consegui ler o index.html publicado; vou tratar como divergente."
+          fi
+          echo "divergiu=sim" >> "$GITHUB_OUTPUT"
+          echo "A pagina no ar esta diferente de publico/index.html."
+
       - name: Conferir a credencial
+        if: steps.comparar.outputs.divergiu == 'sim'
         env:
           TOKEN: ${{ secrets.INVITATIONAL_TOKEN }}
         run: |
           if [ -z "${TOKEN:-}" ]; then
             echo "::error::Segredo INVITATIONAL_TOKEN ausente ou vazio. O leaderboard publico" \
                  "NAO foi atualizado — invitational.bjjblacksheepfit.com segue com a versao anterior." \
-                 "Configure em Settings > Secrets and variables > Actions."
+                 "Configure em Settings > Secrets and variables > Actions, ou copie" \
+                 "publico/index.html para blacksheep-invitational/index.html na mao."
             exit 1
           fi
 
-      - name: Baixar este repositorio
-        uses: actions/checkout@v4
-
       - name: Copiar para o blacksheep-invitational
+        if: steps.comparar.outputs.divergiu == 'sim'
         env:
           TOKEN: ${{ secrets.INVITATIONAL_TOKEN }}
         run: |

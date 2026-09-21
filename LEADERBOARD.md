@@ -104,6 +104,35 @@ match /campeonatos/{id} {
 Sem a permissão de leitura pública a página mostra "Não foi possível carregar o leaderboard".
 Enquanto as regras não forem ajustadas, o conteúdo continua visível para quem faz login como organizador.
 
+## Atualizar a lista de atletas
+
+A lista oficial vem da planilha de inscrição (uma categoria por coluna; a partir
+da linha `ATLETAS DESISTENTES`, quem saiu do campeonato).
+
+```
+python3 dados/atualizar-atletas.py ATLETAS_TOTAIS.xlsx            # só mostra o que mudaria
+python3 dados/atualizar-atletas.py ATLETAS_TOTAIS.xlsx --aplicar  # grava o JSON
+```
+
+Depois: commitar `dados/campeonato-inicial.json`, publicar, e clicar em
+**CARGA INICIAL** no organizador — é essa tela que leva a lista para o Firestore.
+A carga substitui a lista inteira e descarta os resultados de quem saiu; os de
+quem fica são preservados pelo `id`.
+
+A planilha não traz a unidade de cada atleta, e os nomes mudam de forma entre uma
+versão e outra — encurtam ("Heloisa Machado Agostini" vira "Heloisa Machado") e
+trocam de grafia (Thiago/Tiago, Victor/Vitor, Cesar/Cezar). Por isso o script não
+casa por igualdade: ele pontua cada par possível (nome igual, apelido entre
+parênteses, um nome sendo a versão curta do outro, semelhança fonética, sobrenome
+incomum na mesma categoria) e resolve do par mais parecido para o menos, para que
+um nome curto não roube o atleta de outro. Quem é reconhecido mantém **id** e
+**unidade**; quem não é entra como novo, sem unidade.
+
+Isso é heurística, então **conferir a seção `CASARAM POR APROXIMAÇÃO`** antes de
+aplicar: é ali que um erro apareceria. Um casamento errado troca a unidade de
+alguém; um casamento que falta só perde a unidade, que se preenche na tela do
+organizador.
+
 ## Como está publicado
 
 | Onde | Repositório | Servido por |
@@ -124,14 +153,26 @@ salvar o Custom domain; não editar à mão.
 1. Mexer em `src/leaderboard-fonte.html`
 2. `python3 build-paginas.py`
 3. Commitar `organizador.html` e `publico/index.html` aqui
+4. Copiar `publico/index.html` por cima de `index.html` no `blacksheep-invitational`
+   e commitar lá — o `CNAME` daquele repositório, que sustenta o domínio e o
+   certificado, nunca é tocado.
 
-A cópia para o `blacksheep-invitational` é automática: a GitHub Action
-`.github/workflows/publicar-leaderboard.yml` roda a cada push na `main` que
-mexa em `publico/index.html` e copia só esse arquivo — o `CNAME` de lá, que
-sustenta o domínio e o certificado, nunca é tocado.
+O passo 4 é o único que sai deste repositório, e existem dois caminhos para ele.
 
-**Configuração, uma vez só.** A Action precisa do segredo `INVITATIONAL_TOKEN`,
-com permissão de escrita no `blacksheep-invitational`:
+**A pé, do jeito que está funcionando hoje.** Quem tem os dois repositórios em
+mão copia o arquivo e faz o push no `blacksheep-invitational`. O Pages reconstrói
+sozinho em menos de um minuto.
+
+**Automático, se alguém configurar o segredo.** A Action
+`.github/workflows/publicar-leaderboard.yml` roda a cada push na `main` que mexa
+em `publico/index.html`. Ela primeiro compara o arquivo com o que está no ar:
+
+- iguais → passa e não faz nada (é o caso quando a cópia já foi feita a pé);
+- diferentes e com o segredo `INVITATIONAL_TOKEN` → copia e publica;
+- diferentes e sem o segredo → **falha de propósito**, porque uma cópia que não
+  acontece em silêncio vira leaderboard desatualizado no ar sem ninguém perceber.
+
+Para criar o segredo, uma vez só:
 
 1. github.com/settings/personal-access-tokens → **Generate new token** (fine-grained)
 2. Repository access: **Only select repositories** → `blacksheep-invitational`
@@ -140,7 +181,8 @@ com permissão de escrita no `blacksheep-invitational`:
 5. No `blacksheep-dashboard`: Settings → Secrets and variables → Actions →
    **New repository secret**, nome `INVITATIONAL_TOKEN`, valor o token
 
-Sem o segredo a Action não falha: ela avisa e sai, e a cópia volta a ser manual.
+Um PAT expira e está preso a uma pessoa. Depois do evento, vale trocar por uma
+**deploy key** do `blacksheep-invitational`, que não expira nem depende de conta.
 
 ## Acesso e regras
 
