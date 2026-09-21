@@ -1,0 +1,4 @@
+# Cache do Python. dados/atualizar-atletas.py gera isso quando e importado
+# (rodado como script, nao gera) — nao entra no repositorio.
+__pycache__/
+*.py[cod]
