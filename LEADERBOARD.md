@@ -133,6 +133,19 @@ aplicar: é ali que um erro apareceria. Um casamento errado troca a unidade de
 alguém; um casamento que falta só perde a unidade, que se preenche na tela do
 organizador.
 
+## Editar um atleta
+
+Na aba ATLETAS, cada linha traz **nome, categoria e unidade** editáveis ali
+mesmo. Nada disso exige excluir e recadastrar — e não deve mesmo: o `id` do
+atleta é o que amarra os resultados já lançados, e `removerAtleta` apaga os
+resultados junto. Corrigir a grafia de um nome no meio do evento apagaria as
+notas da pessoa se a única saída fosse excluir.
+
+O `×` continua existindo para quem realmente saiu do campeonato, e avisa que os
+resultados vão junto.
+
+Nome em branco é recusado: sumiria da lista sem sumir do campeonato.
+
 ## Testes
 
 `testes/` tem dois smoke tests opcionais, para quem for mexer no código — o

@@ -1348,7 +1348,16 @@ function removerAtleta(id) {
 }
 
 function editarAtleta(id, campo, valor) {
-  const atletas = (D.atletas || []).map(a => a.id === id ? Object.assign({}, a, { [campo]: valor }) : a);
+  const v = campo === 'nome' ? String(valor).trim().replace(/\s+/g, ' ') : valor;
+  if (campo === 'nome' && !v) {
+    // um nome em branco sumiria da lista sem sumir do campeonato
+    avisar('err', 'O nome não pode ficar em branco.');
+    renderListaAtletas();
+    return;
+  }
+  const atual = (D.atletas || []).find(a => a.id === id);
+  if (atual && atual[campo] === v) return;   // nada mudou, nao grava a toa
+  const atletas = (D.atletas || []).map(a => a.id === id ? Object.assign({}, a, { [campo]: v }) : a);
   salvar({ atletas }, 'atMsg', 'Atualizado.');
 }
 
@@ -1357,12 +1366,21 @@ function renderListaAtletas() {
   const ordenados = (D.atletas || []).slice().sort((a, b) =>
     (a.categoria || '').localeCompare(b.categoria || '', 'pt-BR') || a.nome.localeCompare(b.nome, 'pt-BR'));
   if (!ordenados.length) { el.innerHTML = '<div class="hint">Nenhum atleta cadastrado.</div>'; return; }
+  const opcao = (v, atual) => '<option value="' + esc(v) + '"' +
+    (v === atual ? ' selected' : '') + '>' + esc(v || 'sem unidade') + '</option>';
   el.innerHTML = ordenados.map(a =>
     '<div class="list-item">' +
-      '<div class="grow"><div class="nm">' + esc(a.nome) + '</div>' +
-      '<div class="mt">' + esc(a.categoria || '') + ' · ' + esc(a.unidade || 'sem unidade') + '</div></div>' +
-      '<select class="field" style="font-size:0.68rem;padding:0.3rem" onchange="editarAtleta(' + jq(a.id) + ',\'categoria\',this.value)">' +
-        (D.categorias || []).map(c => '<option' + (c === a.categoria ? ' selected' : '') + '>' + esc(c) + '</option>').join('') +
+      '<div class="grow">' +
+        '<input class="nm-edit" value="' + esc(a.nome) + '" aria-label="Nome do atleta"' +
+          ' onchange="editarAtleta(' + jq(a.id) + ',\'nome\',this.value)">' +
+      '</div>' +
+      '<select class="field mini" aria-label="Categoria"' +
+        ' onchange="editarAtleta(' + jq(a.id) + ',\'categoria\',this.value)">' +
+        (D.categorias || []).map(c => opcao(c, a.categoria)).join('') +
+      '</select>' +
+      '<select class="field mini" aria-label="Unidade"' +
+        ' onchange="editarAtleta(' + jq(a.id) + ',\'unidade\',this.value)">' +
+        [''].concat(D.unidades || []).map(u => opcao(u, a.unidade || '')).join('') +
       '</select>' +
       '<button class="btn-danger" onclick="removerAtleta(' + jq(a.id) + ')">×</button>' +
     '</div>').join('');

@@ -188,6 +188,17 @@ org = troca(org, """  document.getElementById('loader').style.display = 'none';
 
 # estilos proprios da pagina de organizacao
 org = troca(org, '</style>', '''
+/* O nome do atleta e um campo, nao um rotulo: corrigir a grafia nao pode exigir
+   apagar e recadastrar, porque isso levaria junto os resultados ja lancados.
+   Parece texto ate o cursor chegar perto. So o organizador precisa disso. */
+.list-item .nm-edit{
+  font:inherit;font-size:0.82rem;color:var(--white);
+  background:transparent;border:1px solid transparent;
+  padding:0.15rem 0.3rem;width:100%;border-radius:2px;
+}
+.list-item .nm-edit:hover{border-color:var(--border-soft);}
+.list-item .nm-edit:focus{border-color:var(--gold);background:var(--surface);outline:none;}
+.list-item .mini{font-size:0.68rem;padding:0.3rem;}
 .painel-box{background:var(--surface);border:1px solid var(--border);padding:2rem 1.6rem;margin-top:3rem;}
 .painel-titulo{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:0.06em;}
 .painel-sub{font-size:0.72rem;color:var(--gray);margin:0.2rem 0 1.4rem;}

@@ -145,6 +145,48 @@ const WODS = [
   ok('quem nao tem unidade aparece como "sem unidade"',
      (await pag.textContent('#atLista')).includes('sem unidade'));
 
+  // editar nome, categoria e unidade na propria linha, sem excluir e recadastrar
+  await limpar();
+  const linha = pag.locator('#atLista .list-item').first();
+  const idAntes = await pag.evaluate(() => window.__D ? null : null);
+  const nomeAntes = await linha.locator('.nm-edit').inputValue();
+  await linha.locator('.nm-edit').fill(nomeAntes + ' Corrigido');
+  await linha.locator('.nm-edit').blur();
+  await pag.waitForTimeout(400);
+  g = await ultimo();
+  const editado = g && g.patch.atletas && g.patch.atletas.find(a => a.nome === nomeAntes + ' Corrigido');
+  ok('editar nome na linha grava', !!editado, JSON.stringify(editado));
+
+  // o id tem de sobreviver: e ele que amarra os resultados ja lancados
+  const idsDepois = g ? g.patch.atletas.map(a => a.id) : [];
+  ok('editar nome preserva o id (e os resultados)', editado && idsDepois.filter(i => i === editado.id).length === 1,
+     editado && editado.id);
+  ok('editar nome nao mexe na contagem', idsDepois.length === 121, `n=${idsDepois.length}`);
+
+  // nome em branco nao pode passar
+  await limpar();
+  await linha.locator('.nm-edit').fill('   ');
+  await linha.locator('.nm-edit').blur();
+  await pag.waitForTimeout(400);
+  ok('nome em branco nao grava', (await pag.evaluate(() => window.__gravado.length)) === 0);
+
+  // unidade: e assim que os 8 sem unidade vao ser preenchidos
+  await limpar();
+  const semUni = pag.locator('#atLista .list-item').filter({ has: pag.locator('select[aria-label="Unidade"] option[value=""][selected]') }).first();
+  const alvo = (await semUni.count()) ? semUni : linha;
+  await alvo.locator('select[aria-label="Unidade"]').selectOption('Moema');
+  await pag.waitForTimeout(400);
+  g = await ultimo();
+  ok('editar unidade na linha grava', g && g.patch.atletas && g.patch.atletas.some(a => a.unidade === 'Moema'));
+
+  // categoria continua editavel
+  await limpar();
+  await linha.locator('select[aria-label="Categoria"]').selectOption('Scaled Masculino');
+  await pag.waitForTimeout(400);
+  g = await ultimo();
+  ok('editar categoria na linha grava', g && g.patch.atletas &&
+     g.patch.atletas.some(a => a.categoria === 'Scaled Masculino'));
+
   await limpar();
   pag.once('dialog', d => d.accept());        // o confirm de substituicao
   await pag.click('button:has-text("IMPORTAR LISTA OFICIAL")');
