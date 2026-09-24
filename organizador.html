@@ -501,7 +501,18 @@ footer{
         <div class="hint">Cole vários de uma vez (um por linha, formato <b>Nome; Categoria; Unidade</b>) no campo abaixo.</div>
         <textarea class="field" id="atBulk" style="width:100%;margin-top:0.5rem" placeholder="João Silva; Elite Masculino; Moema&#10;Maria Souza; Scaled Feminino; Pinheiros"></textarea>
         <button class="btn-ghost" style="margin-top:0.4rem" onclick="importarAtletas()">IMPORTAR LISTA</button>
-        <div style="margin-top:1rem" id="atLista"></div>
+
+        <!-- Achar uma pessoa entre 121 para corrigir o nome ou a unidade dela.
+             Fica fora do #atLista de proposito: renderListaAtletas() reescreve
+             so a lista, entao o filtro sobrevive a cada gravacao. -->
+        <div class="form-row" style="margin-top:1.4rem">
+          <input class="field" id="fltNome" placeholder="Buscar por nome" oninput="renderListaAtletas()">
+          <select class="field" id="fltCat" onchange="renderListaAtletas()"></select>
+          <select class="field" id="fltUni" onchange="renderListaAtletas()"></select>
+          <button class="btn-ghost" onclick="limparFiltroAtletas()">LIMPAR</button>
+        </div>
+        <div class="hint" id="atConta"></div>
+        <div style="margin-top:0.6rem" id="atLista"></div>
       </div>
 
       <!-- PROVAS -->
@@ -1017,6 +1028,9 @@ function preencherAdmin() {
   // selects de atleta
   opcoes('atCat', D.categorias);
   opcoes('atUni', D.unidades);
+  // nos filtros a primeira opcao e "todas/todos": nao filtra nada
+  opcoesComTodos('fltCat', D.categorias, 'Todas as categorias');
+  opcoesComTodos('fltUni', (D.unidades || []).concat(['— sem unidade —']), 'Todas as unidades');
   opcoes('rCat', D.categorias);
   const selW = document.getElementById('rWod');
   const antW = selW.value;
@@ -1027,6 +1041,14 @@ function preencherAdmin() {
   renderListaAtletas();
   renderListaWods();
   renderGradeResultados();
+}
+
+function opcoesComTodos(id, arr, rotuloTodos) {
+  const s = document.getElementById(id);
+  const ant = s.value;
+  s.innerHTML = '<option value="">' + esc(rotuloTodos) + '</option>' +
+    (arr || []).map(v => '<option value="' + esc(v) + '">' + esc(v) + '</option>').join('');
+  if (ant && (arr || []).includes(ant)) s.value = ant;
 }
 
 function opcoes(id, arr) {
@@ -1161,11 +1183,51 @@ function editarAtleta(id, campo, valor) {
   salvar({ atletas }, 'atMsg', 'Atualizado.');
 }
 
+const SEM_UNIDADE = '— sem unidade —';
+
+function valorFiltro(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : '';
+}
+
+function limparFiltroAtletas() {
+  ['fltNome', 'fltCat', 'fltUni'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  renderListaAtletas();
+}
+
+// Sem acento e em minusculas, para "Joao" achar "João".
+function simples(t) {
+  return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+function atletasFiltrados() {
+  const nome = simples(valorFiltro('fltNome')).trim();
+  const cat = valorFiltro('fltCat');
+  const uni = valorFiltro('fltUni');
+  return (D.atletas || []).filter(a => {
+    if (cat && a.categoria !== cat) return false;
+    if (uni === SEM_UNIDADE) { if (a.unidade) return false; }
+    else if (uni && a.unidade !== uni) return false;
+    return !nome || simples(a.nome).includes(nome);
+  });
+}
+
 function renderListaAtletas() {
   const el = document.getElementById('atLista');
-  const ordenados = (D.atletas || []).slice().sort((a, b) =>
+  const conta = document.getElementById('atConta');
+  const total = (D.atletas || []).length;
+  const ordenados = atletasFiltrados().sort((a, b) =>
     (a.categoria || '').localeCompare(b.categoria || '', 'pt-BR') || a.nome.localeCompare(b.nome, 'pt-BR'));
-  if (!ordenados.length) { el.innerHTML = '<div class="hint">Nenhum atleta cadastrado.</div>'; return; }
+  if (conta) {
+    conta.textContent = !total ? ''
+      : ordenados.length === total ? total + ' atletas'
+      : 'mostrando ' + ordenados.length + ' de ' + total;
+  }
+  if (!total) { el.innerHTML = '<div class="hint">Nenhum atleta cadastrado.</div>'; return; }
+  if (!ordenados.length) { el.innerHTML = '<div class="hint">Nenhum atleta com esse filtro.</div>'; return; }
   const opcao = (v, atual) => '<option value="' + esc(v) + '"' +
     (v === atual ? ' selected' : '') + '>' + esc(v || 'sem unidade') + '</option>';
   el.innerHTML = ordenados.map(a =>

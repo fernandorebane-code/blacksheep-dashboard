@@ -145,6 +145,62 @@ const WODS = [
   ok('quem nao tem unidade aparece como "sem unidade"',
      (await pag.textContent('#atLista')).includes('sem unidade'));
 
+  // filtrar a lista: achar uma pessoa entre 121
+  const conta = () => pag.locator('#atLista .list-item').count();
+  ok('sem filtro mostra todos', (await conta()) === 121);
+  ok('contador mostra o total', (await pag.textContent('#atConta')).includes('121'));
+
+  await pag.selectOption('#fltCat', 'Elite Masculino');
+  await pag.waitForTimeout(200);
+  ok('filtro por categoria', (await conta()) === 4, `n=${await conta()}`);
+  ok('contador diz quantos de quantos', /mostrando 4 de 121/.test(await pag.textContent('#atConta')),
+     (await pag.textContent('#atConta')).trim());
+
+  await pag.selectOption('#fltCat', '');
+  await pag.selectOption('#fltUni', 'Moema');
+  await pag.waitForTimeout(200);
+  const nMoema = await conta();
+  ok('filtro por unidade', nMoema > 0 && nMoema < 121, `n=${nMoema}`);
+
+  await pag.selectOption('#fltUni', '— sem unidade —');
+  await pag.waitForTimeout(200);
+  ok('filtro pega os 8 sem unidade', (await conta()) === 8, `n=${await conta()}`);
+
+  await pag.selectOption('#fltUni', '');
+  await pag.fill('#fltNome', 'joao');
+  await pag.waitForTimeout(200);
+  const achados = await pag.locator('#atLista .nm-edit').evaluateAll(es => es.map(e => e.value));
+  ok('busca sem acento acha com acento', achados.some(n => /João/.test(n)), JSON.stringify(achados));
+
+  // categoria + nome ao mesmo tempo
+  await pag.fill('#fltNome', 'a');
+  await pag.selectOption('#fltCat', 'Scaled Feminino');
+  await pag.waitForTimeout(200);
+  const cats = await pag.locator('#atLista .list-item select[aria-label="Categoria"]').evaluateAll(
+    es => [...new Set(es.map(e => e.value))]);
+  ok('filtros se combinam', cats.length === 1 && cats[0] === 'Scaled Feminino', JSON.stringify(cats));
+
+  await pag.fill('#fltNome', 'zzzzz');
+  await pag.waitForTimeout(200);
+  ok('filtro sem resultado avisa', /Nenhum atleta com esse filtro/.test(await pag.textContent('#atLista')));
+
+  await pag.click('button:has-text("LIMPAR")');
+  await pag.waitForTimeout(200);
+  ok('limpar volta a lista inteira', (await conta()) === 121, `n=${await conta()}`);
+
+  // o uso real: filtrar para achar alguem, editar, e a lista re-renderiza.
+  // se o filtro se perdesse a cada gravacao, ele nao serviria para nada.
+  await pag.selectOption('#fltUni', '— sem unidade —');
+  await pag.waitForTimeout(200);
+  const primeiro = pag.locator('#atLista .list-item').first();
+  await primeiro.locator('select[aria-label="Unidade"]').selectOption('Itaim');
+  await pag.waitForTimeout(500);
+  ok('filtro sobrevive a gravacao', (await pag.inputValue('#fltUni')) === '— sem unidade —',
+     await pag.inputValue('#fltUni'));
+  ok('quem ganhou unidade sai do filtro na hora', (await conta()) === 7, `n=${await conta()}`);
+  await pag.click('button:has-text("LIMPAR")');
+  await pag.waitForTimeout(200);
+
   // editar nome, categoria e unidade na propria linha, sem excluir e recadastrar
   await limpar();
   const linha = pag.locator('#atLista .list-item').first();
