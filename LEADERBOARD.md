@@ -146,6 +146,15 @@ resultados vão junto.
 
 Nome em branco é recusado: sumiria da lista sem sumir do campeonato.
 
+Acima da lista há filtro por **nome, categoria e unidade** — com 121 atletas,
+achar uma pessoa para corrigir era rolagem pura. A busca por nome ignora
+acentos (`joao` acha `João`). A unidade tem a opção **— sem unidade —**, que é
+como se acha quem entrou pela planilha sem unidade definida.
+
+Os controles ficam fora do `#atLista` de propósito: `renderListaAtletas()`
+reescreve só a lista, então o filtro sobrevive a cada gravação — sem isso ele
+se perderia no exato momento em que serve para algo.
+
 ## Testes
 
 `testes/` tem dois smoke tests opcionais, para quem for mexer no código — o
