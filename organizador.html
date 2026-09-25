@@ -399,7 +399,52 @@ footer{
   .container{padding:1rem;}
   .hero{padding:2rem 1rem 1.4rem;}
   .hero-meta{gap:1rem;}
-  td.atleta{white-space:normal;min-width:140px;}
+
+  /* A tabela tem min-width 640px e as bordas sao sticky: num telefone de 380px
+     as colunas das provas ficavam escondidas ATRAS da coluna do total, e o
+     espectador via so nome e total, sem nada indicando que dava para arrastar.
+     Aqui cada linha vira um cartao: posicao, nome e total em cima, e as provas
+     como fichas embaixo. Sem rolagem lateral. */
+  .table-wrap{overflow-x:visible;border:none;background:transparent;}
+  table{min-width:0;}
+  thead{display:none;}
+  tbody tr{
+    display:grid;
+    /* 12 colunas para as fichas sairem do mesmo tamanho: sem isso elas herdam
+       as larguras da primeira linha e ficam uma larga e duas estreitas */
+    grid-template-columns:repeat(12,1fr);
+    gap:0.45rem 0.4rem;
+    align-items:center;
+    padding:0.75rem 0.8rem;
+    margin-bottom:0.5rem;
+    background:var(--surface);
+    border:1px solid var(--border-soft);
+  }
+  tbody tr.top1{border-color:var(--gold);}
+  tbody td{padding:0;border:none;white-space:normal;background:transparent;}
+  .sticky-col,td.total{position:static;background:transparent;border-left:none;}
+  td.pos{grid-column:1 / 3;grid-row:1;font-size:1.3rem;}
+  td.atleta{grid-column:3 / 10;grid-row:1;min-width:0;}
+  td.total{grid-column:10 / 13;grid-row:1;font-size:1.3rem;text-align:right;}
+  /* tres fichas por linha, a partir da segunda linha da grade */
+  td.wod{
+    grid-column:span 4;
+    background:var(--surface2);
+    border:1px solid var(--border-soft);
+    padding:0.3rem 0.2rem;
+    line-height:1.25;
+  }
+  td.wod::before{
+    content:attr(data-col);
+    display:block;
+    font-size:0.54rem;
+    letter-spacing:0.1em;
+    color:var(--gray);
+    font-family:'DM Sans',sans-serif;
+  }
+  td.wod b{font-size:0.78rem;}
+  #wodBloco summary{cursor:pointer;}
+  .wod-grid{grid-template-columns:1fr;}
 }
 
 /* O nome do atleta e um campo, nao um rotulo: corrigir a grafia nao pode exigir
