@@ -377,6 +377,8 @@ textarea.field{min-height:80px;resize:vertical;line-height:1.5;}
   padding:0.35rem 0.45rem;font-family:'DM Mono',monospace;font-size:0.78rem;outline:none;text-align:center;
 }
 .score-grid input:focus{border-color:var(--gold);}
+.score-grid td.atl{font-size:0.82rem;}
+.score-grid td.atl .unit{display:block;font-size:0.68rem;color:var(--gray);}
 .score-grid select{
   background:var(--surface2);border:1px solid var(--border-soft);color:var(--white);
   padding:0.35rem;font-size:0.7rem;outline:none;
@@ -394,21 +396,92 @@ footer{
 #loader{padding:4rem 1.5rem;text-align:center;color:var(--gray);font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase;}
 
 @media (max-width:700px){
-  header{padding:0 1rem;}
+  /* O cabecalho tem altura fixa de 60px e nao quebra linha: no organizador, o
+     link VER LEADERBOARD mais o usuario mais o SAIR empurravam a pagina para
+     600px de largura numa tela de 390px. Aqui ele cresce em vez de vazar. */
+  header{padding:0.5rem 0.8rem;height:auto;flex-wrap:wrap;gap:0.4rem 0.5rem;}
+  .header-right{flex-wrap:wrap;gap:0.4rem;min-width:0;}
+  /* o cabecalho do organizador comia 250px dos 844px da tela antes de qualquer
+     conteudo; aqui ele fica numa faixa so */
+  .header-right .btn-ghost{padding:0.4rem 0.55rem;font-size:0.66rem;min-height:36px;}
+  .live-badge{font-size:0.6rem;}
   .logo{font-size:1.05rem;}
   .container{padding:1rem;}
   .hero{padding:2rem 1rem 1.4rem;}
   .hero-meta{gap:1rem;}
+
+  /* Alvo de toque: o minimo confortavel com o dedo e ~40px de altura. Os
+     controles vinham entre 27px e 34px. */
+  .field,.btn-ghost,.btn-solid,.btn-danger,.admin-tab,select.field{
+    min-height:40px;
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+  textarea.field{min-height:76px;display:block;}
+  .toolbar .field,.toolbar .btn-ghost{flex:1 1 auto;}
+  .seletor-cat{flex:1 1 100%;font-size:1.25rem;}
+  summary.section-title{min-height:44px;display:flex;align-items:center;}
+
+  /* Piso de tamanho de fonte: havia dezenas de trechos abaixo de 10px, que num
+     telefone viram borrao. */
+  .live-badge,.resumo-rot,label.lbl,.hint,.unit,footer,
+  td.wod .pl,.brk-name small,.wod-tag{font-size:0.7rem;}
+  #tabela td.wod::before{font-size:0.62rem;}
+  .btn-ghost,.btn-solid,.btn-danger,.admin-tab{font-size:0.72rem;}
+
+  /* Formularios empilham em vez de espremer tres campos na mesma linha. */
+  .form-row{gap:0.5rem;}
+  .form-row > *{flex:1 1 100%;min-width:0;}
+
+  /* Modais ocupam a tela inteira: com 1rem de margem sobrava pouco. */
+  .modal-bg{padding:0;align-items:flex-start;}
+  .modal{max-width:none;max-height:100vh;min-height:100vh;border:none;}
+  .modal-head,.modal-body,.modal-foot{padding-left:1rem;padding-right:1rem;}
+  .modal-x{min-width:44px;min-height:44px;font-size:1.8rem;}
+
+  /* Linha de lista (atletas e provas): sao ate seis controles na mesma linha e
+     eles empurravam a pagina para 472px. Agora o nome ocupa a primeira linha e
+     os controles quebram embaixo. */
+  .list-item{flex-wrap:wrap;gap:0.4rem;}
+  .list-item .grow{flex:1 1 100%;}
+  .list-item > select,.list-item > button,.list-item > label{flex:1 1 auto;min-height:40px;}
+  .list-item .btn-danger{flex:0 0 3rem;}
+  .list-item .toggle{justify-content:center;}
+
+  /* Lancamento de resultados: o campo de digitar a nota era o menor alvo da
+     tela, justo o que mais se toca durante o evento. */
+  .score-grid input{min-height:40px;width:68px;font-size:0.9rem;}
+  .score-grid select{min-height:40px;}
+  /* sem min-width a grade cabe na tela; o nome corta com reticencias em vez de
+     quebrar em varias linhas e esticar a linha inteira */
+  .score-grid{overflow-x:visible;}
+  /* table-layout:fixed e o que faz a coluna do nome ficar com a sobra; sem isso
+     o max-width do corte colapsa a coluna e so aparece a primeira letra */
+  .score-grid table{min-width:0;width:100%;table-layout:fixed;}
+  .score-grid th.num,.score-grid td.num{width:78px;}
+  .score-grid td.atl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .score-grid td.atl .unit{overflow:hidden;text-overflow:ellipsis;}
+  .score-grid td,.score-grid th{padding:0.5rem 0.4rem;}
+  /* os rotulos das colunas cabem em duas linhas em vez de se sobreporem */
+  .score-grid th{font-size:0.64rem;white-space:normal;line-height:1.2;}
+
+  /* O nome do atleta e editavel na propria linha; com 22px de altura era dificil
+     acertar. O checkbox tambem cresce, embora o rotulo inteiro ja seja clicavel. */
+  .list-item .nm-edit{min-height:40px;font-size:0.9rem;}
+  .toggle input{width:22px;height:22px;}
 
   /* A tabela tem min-width 640px e as bordas sao sticky: num telefone de 380px
      as colunas das provas ficavam escondidas ATRAS da coluna do total, e o
      espectador via so nome e total, sem nada indicando que dava para arrastar.
      Aqui cada linha vira um cartao: posicao, nome e total em cima, e as provas
      como fichas embaixo. Sem rolagem lateral. */
+  /* Tudo daqui e SO da tabela do leaderboard (#tabela). Sem o prefixo, o
+     display:none do thead e o layout de cartao caiam tambem na grade de
+     lancamento do organizador, que perdia os cabecalhos "Tempo (mm:ss)" e
+     "Reps (cap)" — justo o que diz em qual campo digitar o que. */
   .table-wrap{overflow-x:visible;border:none;background:transparent;}
-  table{min-width:0;}
-  thead{display:none;}
-  tbody tr{
+  #tabela{min-width:0;}
+  #tabela thead{display:none;}
+  #tabela tbody tr{
     display:grid;
     /* 12 colunas para as fichas sairem do mesmo tamanho: sem isso elas herdam
        as larguras da primeira linha e ficam uma larga e duas estreitas */
@@ -420,14 +493,14 @@ footer{
     background:var(--surface);
     border:1px solid var(--border-soft);
   }
-  tbody tr.top1{border-color:var(--gold);}
-  tbody td{padding:0;border:none;white-space:normal;background:transparent;}
-  .sticky-col,td.total{position:static;background:transparent;border-left:none;}
-  td.pos{grid-column:1 / 3;grid-row:1;font-size:1.3rem;}
-  td.atleta{grid-column:3 / 10;grid-row:1;min-width:0;}
-  td.total{grid-column:10 / 13;grid-row:1;font-size:1.3rem;text-align:right;}
+  #tabela tbody tr.top1{border-color:var(--gold);}
+  #tabela tbody td{padding:0;border:none;white-space:normal;background:transparent;}
+  #tabela .sticky-col,#tabela td.total{position:static;background:transparent;border-left:none;}
+  #tabela td.pos{grid-column:1 / 3;grid-row:1;font-size:1.3rem;}
+  #tabela td.atleta{grid-column:3 / 10;grid-row:1;min-width:0;}
+  #tabela td.total{grid-column:10 / 13;grid-row:1;font-size:1.3rem;text-align:right;}
   /* tres fichas por linha, a partir da segunda linha da grade */
-  td.wod{
+  #tabela td.wod{
     grid-column:span 4;
     background:var(--surface2);
     border:1px solid var(--border-soft);
@@ -442,7 +515,7 @@ footer{
     color:var(--gray);
     font-family:'DM Sans',sans-serif;
   }
-  td.wod b{font-size:0.78rem;}
+  #tabela td.wod b{font-size:0.78rem;}
   #wodBloco summary{cursor:pointer;}
   .wod-grid{grid-template-columns:1fr;}
 }
@@ -1776,14 +1849,17 @@ function renderGradeResultados() {
   if (!atletas.length) { grid.innerHTML = '<div class="empty-state">Nenhum atleta nesta categoria.</div>'; return; }
 
   const ehTempo = wod.tipo === 'tempo';
-  grid.innerHTML = '<table><thead><tr><th>Atleta</th><th>Unidade</th>' +
+  // A unidade vai embaixo do nome, e nao numa coluna propria: numa tela estreita
+  // as duas colunas de texto espremiam o nome ate ele quebrar em cinco linhas.
+  grid.innerHTML = '<table><thead><tr><th>Atleta</th>' +
     '<th class="num">' + (ehTempo ? 'Tempo (mm:ss)' : 'Resultado') + '</th>' +
     (ehTempo ? '<th class="num">Reps (cap)</th>' : '') +
     '</tr></thead><tbody>' +
     atletas.map(a => {
       const r = (D.resultados[a.id] || {})[wod.id] || {};
       const valor = r.v == null ? '' : (ehTempo ? fmtTempo(r.v) : r.v);
-      return '<tr><td>' + esc(a.nome) + '</td><td style="color:var(--gray);font-size:0.72rem">' + esc(a.unidade || '') + '</td>' +
+      return '<tr><td class="atl" title="' + esc(a.nome) + '">' + esc(a.nome) +
+        (a.unidade ? '<span class="unit">' + esc(a.unidade) + '</span>' : '') + '</td>' +
         '<td class="num"><input data-at="' + esc(a.id) + '" data-f="v" value="' + esc(valor) + '" placeholder="' + (ehTempo ? '8:42' : '--') + '"></td>' +
         (ehTempo ? '<td class="num"><input data-at="' + esc(a.id) + '" data-f="cap" value="' + (r.cap == null ? '' : r.cap) + '" placeholder="--"></td>' : '') +
         '</tr>';

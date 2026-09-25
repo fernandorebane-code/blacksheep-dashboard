@@ -12,9 +12,21 @@ python3 -m http.server 8931 &   # painel.js precisa de HTTP: cargaInicial() faz 
 node testes/login.js
 node testes/painel.js
 node testes/provas.js
+node testes/celular.js
+```
+
+Os três primeiros aceitam `LARGURA` para rodar numa janela estreita:
+
+```
+LARGURA=390 node testes/painel.js
 ```
 
 `login.js` cobre o mapeamento usuário → e-mail e as mensagens de erro.
+`celular.js` percorre os 11 estados das duas páginas numa tela de 390px e falha
+se algo vazar para fora da tela, se um alvo de toque ficar abaixo de 36px ou se
+algum texto visível ficar abaixo de 10px. Só roda abaixo de 700px — acima disso
+vale o desenho de desktop. Existe porque esses defeitos não aparecem em teste de
+comportamento: a página funciona, só que ilegível.
 `provas.js` cobre a prova por categoria no leaderboard público. `painel.js` cobre o caminho de uso real: entrar, lançar resultados (inclusive um
 WOD de duas partes pontuadas), salvar, importar a lista oficial e salvar a
 configuração — e falha se o JS estourar em qualquer ponto.

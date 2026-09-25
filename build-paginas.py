@@ -206,7 +206,25 @@ org = troca(org, '</style>', '''
 .resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0.7rem;margin-bottom:1.6rem;}
 .resumo-item{background:var(--surface);border:1px solid var(--border-soft);padding:0.8rem 1rem;}
 .resumo-rot{font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--gray);}
-.resumo-val{font-family:'DM Mono',monospace;font-size:1rem;margin-top:0.3rem;}
+.resumo-val{font-family:'DM Mono',monospace;font-size:1rem;margin-top:0.3rem;
+  overflow-wrap:anywhere;line-height:1.3;}
+
+@media (max-width:700px){
+  /* O painel e operado no celular durante o evento, entao vale o mesmo cuidado
+     da pagina publica: nada vazando para fora da tela e alvo de toque grande. */
+  .painel-box{padding:1.3rem 1rem;margin-top:1.5rem;}
+  .resumo{grid-template-columns:repeat(2,1fr);gap:0.5rem;}
+  .resumo-item{padding:0.7rem 0.8rem;}
+  .resumo-rot{font-size:0.66rem;}
+  /* o nome do campeonato vazava do card */
+  .resumo-val{font-size:0.86rem;}
+  .user-email{font-size:0.72rem;max-width:11rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  /* o link para o leaderboard vira so o essencial */
+  .header-right .btn-ghost{padding:0.45rem 0.6rem;}
+  #telaLogin{max-width:none;}
+  /* o campo de nome do atleta no celular */
+  .list-item .nm-edit{min-height:40px;}
+}
 </style>''')
 
 io.open('organizador.html', 'w', encoding='utf-8').write(org)
