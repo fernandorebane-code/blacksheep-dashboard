@@ -133,6 +133,22 @@ aplicar: é ali que um erro apareceria. Um casamento errado troca a unidade de
 alguém; um casamento que falta só perde a unidade, que se preenche na tela do
 organizador.
 
+## O leaderboard no celular
+
+A tabela tem `min-width:640px`, e as colunas das pontas são `position:sticky`.
+Num telefone de 380px isso escondia as colunas das provas **atrás** da coluna do
+total: o espectador via posição, nome e total, e nada indicava que dava para
+arrastar de lado. Na prática, a classificação parecia não ter as notas.
+
+Abaixo de 700px cada linha vira um cartão: posição, nome e total em cima, e as
+provas como fichas embaixo, três por linha. Sem rolagem lateral. A grade é de 12
+colunas porque as fichas herdariam as larguras da primeira linha e sairiam
+desiguais.
+
+O bloco PROVAS é um `<details>` que começa recolhido no celular — a descrição da
+prova não é o que o espectador veio ver, e aberta ela empurrava a classificação
+para fora da tela.
+
 ## Cadastrar as provas
 
 Cada prova tem **dono**: ao adicionar, escolhe-se o **nível** (Elite, RX,
