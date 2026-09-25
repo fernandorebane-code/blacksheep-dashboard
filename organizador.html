@@ -471,7 +471,7 @@ footer{
           </div>
           <div>
             <label class="lbl">Categoria</label>
-            <select class="field" id="rCat" style="width:100%" onchange="renderGradeResultados()"></select>
+            <select class="field" id="rCat" style="width:100%" onchange="trocarCatResultados()"></select>
           </div>
         </div>
         <div class="hint" id="rHint"></div>
@@ -519,6 +519,12 @@ footer{
       <div class="apane" id="apWods">
         <div class="form-row">
           <input class="field" id="wNome" placeholder="Nome da prova (ex: WOD 1 — Fran)">
+          <select class="field" id="wNivel" title="Quem faz esta prova"></select>
+          <select class="field" id="wGenero" title="Masculino, feminino ou os dois">
+            <option value="">Masc e fem</option>
+            <option value="Masculino">Só masculino</option>
+            <option value="Feminino">Só feminino</option>
+          </select>
           <select class="field" id="wTipo">
             <option value="tempo">Tempo (menor vence)</option>
             <option value="reps">Repetições (maior vence)</option>
@@ -776,6 +782,50 @@ function abrevWod(w) {
 
 // Cada prova pontua uma vez; se tiver partes (ex: buy-in de 1k de remo e depois
 // o for time), cada parte vira um item pontuado proprio dentro da mesma prova.
+// A quem a prova pertence. A lista guarda categorias inteiras ("Elite Masculino"),
+// mas o cadastro pergunta nivel + genero, que e como a prova e pensada: masculino
+// e feminino fazem a mesma coisa mudando a carga, e a carga vai no texto.
+// Vazia ou ausente = a prova vale para todo mundo, que e como as provas antigas
+// (cadastradas antes disto existir) continuam funcionando.
+function categoriasDaProva(w) {
+  const c = w && w.categorias;
+  return (Array.isArray(c) && c.length) ? c : null;
+}
+function provaValePara(w, categoria) {
+  const c = categoriasDaProva(w);
+  return !c || !categoria || c.indexOf(categoria) !== -1;
+}
+
+// "Elite Masculino" -> "Elite". Masculino e feminino compartilham a programacao.
+function nivelDe(categoria) {
+  return String(categoria || '').replace(/\s+(Masculino|Feminino)$/i, '').trim();
+}
+function niveis() {
+  const fora = [];
+  (D.categorias || []).forEach(c => {
+    const n = nivelDe(c);
+    if (n && fora.indexOf(n) === -1) fora.push(n);
+  });
+  return fora;
+}
+// nivel + genero -> as categorias de verdade. Genero vazio = os dois.
+function categoriasDe(nivel, genero) {
+  return (D.categorias || []).filter(c =>
+    (!nivel || nivelDe(c) === nivel) &&
+    (!genero || new RegExp('\\s' + genero + '$', 'i').test(c)));
+}
+// o caminho de volta, para a lista mostrar "Elite · masculino e feminino"
+function escopoDaProva(w) {
+  const c = categoriasDaProva(w);
+  if (!c) return 'todas as categorias';
+  const ns = [];
+  c.forEach(x => { const n = nivelDe(x); if (ns.indexOf(n) === -1) ns.push(n); });
+  const temM = c.some(x => /Masculino$/i.test(x));
+  const temF = c.some(x => /Feminino$/i.test(x));
+  const g = (temM && temF) ? 'masculino e feminino' : temM ? 'masculino' : temF ? 'feminino' : '';
+  return ns.join(', ') + (g ? ' · ' + g : '');
+}
+
 function itensDe(w) {
   if (!w.partes || !w.partes.length) {
     return [{ id: w.id, nome: w.nome, curto: abrevWod(w), tipo: w.tipo, wod: w }];
@@ -790,13 +840,17 @@ function itensDe(w) {
   }));
 }
 
-function itensPontuados() {
-  return wodsValidos().reduce((acc, w) => acc.concat(itensDe(w)), []);
+// Sem categoria: todas as provas (o painel usa assim para listar tudo).
+// Com categoria: so as provas daquela categoria.
+function itensPontuados(categoria) {
+  return wodsValidos()
+    .filter(w => provaValePara(w, categoria))
+    .reduce((acc, w) => acc.concat(itensDe(w)), []);
 }
 
 function calcularRanking(categoria) {
   const atletas = (D.atletas || []).filter(a => a.categoria === categoria);
-  const itens = itensPontuados();
+  const itens = itensPontuados(categoria);
   const porProva = {};
   itens.forEach(w => { porProva[w.id] = rankearProva(w, atletas); });
 
@@ -1029,14 +1083,13 @@ function preencherAdmin() {
   opcoes('atCat', D.categorias);
   opcoes('atUni', D.unidades);
   // nos filtros a primeira opcao e "todas/todos": nao filtra nada
+  opcoesComTodos('wNivel', niveis(), 'Todas as categorias');
   opcoesComTodos('fltCat', D.categorias, 'Todas as categorias');
   opcoesComTodos('fltUni', (D.unidades || []).concat(['— sem unidade —']), 'Todas as unidades');
   opcoes('rCat', D.categorias);
-  const selW = document.getElementById('rWod');
-  const antW = selW.value;
-  const itens = itensPontuados();
-  selW.innerHTML = itens.map(w => '<option value="' + esc(w.id) + '">' + esc(w.nome) + '</option>').join('');
-  if (itens.some(w => w.id === antW)) selW.value = antW;
+  // o select de provas segue a categoria: quem lanca resultado do Scaled nao deve
+  // ver as provas que so o Elite faz
+  preencherProvasDaCategoria();
 
   renderListaAtletas();
   renderListaWods();
@@ -1255,11 +1308,21 @@ function addWod() {
   const nome = document.getElementById('wNome').value.trim();
   const msg = document.getElementById('wMsg');
   if (!nome) { msg.className = 'msg err'; msg.textContent = 'Informe o nome da prova.'; return; }
+  const nivel = document.getElementById('wNivel').value;
+  const genero = document.getElementById('wGenero').value;
+  const cats = categoriasDe(nivel, genero);
+  if (nivel && !cats.length) {
+    msg.className = 'msg err';
+    msg.textContent = 'Nenhuma categoria bate com essa combinação.';
+    return;
+  }
   const novo = {
     id: uid('w'),
     nome,
     tipo: document.getElementById('wTipo').value,
     desc: document.getElementById('wDesc').value.trim(),
+    // sem nivel escolhido a prova vale para todo mundo, e a lista fica vazia
+    categorias: nivel ? cats : [],
     ordem: (D.wods || []).length + 1,
     pub: true
   };
@@ -1296,6 +1359,34 @@ function moverWod(id, delta) {
   salvar({ wods: wods.map((w, k) => Object.assign({}, w, { ordem: k + 1 })) }, 'wMsg', 'Ordem atualizada.');
 }
 
+// Cada opcao carrega "nivel|genero"; vazio = todas as categorias.
+function opcoesEscopo(w) {
+  const atual = categoriasDaProva(w);
+  const alvo = !atual ? '' : (function () {
+    const n = nivelDe(atual[0]);
+    const temM = atual.some(x => /Masculino$/i.test(x));
+    const temF = atual.some(x => /Feminino$/i.test(x));
+    return n + '|' + (temM && temF ? '' : temM ? 'Masculino' : 'Feminino');
+  })();
+  let fora = '<option value=""' + (alvo === '' ? ' selected' : '') + '>Todas as categorias</option>';
+  niveis().forEach(n => {
+    [['', 'masc e fem'], ['Masculino', 'só masc'], ['Feminino', 'só fem']].forEach(g => {
+      const v = n + '|' + g[0];
+      fora += '<option value="' + esc(v) + '"' + (v === alvo ? ' selected' : '') + '>' +
+              esc(n + ' · ' + g[1]) + '</option>';
+    });
+  });
+  return fora;
+}
+
+function mudarEscopoWod(id, valor) {
+  const partes = String(valor).split('|');
+  const cats = valor ? categoriasDe(partes[0], partes[1] || '') : [];
+  if (valor && !cats.length) { avisar('err', 'Nenhuma categoria bate com essa combinação.'); return; }
+  const wods = (D.wods || []).map(w => w.id === id ? Object.assign({}, w, { categorias: cats }) : w);
+  salvar({ wods }, 'wMsg', 'Prova atualizada.');
+}
+
 function renderListaWods() {
   const el = document.getElementById('wLista');
   const wods = (D.wods || []).slice().sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
@@ -1308,7 +1399,12 @@ function renderListaWods() {
         (w.partes && w.partes.length
           ? w.partes.map((pt, k) => LETRAS[k] + ' ' + esc(pt.nome) + ' (' + esc(TIPOS[pt.tipo] || pt.tipo) + ')').join(' · ')
           : esc(TIPOS[w.tipo] || w.tipo)) +
+        ' · ' + esc(escopoDaProva(w)) +
         (w.pub === false ? ' · oculta' : '') + '</div></div>' +
+      '<select class="field mini" aria-label="Quem faz esta prova"' +
+        ' onchange="mudarEscopoWod(' + jq(w.id) + ',this.value)">' +
+        opcoesEscopo(w) +
+      '</select>' +
       '<button class="btn-ghost" onclick="abrirPartes(' + jq(w.id) + ')">PARTES</button>' +
       '<label class="toggle"><input type="checkbox"' + (w.pub !== false ? ' checked' : '') +
         ' onchange="togglePubWod(' + jq(w.id) + ',this.checked)"> pub</label>' +
@@ -1379,13 +1475,36 @@ function salvarPartes() {
 }
 
 /* ---------------- LANÇAMENTO DE RESULTADOS ---------------- */
+function preencherProvasDaCategoria() {
+  const selW = document.getElementById('rWod');
+  if (!selW) return;
+  const antW = selW.value;
+  const itens = itensPontuados(document.getElementById('rCat').value);
+  selW.innerHTML = itens.length
+    ? itens.map(w => '<option value="' + esc(w.id) + '">' + esc(w.nome) + '</option>').join('')
+    : '<option value="">— nenhuma prova para esta categoria —</option>';
+  if (itens.some(w => w.id === antW)) selW.value = antW;
+}
+
+// trocar de categoria refaz a lista de provas antes de montar a grade
+function trocarCatResultados() {
+  preencherProvasDaCategoria();
+  renderGradeResultados();
+}
+
 function renderGradeResultados() {
   const grid = document.getElementById('rGrid');
   const hint = document.getElementById('rHint');
   const wid = document.getElementById('rWod').value;
   const cat = document.getElementById('rCat').value;
-  const wod = itensPontuados().find(w => w.id === wid);
-  if (!wod) { grid.innerHTML = '<div class="empty-state">Cadastre uma prova primeiro.</div>'; hint.textContent = ''; return; }
+  const wod = itensPontuados(cat).find(w => w.id === wid);
+  if (!wod) {
+    grid.innerHTML = '<div class="empty-state">' +
+      (itensPontuados().length ? 'Nenhuma prova cadastrada para esta categoria.'
+                               : 'Cadastre uma prova primeiro.') + '</div>';
+    hint.textContent = '';
+    return;
+  }
 
   const dicas = {
     tempo: 'Digite o tempo como <b>mm:ss</b> (ex: 8:42). Quem não finalizou: deixe o tempo vazio e informe as <b>reps</b> feitas até o cap.',
@@ -1416,7 +1535,7 @@ function renderGradeResultados() {
 
 function salvarResultados() {
   const wid = document.getElementById('rWod').value;
-  const wod = itensPontuados().find(w => w.id === wid);
+  const wod = itensPontuados(document.getElementById('rCat').value).find(w => w.id === wid);
   const msg = document.getElementById('rMsg');
   if (!wod) return;
   const ehTempo = wod.tipo === 'tempo';

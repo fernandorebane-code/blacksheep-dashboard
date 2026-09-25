@@ -638,6 +638,50 @@ function abrevWod(w) {
 
 // Cada prova pontua uma vez; se tiver partes (ex: buy-in de 1k de remo e depois
 // o for time), cada parte vira um item pontuado proprio dentro da mesma prova.
+// A quem a prova pertence. A lista guarda categorias inteiras ("Elite Masculino"),
+// mas o cadastro pergunta nivel + genero, que e como a prova e pensada: masculino
+// e feminino fazem a mesma coisa mudando a carga, e a carga vai no texto.
+// Vazia ou ausente = a prova vale para todo mundo, que e como as provas antigas
+// (cadastradas antes disto existir) continuam funcionando.
+function categoriasDaProva(w) {
+  const c = w && w.categorias;
+  return (Array.isArray(c) && c.length) ? c : null;
+}
+function provaValePara(w, categoria) {
+  const c = categoriasDaProva(w);
+  return !c || !categoria || c.indexOf(categoria) !== -1;
+}
+
+// "Elite Masculino" -> "Elite". Masculino e feminino compartilham a programacao.
+function nivelDe(categoria) {
+  return String(categoria || '').replace(/\s+(Masculino|Feminino)$/i, '').trim();
+}
+function niveis() {
+  const fora = [];
+  (D.categorias || []).forEach(c => {
+    const n = nivelDe(c);
+    if (n && fora.indexOf(n) === -1) fora.push(n);
+  });
+  return fora;
+}
+// nivel + genero -> as categorias de verdade. Genero vazio = os dois.
+function categoriasDe(nivel, genero) {
+  return (D.categorias || []).filter(c =>
+    (!nivel || nivelDe(c) === nivel) &&
+    (!genero || new RegExp('\\s' + genero + '$', 'i').test(c)));
+}
+// o caminho de volta, para a lista mostrar "Elite · masculino e feminino"
+function escopoDaProva(w) {
+  const c = categoriasDaProva(w);
+  if (!c) return 'todas as categorias';
+  const ns = [];
+  c.forEach(x => { const n = nivelDe(x); if (ns.indexOf(n) === -1) ns.push(n); });
+  const temM = c.some(x => /Masculino$/i.test(x));
+  const temF = c.some(x => /Feminino$/i.test(x));
+  const g = (temM && temF) ? 'masculino e feminino' : temM ? 'masculino' : temF ? 'feminino' : '';
+  return ns.join(', ') + (g ? ' · ' + g : '');
+}
+
 function itensDe(w) {
   if (!w.partes || !w.partes.length) {
     return [{ id: w.id, nome: w.nome, curto: abrevWod(w), tipo: w.tipo, wod: w }];
@@ -652,13 +696,17 @@ function itensDe(w) {
   }));
 }
 
-function itensPontuados() {
-  return wodsValidos().reduce((acc, w) => acc.concat(itensDe(w)), []);
+// Sem categoria: todas as provas (o painel usa assim para listar tudo).
+// Com categoria: so as provas daquela categoria.
+function itensPontuados(categoria) {
+  return wodsValidos()
+    .filter(w => provaValePara(w, categoria))
+    .reduce((acc, w) => acc.concat(itensDe(w)), []);
 }
 
 function calcularRanking(categoria) {
   const atletas = (D.atletas || []).filter(a => a.categoria === categoria);
-  const itens = itensPontuados();
+  const itens = itensPontuados(categoria);
   const porProva = {};
   itens.forEach(w => { porProva[w.id] = rankearProva(w, atletas); });
 
@@ -861,7 +909,7 @@ function renderLegenda(itens, totalAtletas) {
 }
 
 function renderWods() {
-  const wods = wodsValidos();
+  const wods = wodsValidos().filter(w => provaValePara(w, catAtiva));
   const grid = document.getElementById('wodGrid');
   document.getElementById('wodTitle').style.display = wods.length ? 'block' : 'none';
   const TIPOS = { tempo: 'Menor tempo', reps: 'Mais repetições', carga: 'Maior carga', pontos: 'Mais pontos' };
