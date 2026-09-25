@@ -675,8 +675,9 @@ footer{
       <div class="apane" id="apAtletas">
         <div class="carga">
           <div><b>Carga inicial</b> — importa de uma vez os dados do evento (nome, data e local),
-          as categorias, as unidades e a lista oficial de atletas. Pode rodar mais de uma vez: os
-          atletas têm identificador fixo, então nada duplica e os resultados já lançados ficam.</div>
+          as categorias, as unidades, a lista oficial de atletas e, quando o arquivo trouxer,
+          as provas. Pode rodar mais de uma vez: atletas e provas têm identificador fixo,
+          então nada duplica e os resultados já lançados ficam.</div>
           <button class="btn-solid" style="margin-top:0.6rem" onclick="cargaInicial()">IMPORTAR LISTA OFICIAL</button>
           <div class="msg" id="cargaMsg"></div>
         </div>
@@ -1466,8 +1467,10 @@ function salvarConfig() {
 }
 
 /* ---------------- ATLETAS ---------------- */
-// Carga inicial: le a lista oficial gerada da planilha de inscricao e grava
-// categorias, unidades e atletas de uma vez. Roda com o login do organizador.
+// Carga inicial: le o arquivo oficial e grava categorias, unidades, atletas e —
+// quando o arquivo trouxer — as provas, de uma vez so. Roda com o login do
+// organizador. E por aqui que uma lista de provas montada fora do painel entra
+// no campeonato sem ninguem digitar prova por prova.
 async function cargaInicial() {
   const msg = document.getElementById('cargaMsg');
   msg.className = 'msg'; msg.textContent = 'Carregando a lista…';
@@ -1485,17 +1488,43 @@ async function cargaInicial() {
     msg.className = 'msg err'; msg.textContent = 'A lista oficial está vazia.'; return;
   }
 
+  // As provas sao opcionais no arquivo: quem so quer atualizar a lista de atletas
+  // nao precisa mexer nelas, e o que ja estiver cadastrado fica como esta.
+  const temProvas = Array.isArray(d.wods) && d.wods.length;
+
   const atuais = (D.atletas || []).length;
-  if (atuais && !confirm('Isso substitui os ' + atuais + ' atleta(s) já cadastrados. ' +
-      'Resultados lançados para atletas que saírem da lista serão descartados. Continuar?')) {
+  const provasAtuais = (D.wods || []).length;
+  const avisos = [];
+  if (atuais) avisos.push('os ' + atuais + ' atleta(s) já cadastrados');
+  if (temProvas && provasAtuais) avisos.push('as ' + provasAtuais + ' prova(s) já cadastradas');
+  if (avisos.length && !confirm('Isso substitui ' + avisos.join(' e ') + '. ' +
+      'Resultados de atletas ou provas que saírem da lista serão descartados. Continuar?')) {
     msg.textContent = ''; return;
   }
 
-  // preserva os resultados de quem continua na lista
-  const ids = {};
-  d.atletas.forEach(a => { ids[a.id] = true; });
+  // Preserva os resultados de quem continua na lista — por atleta e por prova.
+  // Sem a poda por prova, trocar as provas deixaria no Firestore resultados
+  // apontando para ids que nao existem mais.
+  const temAtleta = {};
+  d.atletas.forEach(a => { temAtleta[a.id] = true; });
+  let temItem = null;
+  if (temProvas) {
+    temItem = {};
+    d.wods.forEach(w => {
+      if (w.partes && w.partes.length) w.partes.forEach(pt => { temItem[w.id + '::' + pt.id] = true; });
+      else temItem[w.id] = true;
+    });
+  }
   const resultados = {};
-  Object.keys(D.resultados || {}).forEach(aid => { if (ids[aid]) resultados[aid] = D.resultados[aid]; });
+  Object.keys(D.resultados || {}).forEach(aid => {
+    if (!temAtleta[aid]) return;
+    if (!temItem) { resultados[aid] = D.resultados[aid]; return; }
+    const guardar = {};
+    Object.keys(D.resultados[aid] || {}).forEach(iid => {
+      if (temItem[iid]) guardar[iid] = D.resultados[aid][iid];
+    });
+    resultados[aid] = guardar;
+  });
 
   const patch = {
     categorias: d.categorias,
@@ -1503,11 +1532,13 @@ async function cargaInicial() {
     atletas: d.atletas,
     resultados
   };
+  if (temProvas) patch.wods = d.wods;
   // nome, subtitulo, data e local do evento
   Object.keys(d.config || {}).forEach(k => { patch[k] = d.config[k]; });
 
   await salvar(patch, 'cargaMsg', d.atletas.length + ' atletas, ' + d.categorias.length +
-     ' categorias e ' + d.unidades.length + ' unidades importados.');
+     ' categorias, ' + d.unidades.length + ' unidades' +
+     (temProvas ? ' e ' + d.wods.length + ' provas' : '') + ' importados.');
 }
 
 function addAtleta() {
@@ -1692,13 +1723,24 @@ function moverWod(id, delta) {
 // Cada opcao carrega "nivel|genero"; vazio = todas as categorias.
 function opcoesEscopo(w) {
   const atual = categoriasDaProva(w);
-  const alvo = !atual ? '' : (function () {
-    const n = nivelDe(atual[0]);
+  const ns = [];
+  (atual || []).forEach(c => { const n = nivelDe(c); if (ns.indexOf(n) === -1) ns.push(n); });
+
+  // Uma prova pode valer para mais de um nivel — Intermediario e Master fazem a
+  // mesma. Nenhuma opcao nivel+genero representa isso, e deixar o seletor
+  // marcando so o primeiro nivel esconderia o resto: quem encostasse nele
+  // tiraria o Master da prova sem perceber. Entao esse caso ganha uma opcao
+  // propria, que descreve o que esta valendo.
+  const varios = ns.length > 1;
+  const alvo = !atual ? '' : varios ? '__varios__' : (function () {
     const temM = atual.some(x => /Masculino$/i.test(x));
     const temF = atual.some(x => /Feminino$/i.test(x));
-    return n + '|' + (temM && temF ? '' : temM ? 'Masculino' : 'Feminino');
+    return ns[0] + '|' + (temM && temF ? '' : temM ? 'Masculino' : 'Feminino');
   })();
-  let fora = '<option value=""' + (alvo === '' ? ' selected' : '') + '>Todas as categorias</option>';
+
+  let fora = '';
+  if (varios) fora += '<option value="__varios__" selected>' + esc(escopoDaProva(w)) + '</option>';
+  fora += '<option value=""' + (alvo === '' ? ' selected' : '') + '>Todas as categorias</option>';
   niveis().forEach(n => {
     [['', 'masc e fem'], ['Masculino', 'só masc'], ['Feminino', 'só fem']].forEach(g => {
       const v = n + '|' + g[0];
@@ -1710,6 +1752,7 @@ function opcoesEscopo(w) {
 }
 
 function mudarEscopoWod(id, valor) {
+  if (valor === '__varios__') return;   // e o rotulo do escopo atual, nao uma escolha
   const partes = String(valor).split('|');
   const cats = valor ? categoriasDe(partes[0], partes[1] || '') : [];
   if (valor && !cats.length) { avisar('err', 'Nenhuma categoria bate com essa combinação.'); return; }
