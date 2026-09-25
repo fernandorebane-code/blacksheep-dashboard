@@ -209,8 +209,13 @@ repetições faltaram**, e o resultado aparece como o tempo do cap mais as reps:
 cap de 15′ com 10 faltando vira **15:10**. Entre os que estouraram, ganha quem
 faltou menos; todos eles entram depois de quem finalizou.
 
-O cap é propriedade da prova (`cap`, em segundos) e aparece no cadastro. Prova
-por tempo sem cap cadastrado mostra só `+N reps`, sem inventar um tempo.
+O cap é propriedade da prova (`cap`, em segundos), mas **se define na tela de
+lançamento**, não no cadastro da prova: quem lança o resultado é quem sabe qual
+foi o cap, e é olhando para aquela tela que ele precisa dele. O campo só aparece
+quando a prova escolhida é por tempo, e grava na prova — ou na parte dela, quando
+a prova tem partes.
+
+Prova por tempo sem cap definido mostra só `+N reps`, sem inventar um tempo.
 
 Quando o cap tem segundos quebrados (3′30″, por exemplo), o resultado sai como
 `3:30 +10` em vez de `3:30:10`, para os segundos não se confundirem com a
