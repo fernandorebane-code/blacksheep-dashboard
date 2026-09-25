@@ -6,8 +6,12 @@ repositorio blacksheep-invitational), entao o icone nao pode ser um arquivo
 separado — vai embutido como data URI.
 
 Uso:
-    python3 assets/gerar-favicon.py            # marca desenhada (BS)
-    python3 assets/gerar-favicon.py logo.png   # a partir de um logo pronto
+    python3 assets/gerar-favicon.py              # marca desenhada (BS)
+    python3 assets/gerar-favicon.py carneiro.png # a partir da marca recortada
+
+A arte de origem e o carneiro do LOGO_NOVO_BLACKSHEEP_2024.pdf, recortado do
+lockup: numa aba de 16px o texto em arco vira ruido, e o que se reconhece e a
+cabeca.
 """
 import base64, io, sys
 from PIL import Image, ImageDraw, ImageFont
@@ -48,10 +52,25 @@ def silhueta(caminho):
     return bin_.crop(caixa) if caixa else bin_
 
 
+def mascara(caminho):
+    """A forma da marca, em preto e branco, pronta para virar icone.
+
+    Arte com canal alfa (o carneiro recortado do PDF da marca) ja vem com a
+    forma exata: o alfa e a mascara. Arte sem alfa cai no fechamento morfologico
+    da silhueta(), que e o caso do logo feito de palavras.
+    """
+    img = Image.open(caminho)
+    if 'A' in img.getbands():
+        alfa = img.convert('RGBA').split()[3]
+        caixa = alfa.getbbox()
+        return alfa.crop(caixa) if caixa else alfa
+    return silhueta(caminho)
+
+
 def de_arquivo(caminho, tamanho, solida=True):
-    """Monta o icone: silhueta preta sobre o verde da marca."""
-    marca = silhueta(caminho) if solida else Image.open(caminho).convert('L')
-    margem = int(tamanho * 0.14)
+    """Monta o icone: a marca em preto sobre o verde."""
+    marca = mascara(caminho) if solida else Image.open(caminho).convert('L')
+    margem = int(tamanho * 0.10)
     alvo = tamanho - 2 * margem
     esc = min(alvo / marca.width, alvo / marca.height)
     marca = marca.resize((max(1, int(marca.width * esc)), max(1, int(marca.height * esc))), Image.LANCZOS)
