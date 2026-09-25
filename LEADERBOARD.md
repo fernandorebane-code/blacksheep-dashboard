@@ -178,6 +178,36 @@ O bloco PROVAS é um `<details>` que começa recolhido no celular — a descriç
 prova não é o que o espectador veio ver, e aberta ela empurrava a classificação
 para fora da tela.
 
+## As provas do evento
+
+`dados/campeonato-inicial.json` já traz as **28 provas**: 7 por programação,
+vindas dos quatro documentos (`PROVAS_ELITE`, `PROVAS_RX`,
+`PROVAS_INTERMEDIARIO`, `PROVAS_SCALED`).
+
+São quatro programações para cinco níveis: o documento de Intermediário está
+intitulado **"PROVAS INTERMEDIARIO/MASTER"**, então as provas dele valem também
+para Master 45+. Cada prova cobre as duas categorias de gênero do nível, e a
+carga de cada um está escrita na descrição, no formato do documento
+(mulheres/homens).
+
+Tipo de pontuação por prova, igual nas quatro programações:
+
+| Prova | Pontua por | |
+| --- | --- | --- |
+| 1 | tempo | for time 15′, com cap |
+| 2 | repetições | AMRAP 1′ |
+| 3 | tempo | for time 12′, com cap |
+| 4 | repetições | 3 rounds 3′ on / 1′ off |
+| 5 | repetições | 1 round 3′ on, max rounds DT |
+| 6 | tempo | for time (4′; 6′ no Scaled) |
+| 7 | carga | EMOM no Elite e RX, PR clean & jerk no resto |
+
+Os ids são fixos (`w_elite_p1`, `w_rx_p3`, …): rodar a carga de novo não duplica
+prova nem perde resultado já lançado.
+
+Nas provas de tempo com cap, quem não finalizou entra com o tempo vazio e as
+repetições feitas — é o campo **Reps (cap)** da tela de lançamento.
+
 ## Cadastrar as provas
 
 Cada prova tem **dono**: ao adicionar, escolhe-se o **nível** (Elite, RX,

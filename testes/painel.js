@@ -60,6 +60,11 @@ const WODS = [
       firestore: () => ({ collection: () => ({ doc: () => doc }) }),
     };
     window.firebase.auth.Auth = { Persistence: { LOCAL: 'local' } };
+    // planta estado como se viesse do Firestore (D nao e acessivel de fora)
+    window.__plantar = (patch) => {
+      estado = { ...estado, ...patch };
+      avisarSnap && avisarSnap({ exists: true, data: () => estado });
+    };
   }, { dados: DADOS, wods: WODS });
 
   await pag.goto(BASE + '/organizador.html');
@@ -342,6 +347,56 @@ const WODS = [
   ok('carga inicial manda categorias e unidades', g && g.patch.categorias && g.patch.unidades);
   const msgCarga = (await pag.textContent('#cargaMsg')).trim();
   ok('carga avisa o que fez', /121/.test(msgCarga), msgCarga);
+
+  // ---------- CARGA INICIAL COM PROVAS ----------
+  // O JSON servido pelo servidor local nao tem wods, entao aqui o fetch e
+  // interceptado para devolver um arquivo com provas e conferir a poda dos
+  // resultados que apontam para prova que saiu da lista.
+  await pag.route('**/dados/campeonato-inicial.json', async rota => {
+    await rota.fulfill({ contentType: 'application/json', body: JSON.stringify({
+      config: { nome: 'Blacksheep Invitational', data: 'Setembro 2026', local: 'São Paulo' },
+      categorias: ['Elite Masculino', 'Elite Feminino', 'Scaled Masculino', 'Scaled Feminino'],
+      unidades: ['Moema', 'Itaim'],
+      atletas: [
+        { id: 'x1', nome: 'Atleta Um', categoria: 'Elite Masculino', unidade: 'Moema' },
+        { id: 'x2', nome: 'Atleta Dois', categoria: 'Scaled Feminino', unidade: 'Itaim' },
+      ],
+      wods: [
+        { id: 'k1', nome: 'WOD 1 do arquivo', tipo: 'tempo', pub: true, ordem: 1, categorias: [],
+          partes: [{ id: 'a', nome: 'Remo', tipo: 'tempo' }, { id: 'b', nome: 'For time', tipo: 'tempo' }] },
+        { id: 'k2', nome: 'WOD 2 só Elite', tipo: 'carga', pub: true, ordem: 2,
+          categorias: ['Elite Masculino', 'Elite Feminino'] },
+      ],
+    }) });
+  });
+
+  // resultado plantado: um item que sobrevive e um que some com a troca de provas
+  await pag.evaluate(() => {
+    window.__gravado = [];
+    window.__plantar({
+      atletas: [{ id: 'x1', nome: 'Atleta Um', categoria: 'Elite Masculino', unidade: 'Moema' }],
+      resultados: { x1: { 'k1::a': { v: 200, cap: null }, 'prova-que-sai': { v: 999, cap: null } } },
+    });
+  });
+  await pag.click('.admin-tab[data-ap="apAtletas"]');
+  await pag.waitForTimeout(300);
+  pag.once('dialog', d => d.accept());
+  await pag.click('button:has-text("IMPORTAR LISTA OFICIAL")');
+  await pag.waitForTimeout(900);
+  g = await ultimo();
+  ok('carga importa as provas do arquivo', g && Array.isArray(g.patch.wods) && g.patch.wods.length === 2,
+     JSON.stringify(g && g.patch.wods && g.patch.wods.map(w => w.nome)));
+  ok('prova do arquivo mantem as categorias dela',
+     g && g.patch.wods[1].categorias.length === 2, JSON.stringify(g && g.patch.wods[1].categorias));
+  ok('carga guarda o resultado da prova que ficou',
+     g && g.patch.resultados.x1 && g.patch.resultados.x1['k1::a'],
+     JSON.stringify(g && g.patch.resultados.x1));
+  ok('carga poda o resultado da prova que saiu',
+     g && g.patch.resultados.x1 && !g.patch.resultados.x1['prova-que-sai'],
+     JSON.stringify(g && g.patch.resultados.x1));
+  const msgCarga2 = (await pag.textContent('#cargaMsg')).trim();
+  ok('carga avisa quantas provas subiram', /2 provas/.test(msgCarga2), msgCarga2);
+  await pag.unroute('**/dados/campeonato-inicial.json');
 
   // ---------- CONFIGURACAO ----------
   await pag.click('.admin-tab[data-ap="apConfig"]');
