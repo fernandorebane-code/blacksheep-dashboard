@@ -135,48 +135,58 @@ organizador.
 
 ## O celular
 
-O evento é assistido e operado no telefone, então as duas páginas têm um passe
-de celular abaixo de 700px, e um teste que não deixa isso regredir
-(`testes/celular.js`).
+O evento é assistido e operado no telefone, e as duas páginas têm um passe de
+celular abaixo de 700px, com um teste que não deixa regredir
+(`testes/celular.js`): nada vazando da tela, alvo de toque de 40px, texto acima
+de 10px.
 
-O que estava quebrado e foi corrigido:
+**O leaderboard no celular mostra posição, nome e total — e só.** O resultado
+prova a prova sai tocando no atleta, no mesmo pop-up que já existe no
+computador. Cada linha traz um "ver as provas ›" em cinza para deixar isso
+claro. Nada de rolar para o lado.
 
-- **Leaderboard** — a tabela tem `min-width:640px` e as colunas das pontas são
-  `position:sticky`: num telefone de 380px as colunas das provas ficavam
-  escondidas **atrás** da coluna do total. Cada linha virou um cartão, com as
-  provas como fichas embaixo, três por linha.
-- **Cabeçalho do organizador** — o link, o usuário e o SAIR não quebravam linha e
-  empurravam a página para 600px numa tela de 390px.
-- **Grade de lançamento** — a unidade saiu da coluna própria e foi para debaixo
-  do nome; sem isso as duas colunas de texto espremiam o nome até ele quebrar em
-  cinco linhas. O nome corta com reticências, e a grade cabe na tela.
-- **Linhas de lista** (atletas e provas) — até seis controles na mesma linha
-  vazavam para 472px; agora o nome ocupa a primeira linha e os controles quebram
-  embaixo.
-- **Alvos de toque** — controles entre 27px e 34px de altura subiram para 40px.
-- **Texto miúdo** — dezenas de trechos abaixo de 10px subiram para 11px.
-- **Modais** — ocupam a tela inteira em vez de sobrar 1rem de margem.
+No computador a tabela é a mesma de sempre, com uma coluna por prova.
 
-Uma armadilha que apareceu no caminho: as regras do leaderboard (`thead` oculto,
-linha vira cartão) estavam sem prefixo e caíam também na grade de lançamento do
-organizador, que perdia os cabeçalhos "Tempo (mm:ss)" e "Reps (cap)" — justo o
-que diz em qual campo digitar o quê. Por isso tudo ali é prefixado com `#tabela`.
+O que já esteve errado aqui, para não voltar: a tabela tem `min-width:640px` e
+as colunas das pontas são `position:sticky`. Num telefone de 380px isso escondia
+as colunas das provas **atrás** da coluna do total, sem nenhuma indicação de que
+dava para arrastar.
 
-## Detalhes do leaderboard no celular
+Outras correções do mesmo passe: cabeçalho do organizador que empurrava a página
+para 600px, grade de lançamento que quebrava o nome em cinco linhas, linhas de
+lista com seis controles vazando para 472px, e o bloco PROVAS recolhido no
+celular (com a contagem no rótulo, para prometer o conteúdo).
 
-A tabela tem `min-width:640px`, e as colunas das pontas são `position:sticky`.
-Num telefone de 380px isso escondia as colunas das provas **atrás** da coluna do
-total: o espectador via posição, nome e total, e nada indicava que dava para
-arrastar de lado. Na prática, a classificação parecia não ter as notas.
+Uma armadilha: as regras do leaderboard (`thead` oculto, largura das colunas)
+precisam ser prefixadas com `#tabela`. Sem o prefixo elas caem também na grade
+de lançamento do organizador, que perde os cabeçalhos "Tempo (mm:ss)" e
+"Reps (cap)".
 
-Abaixo de 700px cada linha vira um cartão: posição, nome e total em cima, e as
-provas como fichas embaixo, três por linha. Sem rolagem lateral. A grade é de 12
-colunas porque as fichas herdariam as larguras da primeira linha e sairiam
-desiguais.
+Largura das colunas fixas mora no CSS (`.col-pos`, `.col-atleta`), não no
+markup: um `style` inline venceria a regra do `@media` e desalinharia o
+cabeçalho das linhas.
 
-O bloco PROVAS é um `<details>` que começa recolhido no celular — a descrição da
-prova não é o que o espectador veio ver, e aberta ela empurrava a classificação
-para fora da tela.
+## O tamanho do texto
+
+A ponta pequena da escala subiu num passe só (49 declarações): o mínimo saiu de
+**9,3px para 10,9px** no computador e de 10,4px para 12px no celular. O texto
+corrido das provas ficou em 13,6px.
+
+Títulos e números grandes não mudaram — só o que estava miúdo demais para ler.
+
+## O favicon
+
+Vem do carneiro do `LOGO_NOVO_BLACKSHEEP_2024.pdf`, recortado do lockup e
+guardado em `assets/marca-carneiro.png`. Numa aba de 16px o texto em arco vira
+ruído; o que se reconhece é a cabeça — e só ela, sem os kettlebells, que somem
+numa mancha nesse tamanho.
+
+```
+python3 assets/gerar-favicon.py assets/marca-carneiro.png
+```
+
+Imprime as duas tags `<link>` com o PNG embutido como data URI, que é o que
+permite a página pública viajar como arquivo único para o outro repositório.
 
 ## As provas do evento
 
