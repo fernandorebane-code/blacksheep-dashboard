@@ -651,6 +651,16 @@ footer{
             <select class="field" id="rCat" style="width:100%" onchange="trocarCatResultados()"></select>
           </div>
         </div>
+        <!-- O time cap fica aqui, e nao no cadastro da prova: quem lanca o
+             resultado e quem sabe qual foi o cap, e e olhando para esta tela
+             que ele precisa dele. -->
+        <div class="form-row" id="rCapLinha" style="display:none">
+          <div style="flex:0 0 12rem">
+            <label class="lbl">Time cap desta prova</label>
+            <input class="field" id="rCap" style="width:100%" placeholder="15:00"
+                   onchange="salvarCapDaProva()">
+          </div>
+        </div>
         <div class="hint" id="rHint"></div>
         <div class="score-grid" id="rGrid" style="margin-top:0.8rem"></div>
         <div class="modal-foot" style="padding-left:0;padding-right:0">
@@ -709,7 +719,6 @@ footer{
             <option value="carga">Carga em kg (maior vence)</option>
             <option value="pontos">Pontos (maior vence)</option>
           </select>
-          <input class="field" id="wCap" placeholder="Time cap (ex: 15:00)" title="Só para prova por tempo">
           <button class="btn-solid" onclick="addWod()">ADICIONAR</button>
         </div>
         <textarea class="field" id="wDesc" style="width:100%" placeholder="Descrição da prova (opcional)"></textarea>
@@ -1712,18 +1721,12 @@ function addWod() {
     return;
   }
   const tipo = document.getElementById('wTipo').value;
-  const capTxt = document.getElementById('wCap').value.trim();
-  const cap = capTxt ? parseTempo(capTxt) : null;
-  if (capTxt && (cap == null || cap <= 0)) {
-    msg.className = 'msg err';
-    msg.textContent = 'Time cap inválido. Use mm:ss, por exemplo 15:00.';
-    return;
-  }
   const novo = {
     id: uid('w'),
     nome,
     tipo,
-    cap: (tipo === 'tempo' && cap != null) ? cap : null,
+    // o time cap se define na tela de lancamento, junto com a pontuacao
+    cap: null,
     desc: document.getElementById('wDesc').value.trim(),
     // sem nivel escolhido a prova vale para todo mundo, e a lista fica vazia
     categorias: nivel ? cats : [],
@@ -1733,7 +1736,6 @@ function addWod() {
   salvar({ wods: (D.wods || []).concat([novo]) }, 'wMsg', 'Prova adicionada.');
   document.getElementById('wNome').value = '';
   document.getElementById('wDesc').value = '';
-  document.getElementById('wCap').value = '';
 }
 
 function removerWod(id) {
@@ -1816,7 +1818,7 @@ function renderListaWods() {
         (w.partes && w.partes.length
           ? w.partes.map((pt, k) => LETRAS[k] + ' ' + esc(pt.nome) + ' (' + esc(TIPOS[pt.tipo] || pt.tipo) + ')').join(' · ')
           : esc(TIPOS[w.tipo] || w.tipo)) +
-        (w.tipo === 'tempo' ? ' · cap ' + (w.cap != null ? fmtTempo(w.cap) : 'sem') : '') +
+        (w.tipo === 'tempo' ? ' · cap ' + (w.cap != null ? fmtTempo(w.cap) : 'a definir') : '') +
         ' · ' + esc(escopoDaProva(w)) +
         (w.pub === false ? ' · oculta' : '') + '</div></div>' +
       '<select class="field mini" aria-label="Quem faz esta prova"' +
@@ -1932,6 +1934,18 @@ function renderGradeResultados() {
   };
   hint.innerHTML = dicas[wod.tipo] || '';
 
+  // o campo de cap so aparece em prova por tempo, e escreve na prova de verdade.
+  // (ehTempo so e declarado mais abaixo, entao aqui vai a condicao direta)
+  const linhaCap = document.getElementById('rCapLinha');
+  const campoCap = document.getElementById('rCap');
+  if (linhaCap) {
+    const porTempo = wod.tipo === 'tempo';
+    linhaCap.style.display = porTempo ? '' : 'none';
+    if (porTempo && document.activeElement !== campoCap) {
+      campoCap.value = wod.cap != null ? fmtTempo(wod.cap) : '';
+    }
+  }
+
   const atletas = (D.atletas || []).filter(a => a.categoria === cat)
     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
   if (!atletas.length) { grid.innerHTML = '<div class="empty-state">Nenhum atleta nesta categoria.</div>'; return; }
@@ -1952,6 +1966,27 @@ function renderGradeResultados() {
         (ehTempo ? '<td class="num"><input data-at="' + esc(a.id) + '" data-f="faltou" value="' + (r.faltou == null ? '' : r.faltou) + '" placeholder="--"></td>' : '') +
         '</tr>';
     }).join('') + '</tbody></table>';
+}
+
+// O cap pertence a prova (ou a parte dela), mas se define aqui. Gravar aqui e o
+// que faz o "15:10" aparecer para todo mundo no leaderboard.
+function salvarCapDaProva() {
+  const wid = document.getElementById('rWod').value;
+  const txt = document.getElementById('rCap').value.trim();
+  const cap = txt ? parseTempo(txt) : null;
+  if (txt && (cap == null || cap <= 0)) {
+    avisar('err', 'Time cap inválido. Use mm:ss, por exemplo 15:00.');
+    return;
+  }
+  const [wodId, parteId] = String(wid).split('::');
+  const wods = (D.wods || []).map(w => {
+    if (w.id !== wodId) return w;
+    if (!parteId) return Object.assign({}, w, { cap });
+    return Object.assign({}, w, {
+      partes: (w.partes || []).map(pt => pt.id === parteId ? Object.assign({}, pt, { cap }) : pt)
+    });
+  });
+  salvar({ wods }, 'rMsg', cap == null ? 'Time cap removido.' : 'Time cap salvo.');
 }
 
 function salvarResultados() {

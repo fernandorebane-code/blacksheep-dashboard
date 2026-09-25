@@ -348,6 +348,51 @@ const WODS = [
   const msgCarga = (await pag.textContent('#cargaMsg')).trim();
   ok('carga avisa o que fez', /121/.test(msgCarga), msgCarga);
 
+  // ---------- TIME CAP, NA TELA DE LANCAMENTO ----------
+  // O cap pertence a prova, mas se define aqui: quem lanca o resultado e quem
+  // sabe qual foi o cap, e e olhando para esta tela que ele precisa dele.
+  await pag.click('.admin-tab[data-ap="apResultados"]');
+  await pag.waitForTimeout(300);
+  await pag.selectOption('#rCat', 'Elite Masculino');
+  await pag.waitForTimeout(300);
+
+  const porTipo = await pag.$$eval('#rWod option', os => os.map(o => o.value));
+  await pag.selectOption('#rWod', porTipo[0]);   // WOD 1 parte A, por tempo
+  await pag.waitForTimeout(300);
+  ok('prova por tempo mostra o campo de time cap', await pag.isVisible('#rCapLinha'));
+
+  // um valor diferente do que ja esta la, senao o change nem dispara
+  const idItem = await pag.inputValue('#rWod');
+  const [idWod, idParte] = idItem.split('::');
+  await limpar();
+  await pag.fill('#rCap', '12:34');
+  await pag.locator('#rCap').blur();
+  await pag.waitForTimeout(500);
+  g = await ultimo();
+  const gravada = g && g.patch.wods && g.patch.wods.find(w => w.id === idWod);
+  const capGravado = !gravada ? null
+    : idParte ? (gravada.partes.find(x => x.id === idParte) || {}).cap
+              : gravada.cap;
+  ok('o cap grava na prova (ou na parte) selecionada', capGravado === 754,
+     'item=' + idItem + ' cap=' + capGravado);
+
+  await limpar();
+  await pag.fill('#rCap', 'abacaxi');
+  await pag.locator('#rCap').blur();
+  await pag.waitForTimeout(400);
+  ok('cap invalido nao grava', (await pag.evaluate(() => window.__gravado.length)) === 0);
+
+  // prova por carga nao tem cap
+  const semTempo = await pag.$$eval('#rWod option',
+    os => os.map(o => o.textContent.trim()).findIndex(t => /Snatch/.test(t)));
+  if (semTempo >= 0) {
+    await pag.selectOption('#rWod', porTipo[semTempo]);
+    await pag.waitForTimeout(300);
+    ok('prova que nao e por tempo esconde o campo', !(await pag.isVisible('#rCapLinha')));
+  }
+
+  ok('o cadastro de prova nao pede mais o cap', (await pag.locator('#wCap').count()) === 0);
+
   // ---------- CARGA INICIAL COM PROVAS ----------
   // O JSON servido pelo servidor local nao tem wods, entao aqui o fetch e
   // interceptado para devolver um arquivo com provas e conferir a poda dos
