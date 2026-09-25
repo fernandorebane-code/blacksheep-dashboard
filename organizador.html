@@ -656,6 +656,7 @@ footer{
             <option value="carga">Carga em kg (maior vence)</option>
             <option value="pontos">Pontos (maior vence)</option>
           </select>
+          <input class="field" id="wCap" placeholder="Time cap (ex: 15:00)" title="Só para prova por tempo">
           <button class="btn-solid" onclick="addWod()">ADICIONAR</button>
         </div>
         <textarea class="field" id="wDesc" style="width:100%" placeholder="Descrição da prova (opcional)"></textarea>
@@ -801,10 +802,21 @@ function fmtTempo(seg) {
   const ss = (s < 10 ? '0' : '') + (Math.round(s * 10) % 10 === 0 ? String(Math.round(s)) : s.toFixed(1));
   return m + ':' + ss;
 }
+// Quem estoura o time cap fica com o tempo do cap mais as repeticoes que
+// faltaram: cap de 15 min e 10 reps faltando vira "15:10". Quando o cap tem
+// segundos quebrados, mostra o tempo inteiro e as reps separadas, para nao
+// confundir os segundos com a contagem.
+function fmtCapEstourado(item, faltou) {
+  const cap = num(item.cap, null);
+  if (cap == null) return '+' + faltou + ' reps';
+  if (cap % 60 === 0) return (cap / 60) + ':' + faltou;
+  return fmtTempo(cap) + ' +' + faltou;
+}
+
 function fmtValor(wod, res) {
   if (!res) return null;
   if (res.v == null) {
-    if (wod.tipo === 'tempo' && res.cap != null) return res.cap + ' reps';
+    if (wod.tipo === 'tempo' && res.faltou != null) return fmtCapEstourado(wod, res.faltou);
     return null;
   }
   if (wod.tipo === 'tempo') return fmtTempo(res.v);
@@ -854,10 +866,12 @@ function pontosDaPosicao(pos) {
 }
 
 function chaveResultado(wod, res) {
-  // devolve [grupo, valor] — grupo 0 = completou, 1 = cap, 2 = sem nota
+  // devolve [grupo, valor] — grupo 0 = completou, 1 = estourou o cap, 2 = sem nota
   if (!res) return [2, 0];
   if (res.v != null) return [0, wod.tipo === 'tempo' ? res.v : -res.v]; // sempre "menor é melhor"
-  if (wod.tipo === 'tempo' && res.cap != null) return [1, -res.cap];
+  // quem estourou o cap entra depois de quem finalizou, e entre eles ganha quem
+  // ficou mais perto do fim: menos repeticoes faltando
+  if (wod.tipo === 'tempo' && res.faltou != null) return [1, res.faltou];
   return [2, 0];
 }
 
@@ -953,13 +967,15 @@ function escopoDaProva(w) {
 
 function itensDe(w) {
   if (!w.partes || !w.partes.length) {
-    return [{ id: w.id, nome: w.nome, curto: abrevWod(w), tipo: w.tipo, wod: w }];
+    return [{ id: w.id, nome: w.nome, curto: abrevWod(w), tipo: w.tipo, cap: w.cap, wod: w }];
   }
   return w.partes.map((p, i) => ({
     id: w.id + '::' + p.id,
     nome: w.nome + ' · ' + LETRAS[i] + ') ' + p.nome,
     curto: abrevWod(w) + LETRAS[i],
     tipo: p.tipo,
+    // a parte pode ter cap proprio; sem isso, vale o da prova
+    cap: p.cap != null ? p.cap : w.cap,
     wod: w,
     parte: p
   }));
@@ -979,13 +995,25 @@ function calcularRanking(categoria) {
   const porProva = {};
   itens.forEach(w => { porProva[w.id] = rankearProva(w, atletas); });
 
+  // Uma prova que ninguem da categoria fez ainda NAO entra no total. Se entrasse,
+  // todo mundo ficaria empatado em ultimo nela e levaria a mesma media — com 4
+  // atletas, 2,5 pontos cada. Seis provas por lancar viravam 15 pontos fixos no
+  // total de todo mundo, e o primeiro colocado aparecia com 16 em vez de 1.
+  // A ordem ate ficava certa, mas o numero nao queria dizer nada.
+  const valendo = {};
+  itens.forEach(w => {
+    valendo[w.id] = atletas.some(a => (D.resultados[a.id] || {})[w.id]);
+  });
+
   const linhas = atletas.map(a => {
     const provas = {};
     let total = 0, algum = false;
     const posicoes = [];
     itens.forEach(w => {
       const r = porProva[w.id][a.id];
+      r.valendo = valendo[w.id];
       provas[w.id] = r;
+      if (!valendo[w.id]) return;
       total += r.pts;
       posicoes.push(r.pos);
       if (!r.semNota) algum = true;
@@ -1015,7 +1043,7 @@ function calcularRanking(categoria) {
     pos = igual ? pos : i + 1;
     l.pos = pos;
   });
-  return { linhas, itens };
+  return { linhas, itens, valendo };
 }
 
 /* ---------------- CARREGAMENTO ---------------- */
@@ -1471,10 +1499,19 @@ function addWod() {
     msg.textContent = 'Nenhuma categoria bate com essa combinação.';
     return;
   }
+  const tipo = document.getElementById('wTipo').value;
+  const capTxt = document.getElementById('wCap').value.trim();
+  const cap = capTxt ? parseTempo(capTxt) : null;
+  if (capTxt && (cap == null || cap <= 0)) {
+    msg.className = 'msg err';
+    msg.textContent = 'Time cap inválido. Use mm:ss, por exemplo 15:00.';
+    return;
+  }
   const novo = {
     id: uid('w'),
     nome,
-    tipo: document.getElementById('wTipo').value,
+    tipo,
+    cap: (tipo === 'tempo' && cap != null) ? cap : null,
     desc: document.getElementById('wDesc').value.trim(),
     // sem nivel escolhido a prova vale para todo mundo, e a lista fica vazia
     categorias: nivel ? cats : [],
@@ -1484,6 +1521,7 @@ function addWod() {
   salvar({ wods: (D.wods || []).concat([novo]) }, 'wMsg', 'Prova adicionada.');
   document.getElementById('wNome').value = '';
   document.getElementById('wDesc').value = '';
+  document.getElementById('wCap').value = '';
 }
 
 function removerWod(id) {
@@ -1566,6 +1604,7 @@ function renderListaWods() {
         (w.partes && w.partes.length
           ? w.partes.map((pt, k) => LETRAS[k] + ' ' + esc(pt.nome) + ' (' + esc(TIPOS[pt.tipo] || pt.tipo) + ')').join(' · ')
           : esc(TIPOS[w.tipo] || w.tipo)) +
+        (w.tipo === 'tempo' ? ' · cap ' + (w.cap != null ? fmtTempo(w.cap) : 'sem') : '') +
         ' · ' + esc(escopoDaProva(w)) +
         (w.pub === false ? ' · oculta' : '') + '</div></div>' +
       '<select class="field mini" aria-label="Quem faz esta prova"' +
@@ -1674,7 +1713,7 @@ function renderGradeResultados() {
   }
 
   const dicas = {
-    tempo: 'Digite o tempo como <b>mm:ss</b> (ex: 8:42). Quem não finalizou: deixe o tempo vazio e informe as <b>reps</b> feitas até o cap.',
+    tempo: 'Digite o tempo como <b>mm:ss</b> (ex: 8:42). Quem <b>não finalizou</b> no cap: deixe o tempo vazio e informe quantas <b>repetições faltaram</b> — o resultado vira o tempo do cap mais as reps (ex: cap 15′ e 10 faltando = <b>15:10</b>).',
     reps: 'Digite o total de <b>repetições</b>.',
     carga: 'Digite a <b>carga em kg</b>.',
     pontos: 'Digite os <b>pontos</b> da prova.'
@@ -1690,7 +1729,7 @@ function renderGradeResultados() {
   // as duas colunas de texto espremiam o nome ate ele quebrar em cinco linhas.
   grid.innerHTML = '<table><thead><tr><th>Atleta</th>' +
     '<th class="num">' + (ehTempo ? 'Tempo (mm:ss)' : 'Resultado') + '</th>' +
-    (ehTempo ? '<th class="num">Reps (cap)</th>' : '') +
+    (ehTempo ? '<th class="num">Reps faltando</th>' : '') +
     '</tr></thead><tbody>' +
     atletas.map(a => {
       const r = (D.resultados[a.id] || {})[wod.id] || {};
@@ -1698,7 +1737,7 @@ function renderGradeResultados() {
       return '<tr><td class="atl" title="' + esc(a.nome) + '">' + esc(a.nome) +
         (a.unidade ? '<span class="unit">' + esc(a.unidade) + '</span>' : '') + '</td>' +
         '<td class="num"><input data-at="' + esc(a.id) + '" data-f="v" value="' + esc(valor) + '" placeholder="' + (ehTempo ? '8:42' : '--') + '"></td>' +
-        (ehTempo ? '<td class="num"><input data-at="' + esc(a.id) + '" data-f="cap" value="' + (r.cap == null ? '' : r.cap) + '" placeholder="--"></td>' : '') +
+        (ehTempo ? '<td class="num"><input data-at="' + esc(a.id) + '" data-f="faltou" value="' + (r.faltou == null ? '' : r.faltou) + '" placeholder="--"></td>' : '') +
         '</tr>';
     }).join('') + '</tbody></table>';
 }
@@ -1713,7 +1752,7 @@ function salvarResultados() {
   let invalidos = 0;
   document.querySelectorAll('#rGrid input').forEach(inp => {
     const at = inp.dataset.at, f = inp.dataset.f, txt = inp.value.trim();
-    buffer[at] = buffer[at] || { v: null, cap: null };
+    buffer[at] = buffer[at] || { v: null, faltou: null };
     inp.style.borderColor = '';
     if (!txt) return;
     const n = (f === 'v' && ehTempo) ? parseTempo(txt) : num(txt.replace(',', '.'), null);
@@ -1732,8 +1771,8 @@ function salvarResultados() {
   Object.keys(buffer).forEach(at => {
     const b = buffer[at];
     const anterior = Object.assign({}, resultados[at] || {});
-    if (b.v == null && b.cap == null) delete anterior[wid];
-    else { anterior[wid] = { v: b.v, cap: b.cap }; preenchidos++; }
+    if (b.v == null && b.faltou == null) delete anterior[wid];
+    else { anterior[wid] = { v: b.v, faltou: b.faltou }; preenchidos++; }
     resultados[at] = anterior;
   });
   salvar({ resultados }, 'rMsg', preenchidos + ' resultado(s) salvo(s).');
