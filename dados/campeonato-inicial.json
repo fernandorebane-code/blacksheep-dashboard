@@ -759,7 +759,8 @@
       "id": "w_elite_p1",
       "nome": "PROVA 1",
       "tipo": "tempo",
-      "desc": "FOR TIME 15′\nWall ball 35/25/15\nT2B 20/20/20\nBox jump over ou step box over 15/15/15\nDevil press 5/5/5\nBike 35/25/15\n\nBola 20/30 lbs — 2 DB 15/22,5 kg (mulheres/homens)\nObrigatório step down.\nNão finalizou no cap: deixe o tempo vazio e lance as repetições feitas.",
+      "cap": 900,
+      "desc": "FOR TIME 15′\nWall ball 35/25/15\nT2B 20/20/20\nBox jump over ou step box over 15/15/15\nDevil press 5/5/5\nBike 35/25/15\n\nBola 20/30 lbs — 2 DB 15/22,5 kg (mulheres/homens)\nObrigatório step down.\nNão finalizou no cap: deixe o tempo vazio e lance quantas repetições faltaram.",
       "categorias": [
         "Elite Masculino",
         "Elite Feminino"
@@ -771,6 +772,7 @@
       "id": "w_elite_p2",
       "nome": "PROVA 2",
       "tipo": "reps",
+      "cap": null,
       "desc": "AMRAP 1′ — max devil press\n2 DB 15/22,5 kg (mulheres/homens)\n\nEntra 1′ depois da PROVA 1.",
       "categorias": [
         "Elite Masculino",
@@ -783,7 +785,8 @@
       "id": "w_elite_p3",
       "nome": "PROVA 3",
       "tipo": "tempo",
-      "desc": "FOR TIME 12′\nBuy in 1000 m remo\n9/7 bike\n9/7 thruster\napós 9+7 = 5 shuttle run\n9/7 bike\n9/7 hang snatch\napós 9+7 = 5 shuttle run\n9/7 bike\n9/7 STOH\napós 9+7 = 5 shuttle run\n\nCarga da barra 45/60 kg (mulheres/homens)\nNão finalizou no cap: deixe o tempo vazio e lance as repetições feitas.",
+      "cap": 720,
+      "desc": "FOR TIME 12′\nBuy in 1000 m remo\n9/7 bike\n9/7 thruster\napós 9+7 = 5 shuttle run\n9/7 bike\n9/7 hang snatch\napós 9+7 = 5 shuttle run\n9/7 bike\n9/7 STOH\napós 9+7 = 5 shuttle run\n\nCarga da barra 45/60 kg (mulheres/homens)\nNão finalizou no cap: deixe o tempo vazio e lance quantas repetições faltaram.",
       "categorias": [
         "Elite Masculino",
         "Elite Feminino"
@@ -795,6 +798,7 @@
       "id": "w_elite_p4",
       "nome": "PROVA 4",
       "tipo": "reps",
+      "cap": null,
       "desc": "3 ROUNDS 3′ ON / 1′ OFF\n20 burpee over bar\n50 double under\n8 OHS\nmax reps C2B\n\nPeso da barra 50/70 kg (mulheres/homens)\nResultado: total de C2B nos 3 rounds.",
       "categorias": [
         "Elite Masculino",
@@ -807,6 +811,7 @@
       "id": "w_elite_p5",
       "nome": "PROVA 5",
       "tipo": "reps",
+      "cap": null,
       "desc": "1 ROUND 3′ ON — max rounds DT\nDT = 12 deadlift + 9 hang clean + 6 STOH\n\nCarga da barra 50/70 kg (mulheres/homens)\nResultado: total de repetições.",
       "categorias": [
         "Elite Masculino",
@@ -819,7 +824,8 @@
       "id": "w_elite_p6",
       "nome": "PROVA 6",
       "tipo": "tempo",
-      "desc": "FOR TIME 4′\n7 ring MU\n6 m HSW\n1 legless\n6 m mixed lunge 2 DB (front + OH)\n5 ring MU\n6 m mixed lunge 2 DB (front + OH)\n1 legless\n6 m HSW\n3 ring MU\n6 m HSW + piruet\n6 m mixed lunge 2 DB (front + OH)\n\nPeso 2 DB 15/22,5 kg (mulheres/homens)\nNão finalizou no cap: deixe o tempo vazio e lance as repetições feitas.",
+      "cap": 240,
+      "desc": "FOR TIME 4′\n7 ring MU\n6 m HSW\n1 legless\n6 m mixed lunge 2 DB (front + OH)\n5 ring MU\n6 m mixed lunge 2 DB (front + OH)\n1 legless\n6 m HSW\n3 ring MU\n6 m HSW + piruet\n6 m mixed lunge 2 DB (front + OH)\n\nPeso 2 DB 15/22,5 kg (mulheres/homens)\nNão finalizou no cap: deixe o tempo vazio e lance quantas repetições faltaram.",
       "categorias": [
         "Elite Masculino",
         "Elite Feminino"
@@ -831,6 +837,7 @@
       "id": "w_elite_p7",
       "nome": "PROVA 7",
       "tipo": "carga",
+      "cap": null,
       "desc": "EMOM 6′ — ímpar: clean & jerk / par: snatch\n\nNão pode diminuir o peso da barra.\nResultado: soma das 6 cargas (3 clean & jerk + 3 snatch).\nSe não fizer o clean & jerk, o snatch seguinte não é validado.\nSe errar o snatch, o clean & jerk anterior não é validado.\n\nEntra 2′ depois da PROVA 6.",
       "categorias": [
         "Elite Masculino",
@@ -843,7 +850,8 @@
       "id": "w_rx_p1",
       "nome": "PROVA 1",
       "tipo": "tempo",
-      "desc": "FOR TIME 15′\nWall ball 35/25/15\nT2B 20/20/20\nBox jump over ou step box over 15/15/15\nDevil press 5/5/5\nBike 35/25/15\n\nBola 14/20 lbs — 2 DB 15/22,5 kg (mulheres/homens)\nObrigatório step down.\nNão finalizou no cap: deixe o tempo vazio e lance as repetições feitas.",
+      "cap": 900,
+      "desc": "FOR TIME 15′\nWall ball 35/25/15\nT2B 20/20/20\nBox jump over ou step box over 15/15/15\nDevil press 5/5/5\nBike 35/25/15\n\nBola 14/20 lbs — 2 DB 15/22,5 kg (mulheres/homens)\nObrigatório step down.\nNão finalizou no cap: deixe o tempo vazio e lance quantas repetições faltaram.",
       "categorias": [
         "RX Masculino",
         "RX Feminino"
@@ -855,6 +863,7 @@
       "id": "w_rx_p2",
       "nome": "PROVA 2",
       "tipo": "reps",
+      "cap": null,
       "desc": "AMRAP 1′ — max devil press\n2 DB 15/22,5 kg (mulheres/homens)\n\nEntra 1′ depois da PROVA 1.",
       "categorias": [
         "RX Masculino",
@@ -867,7 +876,8 @@
       "id": "w_rx_p3",
       "nome": "PROVA 3",
       "tipo": "tempo",
-      "desc": "FOR TIME 12′\nBuy in 1000 m remo\n9/7 bike\n9/7 thruster\napós 9+7 = 5 shuttle run\n9/7 bike\n9/7 hang snatch\napós 9+7 = 5 shuttle run\n9/7 bike\n9/7 STOH\napós 9+7 = 5 shuttle run\n\nCarga da barra 35/50 kg (mulheres/homens)\nNão finalizou no cap: deixe o tempo vazio e lance as repetições feitas.",
+      "cap": 720,
+      "desc": "FOR TIME 12′\nBuy in 1000 m remo\n9/7 bike\n9/7 thruster\napós 9+7 = 5 shuttle run\n9/7 bike\n9/7 hang snatch\napós 9+7 = 5 shuttle run\n9/7 bike\n9/7 STOH\napós 9+7 = 5 shuttle run\n\nCarga da barra 35/50 kg (mulheres/homens)\nNão finalizou no cap: deixe o tempo vazio e lance quantas repetições faltaram.",
       "categorias": [
         "RX Masculino",
         "RX Feminino"
@@ -879,6 +889,7 @@
       "id": "w_rx_p4",
       "nome": "PROVA 4",
       "tipo": "reps",
+      "cap": null,
       "desc": "3 ROUNDS 3′ ON / 1′ OFF\n20 burpee over bar\n50 double under\n8 OHS\nmax reps C2B\n\nPeso da barra 45/60 kg (mulheres/homens)\nResultado: total de C2B nos 3 rounds.",
       "categorias": [
         "RX Masculino",
@@ -891,6 +902,7 @@
       "id": "w_rx_p5",
       "nome": "PROVA 5",
       "tipo": "reps",
+      "cap": null,
       "desc": "1 ROUND 3′ ON — max rounds DT\nDT = 12 deadlift + 9 hang clean + 6 STOH\n\nCarga da barra 45/60 kg (mulheres/homens)\nResultado: total de repetições.",
       "categorias": [
         "RX Masculino",
@@ -903,7 +915,8 @@
       "id": "w_rx_p6",
       "nome": "PROVA 6",
       "tipo": "tempo",
-      "desc": "FOR TIME 4′\n9 B.MU\n12 m mixed lunge 2 DB (carry + OH)\n6 m HSW\n6 B.MU\n12 m mixed lunge 2 DB (carry + OH)\n6 m HSW\n3 B.MU\n12 m mixed lunge 2 DB (carry + OH)\n6 m HSW\n\nPeso 2 DB 15/22,5 kg (mulheres/homens)\nNão finalizou no cap: deixe o tempo vazio e lance as repetições feitas.",
+      "cap": 240,
+      "desc": "FOR TIME 4′\n9 B.MU\n12 m mixed lunge 2 DB (carry + OH)\n6 m HSW\n6 B.MU\n12 m mixed lunge 2 DB (carry + OH)\n6 m HSW\n3 B.MU\n12 m mixed lunge 2 DB (carry + OH)\n6 m HSW\n\nPeso 2 DB 15/22,5 kg (mulheres/homens)\nNão finalizou no cap: deixe o tempo vazio e lance quantas repetições faltaram.",
       "categorias": [
         "RX Masculino",
         "RX Feminino"
@@ -915,6 +928,7 @@
       "id": "w_rx_p7",
       "nome": "PROVA 7",
       "tipo": "carga",
+      "cap": null,
       "desc": "EMOM 6′ — ímpar: clean & jerk / par: snatch\n\nNão pode diminuir o peso da barra.\nResultado: soma das 6 cargas (3 clean & jerk + 3 snatch).\nSe não fizer o clean & jerk, o snatch seguinte não é validado.\nSe errar o snatch, o clean & jerk anterior não é validado.\n\nEntra 2′ depois da PROVA 6.",
       "categorias": [
         "RX Masculino",
@@ -927,7 +941,8 @@
       "id": "w_inter_p1",
       "nome": "PROVA 1",
       "tipo": "tempo",
-      "desc": "FOR TIME 15′\nWall ball 30/20/10\nT2B 20/20/20\nBox jump over ou step box over 15/15/15\nDevil press 5/5/5\nBike 30/20/10\n\nBola 14/20 lbs — 1 DB 15/22,5 kg (mulheres/homens)\nObrigatório step down.\nNão finalizou no cap: deixe o tempo vazio e lance as repetições feitas.",
+      "cap": 900,
+      "desc": "FOR TIME 15′\nWall ball 30/20/10\nT2B 20/20/20\nBox jump over ou step box over 15/15/15\nDevil press 5/5/5\nBike 30/20/10\n\nBola 14/20 lbs — 1 DB 15/22,5 kg (mulheres/homens)\nObrigatório step down.\nNão finalizou no cap: deixe o tempo vazio e lance quantas repetições faltaram.",
       "categorias": [
         "Intermediário Masculino",
         "Intermediário Feminino",
@@ -941,6 +956,7 @@
       "id": "w_inter_p2",
       "nome": "PROVA 2",
       "tipo": "reps",
+      "cap": null,
       "desc": "AMRAP 1′ — max devil press\n1 DB 15/22,5 kg (mulheres/homens)\n\nEntra 1′ depois da PROVA 1.",
       "categorias": [
         "Intermediário Masculino",
@@ -955,7 +971,8 @@
       "id": "w_inter_p3",
       "nome": "PROVA 3",
       "tipo": "tempo",
-      "desc": "FOR TIME 12′\nBuy in 1000 m remo\n9/7 bike\n9/7 thruster\napós 9+7 = 5 shuttle run\n9/7 bike\n9/7 hang snatch\napós 9+7 = 5 shuttle run\n9/7 bike\n9/7 STOH\napós 9+7 = 5 shuttle run\n\nCarga da barra 25/40 kg (mulheres/homens)\nNão finalizou no cap: deixe o tempo vazio e lance as repetições feitas.",
+      "cap": 720,
+      "desc": "FOR TIME 12′\nBuy in 1000 m remo\n9/7 bike\n9/7 thruster\napós 9+7 = 5 shuttle run\n9/7 bike\n9/7 hang snatch\napós 9+7 = 5 shuttle run\n9/7 bike\n9/7 STOH\napós 9+7 = 5 shuttle run\n\nCarga da barra 25/40 kg (mulheres/homens)\nNão finalizou no cap: deixe o tempo vazio e lance quantas repetições faltaram.",
       "categorias": [
         "Intermediário Masculino",
         "Intermediário Feminino",
@@ -969,6 +986,7 @@
       "id": "w_inter_p4",
       "nome": "PROVA 4",
       "tipo": "reps",
+      "cap": null,
       "desc": "3 ROUNDS 3′ ON / 1′ OFF\n20 burpee over bar\n50 crossover\n8 OHS\nmax reps pull-up / C2B\n\nPeso da barra 35/50 kg (mulheres/homens)\nPull-up (mulheres) / C2B (homens)\nResultado: total de repetições nos 3 rounds.",
       "categorias": [
         "Intermediário Masculino",
@@ -983,6 +1001,7 @@
       "id": "w_inter_p5",
       "nome": "PROVA 5",
       "tipo": "reps",
+      "cap": null,
       "desc": "1 ROUND 3′ ON — max rounds DT\nDT = 12 deadlift + 9 hang clean + 6 STOH\n\nCarga da barra 35/50 kg (mulheres/homens)\nResultado: total de repetições.",
       "categorias": [
         "Intermediário Masculino",
@@ -997,7 +1016,8 @@
       "id": "w_inter_p6",
       "nome": "PROVA 6",
       "tipo": "tempo",
-      "desc": "FOR TIME 4′\n9 B.MU / C2B\n12 m OH lunge 1 DB\n6/9 B.MU / C2B\n12 m OH lunge 1 DB\n3/9 B.MU / C2B\n12 m OH lunge 1 DB\n\nPeso 1 DB 15/22,5 kg (mulheres/homens)\nNão finalizou no cap: deixe o tempo vazio e lance as repetições feitas.",
+      "cap": 240,
+      "desc": "FOR TIME 4′\n9 B.MU / C2B\n12 m OH lunge 1 DB\n6/9 B.MU / C2B\n12 m OH lunge 1 DB\n3/9 B.MU / C2B\n12 m OH lunge 1 DB\n\nPeso 1 DB 15/22,5 kg (mulheres/homens)\nNão finalizou no cap: deixe o tempo vazio e lance quantas repetições faltaram.",
       "categorias": [
         "Intermediário Masculino",
         "Intermediário Feminino",
@@ -1011,6 +1031,7 @@
       "id": "w_inter_p7",
       "nome": "PROVA 7",
       "tipo": "carga",
+      "cap": null,
       "desc": "FOR TIME 4′ — PR clean & jerk\n\nResultado: maior carga.\nEntra 2′ depois da PROVA 6.",
       "categorias": [
         "Intermediário Masculino",
@@ -1025,7 +1046,8 @@
       "id": "w_scaled_p1",
       "nome": "PROVA 1",
       "tipo": "tempo",
-      "desc": "FOR TIME 15′\nWall ball 30/20/10\nKnees raise 20/20/20\nBox jump over ou step box over 15/15/15\nDevil press 5/5/5\nBike 30/20/10\n\nBola 14/8 lbs — 1 DB 10/8 kg\nObrigatório step down.\nNão finalizou no cap: deixe o tempo vazio e lance as repetições feitas.",
+      "cap": 900,
+      "desc": "FOR TIME 15′\nWall ball 30/20/10\nKnees raise 20/20/20\nBox jump over ou step box over 15/15/15\nDevil press 5/5/5\nBike 30/20/10\n\nBola 14/8 lbs — 1 DB 10/8 kg\nObrigatório step down.\nNão finalizou no cap: deixe o tempo vazio e lance quantas repetições faltaram.",
       "categorias": [
         "Scaled Masculino",
         "Scaled Feminino"
@@ -1037,6 +1059,7 @@
       "id": "w_scaled_p2",
       "nome": "PROVA 2",
       "tipo": "reps",
+      "cap": null,
       "desc": "AMRAP 1′ — max devil press\n1 DB 10/8 kg\n\nEntra 1′ depois da PROVA 1.",
       "categorias": [
         "Scaled Masculino",
@@ -1049,7 +1072,8 @@
       "id": "w_scaled_p3",
       "nome": "PROVA 3",
       "tipo": "tempo",
-      "desc": "FOR TIME 12′\nBuy in 800 m (mulheres) / 1000 m (homens) de remo\n9/7 bike\n9/7 thruster\napós 9+7 = 5 shuttle run\n9/7 bike\n9/7 hang snatch\napós 9+7 = 5 shuttle run\n9/7 bike\n9/7 STOH\napós 9+7 = 5 shuttle run\n\nCarga da barra 20/30 kg (mulheres/homens)\nNão finalizou no cap: deixe o tempo vazio e lance as repetições feitas.",
+      "cap": 720,
+      "desc": "FOR TIME 12′\nBuy in 800 m (mulheres) / 1000 m (homens) de remo\n9/7 bike\n9/7 thruster\napós 9+7 = 5 shuttle run\n9/7 bike\n9/7 hang snatch\napós 9+7 = 5 shuttle run\n9/7 bike\n9/7 STOH\napós 9+7 = 5 shuttle run\n\nCarga da barra 20/30 kg (mulheres/homens)\nNão finalizou no cap: deixe o tempo vazio e lance quantas repetições faltaram.",
       "categorias": [
         "Scaled Masculino",
         "Scaled Feminino"
@@ -1061,6 +1085,7 @@
       "id": "w_scaled_p4",
       "nome": "PROVA 4",
       "tipo": "reps",
+      "cap": null,
       "desc": "3 ROUNDS 3′ ON / 1′ OFF\n16 burpee over bar\n50 single under\n8 front squat\nmax reps KB swing\n\nPeso da barra 25/40 kg (mulheres/homens)\nPeso do KB 12/16 kg (mulheres/homens)\nResultado: total de KB swing nos 3 rounds.",
       "categorias": [
         "Scaled Masculino",
@@ -1073,6 +1098,7 @@
       "id": "w_scaled_p5",
       "nome": "PROVA 5",
       "tipo": "reps",
+      "cap": null,
       "desc": "1 ROUND 3′ ON — max rounds DT\nDT = 12 deadlift + 9 hang clean + 6 STOH\n\nCarga da barra 25/40 kg (mulheres/homens)\nResultado: total de repetições.",
       "categorias": [
         "Scaled Masculino",
@@ -1085,7 +1111,8 @@
       "id": "w_scaled_p6",
       "nome": "PROVA 6",
       "tipo": "tempo",
-      "desc": "3 ROUNDS FOR TIME 6′\n60 m farmer carry 2 DB\n12 m lunge 2 DB\nbox step over 1 DB\n\nPeso DB 10/12,5 kg (mulheres/homens)\nNão finalizou no cap: deixe o tempo vazio e lance as repetições feitas.",
+      "cap": 360,
+      "desc": "3 ROUNDS FOR TIME 6′\n60 m farmer carry 2 DB\n12 m lunge 2 DB\nbox step over 1 DB\n\nPeso DB 10/12,5 kg (mulheres/homens)\nNão finalizou no cap: deixe o tempo vazio e lance quantas repetições faltaram.",
       "categorias": [
         "Scaled Masculino",
         "Scaled Feminino"
@@ -1097,6 +1124,7 @@
       "id": "w_scaled_p7",
       "nome": "PROVA 7",
       "tipo": "carga",
+      "cap": null,
       "desc": "FOR TIME 4′ — PR clean & jerk\n\nResultado: maior carga.\nEntra 2′ depois da PROVA 6.",
       "categorias": [
         "Scaled Masculino",

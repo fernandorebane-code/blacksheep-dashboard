@@ -12,6 +12,7 @@ python3 -m http.server 8931 &   # painel.js precisa de HTTP: cargaInicial() faz 
 node testes/login.js
 node testes/painel.js
 node testes/provas.js
+node testes/pontuacao.js
 node testes/celular.js
 ```
 

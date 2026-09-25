@@ -640,10 +640,21 @@ function fmtTempo(seg) {
   const ss = (s < 10 ? '0' : '') + (Math.round(s * 10) % 10 === 0 ? String(Math.round(s)) : s.toFixed(1));
   return m + ':' + ss;
 }
+// Quem estoura o time cap fica com o tempo do cap mais as repeticoes que
+// faltaram: cap de 15 min e 10 reps faltando vira "15:10". Quando o cap tem
+// segundos quebrados, mostra o tempo inteiro e as reps separadas, para nao
+// confundir os segundos com a contagem.
+function fmtCapEstourado(item, faltou) {
+  const cap = num(item.cap, null);
+  if (cap == null) return '+' + faltou + ' reps';
+  if (cap % 60 === 0) return (cap / 60) + ':' + faltou;
+  return fmtTempo(cap) + ' +' + faltou;
+}
+
 function fmtValor(wod, res) {
   if (!res) return null;
   if (res.v == null) {
-    if (wod.tipo === 'tempo' && res.cap != null) return res.cap + ' reps';
+    if (wod.tipo === 'tempo' && res.faltou != null) return fmtCapEstourado(wod, res.faltou);
     return null;
   }
   if (wod.tipo === 'tempo') return fmtTempo(res.v);
@@ -693,10 +704,12 @@ function pontosDaPosicao(pos) {
 }
 
 function chaveResultado(wod, res) {
-  // devolve [grupo, valor] — grupo 0 = completou, 1 = cap, 2 = sem nota
+  // devolve [grupo, valor] — grupo 0 = completou, 1 = estourou o cap, 2 = sem nota
   if (!res) return [2, 0];
   if (res.v != null) return [0, wod.tipo === 'tempo' ? res.v : -res.v]; // sempre "menor é melhor"
-  if (wod.tipo === 'tempo' && res.cap != null) return [1, -res.cap];
+  // quem estourou o cap entra depois de quem finalizou, e entre eles ganha quem
+  // ficou mais perto do fim: menos repeticoes faltando
+  if (wod.tipo === 'tempo' && res.faltou != null) return [1, res.faltou];
   return [2, 0];
 }
 
@@ -792,13 +805,15 @@ function escopoDaProva(w) {
 
 function itensDe(w) {
   if (!w.partes || !w.partes.length) {
-    return [{ id: w.id, nome: w.nome, curto: abrevWod(w), tipo: w.tipo, wod: w }];
+    return [{ id: w.id, nome: w.nome, curto: abrevWod(w), tipo: w.tipo, cap: w.cap, wod: w }];
   }
   return w.partes.map((p, i) => ({
     id: w.id + '::' + p.id,
     nome: w.nome + ' · ' + LETRAS[i] + ') ' + p.nome,
     curto: abrevWod(w) + LETRAS[i],
     tipo: p.tipo,
+    // a parte pode ter cap proprio; sem isso, vale o da prova
+    cap: p.cap != null ? p.cap : w.cap,
     wod: w,
     parte: p
   }));
@@ -818,13 +833,25 @@ function calcularRanking(categoria) {
   const porProva = {};
   itens.forEach(w => { porProva[w.id] = rankearProva(w, atletas); });
 
+  // Uma prova que ninguem da categoria fez ainda NAO entra no total. Se entrasse,
+  // todo mundo ficaria empatado em ultimo nela e levaria a mesma media — com 4
+  // atletas, 2,5 pontos cada. Seis provas por lancar viravam 15 pontos fixos no
+  // total de todo mundo, e o primeiro colocado aparecia com 16 em vez de 1.
+  // A ordem ate ficava certa, mas o numero nao queria dizer nada.
+  const valendo = {};
+  itens.forEach(w => {
+    valendo[w.id] = atletas.some(a => (D.resultados[a.id] || {})[w.id]);
+  });
+
   const linhas = atletas.map(a => {
     const provas = {};
     let total = 0, algum = false;
     const posicoes = [];
     itens.forEach(w => {
       const r = porProva[w.id][a.id];
+      r.valendo = valendo[w.id];
       provas[w.id] = r;
+      if (!valendo[w.id]) return;
       total += r.pts;
       posicoes.push(r.pos);
       if (!r.semNota) algum = true;
@@ -854,7 +881,7 @@ function calcularRanking(categoria) {
     pos = igual ? pos : i + 1;
     l.pos = pos;
   });
-  return { linhas, itens };
+  return { linhas, itens, valendo };
 }
 
 /* ---------------- CARREGAMENTO ---------------- */
@@ -941,14 +968,14 @@ function render() {
   selC.innerHTML = cats.map(c =>
     '<option value="' + esc(c) + '"' + (c === catAtiva ? ' selected' : '') + '>' + esc(c) + '</option>').join('');
 
-  const { linhas, itens } = calcularRanking(catAtiva);
-  rankCache[catAtiva] = { linhas, itens };
+  const { linhas, itens, valendo } = calcularRanking(catAtiva);
+  rankCache[catAtiva] = { linhas, itens, valendo };
 
   const busca = document.getElementById('busca').value.trim().toLowerCase();
   const vis = linhas.filter(l => !busca || l.atleta.nome.toLowerCase().includes(busca));
 
   renderTabela(vis, itens);
-  renderLegenda(itens, linhas.length);
+  renderLegenda(itens, linhas.length, valendo);
   renderWods();
 }
 
@@ -1004,20 +1031,27 @@ function renderTabela(linhas, itens) {
   }).join('');
 }
 
-function renderLegenda(itens, totalAtletas) {
+function renderLegenda(itens, totalAtletas, valendo) {
   const sis = D.sistema === 'posicao'
     ? 'Cada prova vale a colocação do atleta: <b>1º = 1 pt</b>, 2º = 2 pts, 3º = 3 pts e assim por diante. <b>Menor total vence.</b>'
     : '1º lugar vale <b>' + num(D.p1, 100) + ' pts</b>, com <b>-' + num(D.dec, 5) +
       '</b> por posição (mínimo 1). <b>Maior total vence.</b>';
+  const contando = valendo ? itens.filter(w => valendo[w.id]).length : itens.length;
   document.getElementById('legend').innerHTML =
     sis + ' Empates dividem os pontos das posições empatadas. ' +
     (D.sistema === 'posicao'
       ? 'Quem não tem resultado na prova recebe a última colocação dela. '
       : 'Quem não pontua na prova fica em último e soma 0. ') +
-    'Quem estoura o time cap entra depois de quem finalizou, ordenado por repetições. ' +
+    'Quem estoura o time cap fica com o tempo do cap mais as repetições que faltaram (ex: <b>15:10</b>) e entra depois de quem finalizou, na ordem de quem faltou menos. ' +
     'Critério de desempate: melhores colocações individuais. ' +
     'Prova dividida em partes pontua cada parte separadamente. ' +
-    '<br>' + itens.length + ' pontuação(ões) valendo · ' + totalAtletas + ' atleta(s) na categoria · toque em um atleta para ver o detalhamento.';
+    '<br>' + contando + ' de ' + itens.length + ' pontuação(ões) já lançada(s) · ' +
+    totalAtletas + ' atleta(s) na categoria · toque em um atleta para ver o detalhamento.' +
+    // sem isso, uma prova por lancar daria a mesma media para todo mundo e
+    // inflaria o total sem mudar a ordem
+    (contando < itens.length
+      ? '<br>Provas ainda não lançadas não entram no total.'
+      : '');
 }
 
 function renderWods() {
@@ -1061,6 +1095,12 @@ function verAtleta(id) {
   document.getElementById('aBody').innerHTML = cache.itens.map(w => {
     const r = l.provas[w.id];
     const v = fmtValor(w, r && r.res);
+    if (!r.valendo) {
+      return '<div class="brk">' +
+        '<div class="brk-name">' + esc(w.nome) + '<small>ainda não lançada</small></div>' +
+        '<div class="brk-val" style="color:var(--gray)">—</div>' +
+      '</div>';
+    }
     return '<div class="brk">' +
       '<div class="brk-name">' + esc(w.nome) + '<small>' + esc(v || 'sem resultado') + '</small></div>' +
       '<div class="brk-val">' + fmtPts(r.pts) + ' pts<span class="pl"> ' + ordinal(r.pos) + '</span></div>' +

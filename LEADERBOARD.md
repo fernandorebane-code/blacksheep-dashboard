@@ -188,6 +188,34 @@ python3 assets/gerar-favicon.py assets/marca-carneiro.png
 Imprime as duas tags `<link>` com o PNG embutido como data URI, que é o que
 permite a página pública viajar como arquivo único para o outro repositório.
 
+## Como o total é calculado
+
+O total é a **soma das colocações** — nada mais. 1º numa prova vale 1 ponto, 2º
+vale 2, e menor total vence.
+
+**Prova ainda não lançada não entra na conta.** Sem essa regra, todo mundo ficava
+empatado em último nela e levava a mesma média: com 4 atletas, 2,5 pontos cada.
+Seis provas por lançar viravam 15 pontos fixos no total de todo mundo, e o
+primeiro colocado aparecia com **16 em vez de 1**. A ordem até saía certa, mas o
+número não queria dizer nada.
+
+Prova lançada só para parte dos atletas continua contando: quem ainda não tem
+resultado fica em último **nela**, que é o comportamento certo durante a prova.
+
+### Time cap
+
+Nas provas por tempo, quem não finaliza dentro do cap entra com **quantas
+repetições faltaram**, e o resultado aparece como o tempo do cap mais as reps:
+cap de 15′ com 10 faltando vira **15:10**. Entre os que estouraram, ganha quem
+faltou menos; todos eles entram depois de quem finalizou.
+
+O cap é propriedade da prova (`cap`, em segundos) e aparece no cadastro. Prova
+por tempo sem cap cadastrado mostra só `+N reps`, sem inventar um tempo.
+
+Quando o cap tem segundos quebrados (3′30″, por exemplo), o resultado sai como
+`3:30 +10` em vez de `3:30:10`, para os segundos não se confundirem com a
+contagem de repetições.
+
 ## As provas do evento
 
 `dados/campeonato-inicial.json` já traz as **28 provas**: 7 por programação,
