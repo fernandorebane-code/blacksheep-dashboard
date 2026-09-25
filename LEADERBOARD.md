@@ -133,7 +133,36 @@ aplicar: é ali que um erro apareceria. Um casamento errado troca a unidade de
 alguém; um casamento que falta só perde a unidade, que se preenche na tela do
 organizador.
 
-## O leaderboard no celular
+## O celular
+
+O evento é assistido e operado no telefone, então as duas páginas têm um passe
+de celular abaixo de 700px, e um teste que não deixa isso regredir
+(`testes/celular.js`).
+
+O que estava quebrado e foi corrigido:
+
+- **Leaderboard** — a tabela tem `min-width:640px` e as colunas das pontas são
+  `position:sticky`: num telefone de 380px as colunas das provas ficavam
+  escondidas **atrás** da coluna do total. Cada linha virou um cartão, com as
+  provas como fichas embaixo, três por linha.
+- **Cabeçalho do organizador** — o link, o usuário e o SAIR não quebravam linha e
+  empurravam a página para 600px numa tela de 390px.
+- **Grade de lançamento** — a unidade saiu da coluna própria e foi para debaixo
+  do nome; sem isso as duas colunas de texto espremiam o nome até ele quebrar em
+  cinco linhas. O nome corta com reticências, e a grade cabe na tela.
+- **Linhas de lista** (atletas e provas) — até seis controles na mesma linha
+  vazavam para 472px; agora o nome ocupa a primeira linha e os controles quebram
+  embaixo.
+- **Alvos de toque** — controles entre 27px e 34px de altura subiram para 40px.
+- **Texto miúdo** — dezenas de trechos abaixo de 10px subiram para 11px.
+- **Modais** — ocupam a tela inteira em vez de sobrar 1rem de margem.
+
+Uma armadilha que apareceu no caminho: as regras do leaderboard (`thead` oculto,
+linha vira cartão) estavam sem prefixo e caíam também na grade de lançamento do
+organizador, que perdia os cabeçalhos "Tempo (mm:ss)" e "Reps (cap)" — justo o
+que diz em qual campo digitar o quê. Por isso tudo ali é prefixado com `#tabela`.
+
+## Detalhes do leaderboard no celular
 
 A tabela tem `min-width:640px`, e as colunas das pontas são `position:sticky`.
 Num telefone de 380px isso escondia as colunas das provas **atrás** da coluna do

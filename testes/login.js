@@ -3,6 +3,9 @@
 const { chromium } = require('playwright');
 // Caminho do Chromium. Vazio = deixa o Playwright achar o dele.
 const CHROME = process.env.CHROME_PATH || '';
+// Largura da janela. 390 = celular; o padrao roda como desktop.
+const LARGURA = Number(process.env.LARGURA || 1280);
+const JANELA = { viewport: { width: LARGURA, height: 900 } };
 const path = process.env.PAGINA || require('path').resolve(__dirname, '..', 'organizador.html');
 
 const CASOS = [
@@ -15,7 +18,7 @@ const CASOS = [
 
 (async () => {
   const navegador = await chromium.launch(CHROME ? { executablePath: CHROME } : {});
-  const pagina = await navegador.newPage();
+  const pagina = await navegador.newPage(JANELA);
 
   await pagina.addInitScript(() => {
     window.__enviados = [];

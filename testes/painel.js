@@ -4,6 +4,9 @@
 const { chromium } = require('playwright');
 // Caminho do Chromium. Vazio = deixa o Playwright achar o dele.
 const CHROME = process.env.CHROME_PATH || '';
+// Largura da janela. 390 = celular; o padrao roda como desktop.
+const LARGURA = Number(process.env.LARGURA || 1280);
+const JANELA = { viewport: { width: LARGURA, height: 900 } };
 const fs = require('fs');
 const BASE = process.env.BASE || 'http://127.0.0.1:8931';
 const DADOS = JSON.parse(fs.readFileSync(require('path').resolve(__dirname, '..', 'dados', 'campeonato-inicial.json'), 'utf8'));
@@ -17,7 +20,7 @@ const WODS = [
 
 (async () => {
   const nav = await chromium.launch(CHROME ? { executablePath: CHROME } : {});
-  const pag = await nav.newPage();
+  const pag = await nav.newPage(JANELA);
   const erros = [];
   pag.on('pageerror', e => erros.push('pageerror: ' + e));
   pag.on('console', m => {
