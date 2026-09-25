@@ -133,6 +133,30 @@ aplicar: é ali que um erro apareceria. Um casamento errado troca a unidade de
 alguém; um casamento que falta só perde a unidade, que se preenche na tela do
 organizador.
 
+## Cadastrar as provas
+
+Cada prova tem **dono**: ao adicionar, escolhe-se o **nível** (Elite, RX,
+Intermediário, Scaled, Master 45+) e o **gênero** (masc e fem / só masc / só
+fem). Isso resolve para as categorias de verdade — "Elite" + "masc e fem" vira
+`["Elite Masculino", "Elite Feminino"]`.
+
+O agrupamento por nível existe porque masculino e feminino fazem a mesma prova
+mudando só a carga, e a carga vai escrita na descrição ("Snatch 60kg / 40kg").
+Quando de fato for só um dos dois, o seletor de gênero resolve.
+
+Nível vazio = **todas as categorias**. É também como se comportam as provas
+cadastradas antes disto existir: sem a chave `categorias`, valem para todo mundo.
+
+Consequências, todas testadas:
+
+- O leaderboard público só mostra as colunas e a legenda da categoria aberta
+- O total de cada atleta só soma as provas da categoria dele — uma prova de outra
+  categoria não entra como "sem nota" e não vira penalidade
+- A tela de lançamento só oferece as provas da categoria escolhida
+
+Para mudar o dono depois, o seletor na própria linha da lista de provas faz isso
+sem recadastrar.
+
 ## Editar um atleta
 
 Na aba ATLETAS, cada linha traz **nome, categoria e unidade** editáveis ali

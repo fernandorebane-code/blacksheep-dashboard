@@ -145,6 +145,92 @@ const WODS = [
   ok('quem nao tem unidade aparece como "sem unidade"',
      (await pag.textContent('#atLista')).includes('sem unidade'));
 
+  // ---------- PROVAS: cada uma com dono ----------
+  await pag.click('.admin-tab[data-ap="apWods"]');
+  await pag.waitForTimeout(250);
+
+  const niveisNoSelect = await pag.$$eval('#wNivel option', os => os.map(o => o.textContent.trim()));
+  ok('o select de nivel agrupa masc e fem', niveisNoSelect.length === 6 &&
+     niveisNoSelect.includes('Elite') && niveisNoSelect.includes('Master 45+') &&
+     !niveisNoSelect.some(n => /Masculino|Feminino/.test(n)), JSON.stringify(niveisNoSelect));
+
+  // Elite, masculino e feminino
+  await limpar();
+  await pag.fill('#wNome', 'WOD do Elite');
+  await pag.selectOption('#wNivel', 'Elite');
+  await pag.selectOption('#wGenero', '');
+  await pag.click('#apWods button:has-text("ADICIONAR")');
+  await pag.waitForTimeout(400);
+  g = await ultimo();
+  let nova = g && g.patch.wods && g.patch.wods.find(w => w.nome === 'WOD do Elite');
+  ok('nivel Elite + masc e fem vira 2 categorias',
+     nova && nova.categorias.length === 2 &&
+     nova.categorias.includes('Elite Masculino') && nova.categorias.includes('Elite Feminino'),
+     JSON.stringify(nova && nova.categorias));
+
+  // so feminino
+  await limpar();
+  await pag.fill('#wNome', 'WOD so Fem');
+  await pag.selectOption('#wNivel', 'Scaled');
+  await pag.selectOption('#wGenero', 'Feminino');
+  await pag.click('#apWods button:has-text("ADICIONAR")');
+  await pag.waitForTimeout(400);
+  g = await ultimo();
+  nova = g && g.patch.wods.find(w => w.nome === 'WOD so Fem');
+  ok('nivel + so feminino vira 1 categoria',
+     nova && nova.categorias.length === 1 && nova.categorias[0] === 'Scaled Feminino',
+     JSON.stringify(nova && nova.categorias));
+
+  // todas
+  await limpar();
+  await pag.fill('#wNome', 'WOD Geral');
+  await pag.selectOption('#wNivel', '');
+  await pag.click('#apWods button:has-text("ADICIONAR")');
+  await pag.waitForTimeout(400);
+  g = await ultimo();
+  nova = g && g.patch.wods.find(w => w.nome === 'WOD Geral');
+  ok('sem nivel vale para todas', nova && nova.categorias.length === 0,
+     JSON.stringify(nova && nova.categorias));
+
+  // a lista diz de quem e cada prova
+  const textoLista = await pag.textContent('#wLista');
+  ok('a lista mostra o dono da prova', /Elite · masculino e feminino/.test(textoLista) &&
+     /Scaled · feminino/.test(textoLista) && /todas as categorias/.test(textoLista),
+     textoLista.replace(/\s+/g, ' ').slice(0, 200));
+
+  // trocar o dono pela propria lista
+  await limpar();
+  const linhaElite = pag.locator('#wLista .list-item').filter({ hasText: 'WOD do Elite' }).first();
+  await linhaElite.locator('select[aria-label="Quem faz esta prova"]').selectOption('RX|Masculino');
+  await pag.waitForTimeout(400);
+  g = await ultimo();
+  nova = g && g.patch.wods.find(w => w.nome === 'WOD do Elite');
+  ok('trocar o dono pela lista grava',
+     nova && nova.categorias.length === 1 && nova.categorias[0] === 'RX Masculino',
+     JSON.stringify(nova && nova.categorias));
+
+  // o lancamento de resultados so oferece as provas da categoria
+  await pag.click('.admin-tab[data-ap="apResultados"]');
+  await pag.waitForTimeout(250);
+  await pag.selectOption('#rCat', 'Scaled Feminino');
+  await pag.waitForTimeout(300);
+  let provasOferecidas = await pag.$$eval('#rWod option', os => os.map(o => o.textContent.trim()));
+  ok('Scaled Feminino ve a prova dela e a geral',
+     provasOferecidas.includes('WOD so Fem') && provasOferecidas.includes('WOD Geral'),
+     JSON.stringify(provasOferecidas));
+  ok('Scaled Feminino nao ve a prova do RX',
+     !provasOferecidas.includes('WOD do Elite'), JSON.stringify(provasOferecidas));
+
+  await pag.selectOption('#rCat', 'RX Masculino');
+  await pag.waitForTimeout(300);
+  provasOferecidas = await pag.$$eval('#rWod option', os => os.map(o => o.textContent.trim()));
+  ok('RX Masculino ve a prova que passou para ele',
+     provasOferecidas.includes('WOD do Elite') && !provasOferecidas.includes('WOD so Fem'),
+     JSON.stringify(provasOferecidas));
+
+  await pag.click('.admin-tab[data-ap="apAtletas"]');
+  await pag.waitForTimeout(250);
+
   // filtrar a lista: achar uma pessoa entre 121
   const conta = () => pag.locator('#atLista .list-item').count();
   ok('sem filtro mostra todos', (await conta()) === 121);

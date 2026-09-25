@@ -11,10 +11,11 @@ python3 build-paginas.py        # gerar as páginas a partir da fonte
 python3 -m http.server 8931 &   # painel.js precisa de HTTP: cargaInicial() faz fetch
 node testes/login.js
 node testes/painel.js
+node testes/provas.js
 ```
 
 `login.js` cobre o mapeamento usuário → e-mail e as mensagens de erro.
-`painel.js` cobre o caminho de uso real: entrar, lançar resultados (inclusive um
+`provas.js` cobre a prova por categoria no leaderboard público. `painel.js` cobre o caminho de uso real: entrar, lançar resultados (inclusive um
 WOD de duas partes pontuadas), salvar, importar a lista oficial e salvar a
 configuração — e falha se o JS estourar em qualquer ponto.
 
