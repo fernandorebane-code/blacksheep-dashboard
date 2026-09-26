@@ -44,6 +44,12 @@ e `publico/index.html` como `index.html` no `blacksheep-invitational`. O endere�
      desce para o bloco "Já lançados", marcado com ✓ e apagado, e um contador diz
      quantos faltam. O bloco de baixo continua editável — apagar o valor devolve o
      atleta ao topo.
+   - **Tempo aceita só os dígitos**: `1510` = 15:10, `2301` = 23:01, `942` = 9:42.
+     A regra é uniforme — os **dois últimos dígitos são sempre os segundos**, o que
+     vier antes são os minutos, então `45` = 0:45. Digitar `15:10` continua valendo,
+     e o mesmo atalho serve no campo do time cap. Segundo acima de 59 (`1575`) é
+     recusado em vez de virar 16:15 calado. Antes desta regra `1510` era lido como
+     1510 segundos (25:10).
    - Cada gravação manda o mapa `resultados` **inteiro**, montado a partir do snapshot
      (o `mergeFields` troca o campo por completo), então salvar um atleta nunca apaga
      o resultado dos outros. Valor inválido não grava e não remonta a grade — o foco

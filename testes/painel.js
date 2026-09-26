@@ -172,6 +172,49 @@ const WODS = [
   await pag.press(`#rGrid input[data-f="v"][data-at="${ids[1]}"]`, 'Enter');
   await pag.waitForTimeout(300);
 
+  // ---- tempo so com os digitos ----
+  // Os DOIS ultimos digitos sao sempre os segundos. Antes daqui "1510" virava
+  // 1510 segundos (25:10), que e o resultado errado sem avisar ninguem.
+  const digitar = async (txt) => {
+    await limpar();
+    await pag.fill(`#rGrid input[data-f="v"][data-at="${ids[3]}"]`, txt);
+    await pag.press(`#rGrid input[data-f="v"][data-at="${ids[3]}"]`, 'Enter');
+    await pag.waitForTimeout(300);
+    const u = await ultimo();
+    return u && u.patch.resultados[ids[3]] && u.patch.resultados[ids[3]]['w1::p1']
+      ? u.patch.resultados[ids[3]]['w1::p1'].v : null;
+  };
+
+  ok('1510 vira 15:10', await digitar('1510') === 15 * 60 + 10);
+  ok('2301 vira 23:01', await digitar('2301') === 23 * 60 + 1);
+  ok('942 vira 9:42 (3 digitos)', await digitar('942') === 9 * 60 + 42);
+  ok('45 continua 45 segundos (1 ou 2 digitos)', await digitar('45') === 45);
+  ok('com os dois pontos continua valendo', await digitar('15:10') === 15 * 60 + 10);
+  ok('o campo mostra o tempo formatado depois de salvar',
+     (await pag.inputValue(`#rGrid input[data-f="v"][data-at="${ids[3]}"]`)) === '15:10',
+     await pag.inputValue(`#rGrid input[data-f="v"][data-at="${ids[3]}"]`));
+
+  // 15:75 nao existe: recusa em vez de virar 16:15 calado
+  await limpar();
+  await pag.fill(`#rGrid input[data-f="v"][data-at="${ids[3]}"]`, '1575');
+  await pag.press(`#rGrid input[data-f="v"][data-at="${ids[3]}"]`, 'Enter');
+  await pag.waitForTimeout(300);
+  ok('segundo acima de 59 nao grava',
+     (await pag.evaluate(() => window.__gravado.length)) === 0);
+  await pag.fill(`#rGrid input[data-f="v"][data-at="${ids[3]}"]`, '');
+  await pag.press(`#rGrid input[data-f="v"][data-at="${ids[3]}"]`, 'Enter');
+  await pag.waitForTimeout(300);
+
+  // o mesmo atalho vale no time cap
+  await limpar();
+  await pag.fill('#rCap', '1200');
+  await pag.press('#rCap', 'Enter');
+  await pag.waitForTimeout(350);
+  let gc = await ultimo();
+  ok('o cap tambem aceita so os digitos (1200 = 12:00)',
+     gc && gc.patch.wods && gc.patch.wods.some(w => (w.partes || []).some(pt => pt.cap === 720)),
+     JSON.stringify(gc && gc.patch.wods && gc.patch.wods.map(w => (w.partes || []).map(pt => pt.cap))));
+
   // parte B do mesmo WOD: pontuacao separada
   await limpar();
   await pag.selectOption('#rWod', 'w1::p2');
