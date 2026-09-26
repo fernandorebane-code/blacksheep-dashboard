@@ -129,7 +129,13 @@ def main():
     ap.add_argument('--raias', type=int, help='sobrepoe as raias de TODAS as rodadas')
     ap.add_argument('--inicio', help='sobrepoe o horario inicial de TODAS as rodadas')
     ap.add_argument('--intervalo', type=int, help='sobrepoe o intervalo de TODAS as rodadas')
+    ap.add_argument('--incluir', action='append', default=[], metavar='NOME',
+                    help='escala o atleta mesmo devendo prova (repetivel). '
+                         'O organizador decide quem segue no campeonato; o script '
+                         'so nao adivinha isso sozinho.')
     args = ap.parse_args()
+    forcados = {chave(n) for n in args.incluir}
+    usados = set()
 
     rodadas = []
     for r in RODADAS:
@@ -150,13 +156,17 @@ def main():
     else:
         linhas = ler_por_categoria(args.csv, conhecidas_cfg)
 
-    porCat, fora, semPos = OrderedDict(), [], []
+    porCat, fora, semPos, forcado = OrderedDict(), [], [], []
     for l in linhas:
         cat = coluna(l, 'Categoria')
         nome = coluna(l, 'Atleta', 'Nome')
         if not cat or not nome:
             continue
-        if coluna(l, 'Completo').lower() not in ('sim', 's', 'yes', '1'):
+        completo = coluna(l, 'Completo').lower() in ('sim', 's', 'yes', '1')
+        if not completo and chave(nome) in forcados:
+            usados.add(chave(nome))
+            forcado.append((cat, nome, coluna(l, 'Faltando')))
+        elif not completo:
             fora.append((cat, nome, coluna(l, 'Faltando'))); continue
         pos = coluna(l, 'Pos')
         if not pos.isdigit():
@@ -238,6 +248,17 @@ def main():
         b = [x for x in resumo if x[0] == rod['aba']]
         print(f"{rod['aba']}: {sum(len(x[4]) for x in b)} atleta(s) em {len(b)} bateria(s)"
               f" de ate {rod['raias']} raias.")
+    if forcado:
+        print(f'\nESCALADOS MESMO DEVENDO PROVA ({len(forcado)}) — por --incluir:')
+        for cat, nome, falta in forcado:
+            print(f'  {cat:26s} {nome:28s} falta: {falta}')
+    naoAchados = forcados - usados
+    if naoAchados:
+        print('\nATENÇÃO — nomes passados em --incluir que não bateram com ninguém')
+        print('(ou que já estavam completos, e aí não era preciso forçar):')
+        for n in args.incluir:
+            if chave(n) in naoAchados:
+                print(f'  {n}')
     if fora:
         print(f'\nFORA — ainda devem prova ({len(fora)}):')
         for cat, nome, falta in fora:
