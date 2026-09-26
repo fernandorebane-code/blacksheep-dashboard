@@ -44,6 +44,12 @@ e `publico/index.html` como `index.html` no `blacksheep-invitational`. O endere�
      desce para o bloco "Já lançados", marcado com ✓ e apagado, e um contador diz
      quantos faltam. O bloco de baixo continua editável — apagar o valor devolve o
      atleta ao topo.
+   - **Zero não é resultado em prova por tempo**, nos dois campos, e cada um errava
+     para um lado: `0` no tempo virava 0:00 e **ganhava** a prova; `0` em "Reps
+     faltando" mandava o atleta para o fim, atrás de todos que terminaram — quando
+     0 reps faltando quer dizer justamente que ele terminou. Os dois são recusados
+     com a mensagem dizendo o que lançar. Em **reps e carga**, `0` continua sendo
+     resultado legítimo (o atleta não fez nada) e fica em último.
    - **Tempo aceita só os dígitos**: `1510` = 15:10, `2301` = 23:01, `942` = 9:42.
      A regra é uniforme — os **dois últimos dígitos são sempre os segundos**, o que
      vier antes são os minutos, então `45` = 0:45. Digitar `15:10` continua valendo,

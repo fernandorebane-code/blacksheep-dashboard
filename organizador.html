@@ -1269,7 +1269,14 @@ async function salvar(patch, msgId, texto) {
     // mergeFields substitui os campos informados por inteiro:
     // sem isso, remover um atleta/prova/resultado nao apaga a chave no Firestore.
     await DOC.set(patch, { mergeFields: Object.keys(patch) });
-    if (el) { el.className = 'msg ok'; el.textContent = texto || 'Salvo.'; setTimeout(() => { el.textContent = ''; }, 3000); }
+    if (el) {
+      // So apaga se a mensagem ainda for esta. Sem isso, o temporizador de um
+      // salvamento antigo apagava o erro que acabou de aparecer na tela.
+      const meu = texto || 'Salvo.';
+      el.className = 'msg ok';
+      el.textContent = meu;
+      setTimeout(() => { if (el.textContent === meu) el.textContent = ''; }, 3000);
+    }
     avisar('ok', texto || 'Salvo.', 4);
     return true;
   } catch (e) {
@@ -1897,6 +1904,30 @@ let filaResultados = Promise.resolve();
 // Grava o resultado de UM atleta (a linha inteira: tempo e reps faltando juntos).
 // O patch leva o mapa resultados COMPLETO, montado a partir do D que veio do
 // snapshot — os resultados dos outros atletas vao junto, intactos.
+// Zero nao e um resultado valido em prova por tempo, nos dois campos, e cada um
+// errava para um lado: 0 no tempo virava 0:00 e GANHAVA a prova; 0 em "reps
+// faltando" mandava para o fim, atras de todo mundo que terminou — quando 0 reps
+// faltando quer dizer justamente que o atleta terminou.
+function motivoInvalido(campo, n, ehTempo) {
+  if (n == null || n < 0) {
+    return ehTempo
+      ? 'Valor inválido. Tempo como mm:ss (8:42) ou só os números (842), e reps faltando como número.'
+      : 'Valor inválido.';
+  }
+  if (n !== 0) return '';
+  if (campo === 'v' && ehTempo) {
+    return 'Tempo 0:00 não existe — do jeito que estava, ganhava a prova. ' +
+           'Lance o tempo real. Se o atleta não terminou, deixe o tempo vazio e ' +
+           'informe quantas repetições faltaram.';
+  }
+  if (campo === 'faltou') {
+    return '0 em “Reps faltando” quer dizer que o atleta TERMINOU — do jeito que ' +
+           'estava, ele ia para o fim. Lance o tempo dele; se terminou junto com o ' +
+           'cap, lance o tempo do cap.';
+  }
+  return '';
+}
+
 function lancarResultado(inp, pular) {
   if (!D) return;                        // snapshot ainda nao chegou: nao grava nada
   const at = inp.dataset.at;
@@ -1907,7 +1938,7 @@ function lancarResultado(inp, pular) {
 
   const campos = { v: inputDaGrade(at, 'v'), faltou: inputDaGrade(at, 'faltou') };
   const novo = { v: null, faltou: null };
-  let invalido = null;
+  let invalido = null, motivo = '';
   Object.keys(campos).forEach(f => {
     const campo = campos[f];
     if (!campo) return;
@@ -1915,7 +1946,8 @@ function lancarResultado(inp, pular) {
     const txt = campo.value.trim();
     if (!txt) return;
     const n = (f === 'v' && ehTempo) ? parseTempo(txt) : num(txt.replace(',', '.'), null);
-    if (n == null || n < 0) { invalido = campo; return; }
+    const erro = motivoInvalido(f, n, ehTempo);
+    if (erro) { invalido = campo; motivo = erro; return; }
     novo[f] = n;
   });
 
@@ -1923,9 +1955,7 @@ function lancarResultado(inp, pular) {
     invalido.style.borderColor = 'var(--red)';
     const msg = document.getElementById('rMsg');
     msg.className = 'msg err';
-    msg.textContent = ehTempo
-      ? 'Valor inválido. Tempo como mm:ss (8:42) e reps faltando como número.'
-      : 'Valor inválido.';
+    msg.textContent = motivo;
     return;                              // nao grava e nao remonta: o foco fica onde esta
   }
 
@@ -2017,7 +2047,7 @@ function salvarResultados() {
     inp.style.borderColor = '';
     if (!txt) return;
     const n = (f === 'v' && ehTempo) ? parseTempo(txt) : num(txt.replace(',', '.'), null);
-    if (n == null || n < 0) { invalidos++; inp.style.borderColor = 'var(--red)'; return; }
+    if (motivoInvalido(f, n, ehTempo)) { invalidos++; inp.style.borderColor = 'var(--red)'; return; }
     buffer[at][f] = n;
   });
 
