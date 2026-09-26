@@ -98,27 +98,79 @@ const WODS = [
 
   await limpar();
   const ids = await pag.$$eval('#rGrid input[data-f="v"]', es => es.map(e => e.dataset.at));
+  const totalAtl = ids.length;
+
+  // ---- lancamento automatico: nao existe clicar em salvar ----
+  const pend = () => pag.$$eval('#rGrid tbody tr:not(.feito):not(.sep) input[data-f="v"]',
+                                es => es.map(e => e.dataset.at));
+  ok('antes de lancar, todo mundo esta pendente', (await pend()).length === totalAtl);
+
   await pag.fill(`#rGrid input[data-f="v"][data-at="${ids[0]}"]`, '3:42');
-  await pag.fill(`#rGrid input[data-f="v"][data-at="${ids[1]}"]`, '3:58');
-  await pag.click('button:has-text("SALVAR RESULTADOS")');
-  await pag.waitForTimeout(400);
+  await pag.press(`#rGrid input[data-f="v"][data-at="${ids[0]}"]`, 'Enter');
+  await pag.waitForTimeout(350);
   let g = await ultimo();
-  ok('salvou resultados da parte A', g && g.patch.resultados &&
-     g.patch.resultados[ids[0]]['w1::p1'].v === 222, JSON.stringify(g && g.patch.resultados[ids[0]]));
+  ok('salva sozinho, sem clicar em botao nenhum',
+     g && g.patch.resultados && g.patch.resultados[ids[0]]['w1::p1'].v === 222,
+     JSON.stringify(g && g.patch.resultados[ids[0]]));
   ok('3:42 virou 222 segundos', g && g.patch.resultados[ids[0]]['w1::p1'].v === 222);
   ok('salvamento usa mergeFields', g && g.opts && Array.isArray(g.opts.mergeFields) &&
      g.opts.mergeFields.includes('resultados'), JSON.stringify(g && g.opts));
 
+  // quem ja tem resultado desce; quem falta continua em cima
+  let restam = await pend();
+  ok('quem foi lancado sai do topo', !restam.includes(ids[0]), JSON.stringify(restam));
+  ok('quem falta continua pendente', restam.length === totalAtl - 1, `${restam.length}/${totalAtl}`);
+  ok('aparece o separador dos ja lancados',
+     (await pag.locator('#rGrid tr.sep').count()) === 1);
+  ok('o contador diz quantos faltam',
+     /(\d+) atleta\(s\) ainda sem resultado/.test(await pag.textContent('#rContagem')),
+     (await pag.textContent('#rContagem')).slice(0, 90));
+
+  // o Enter ja deixou o cursor no proximo que falta
+  const focado = await pag.evaluate(() => document.activeElement &&
+                                          document.activeElement.dataset &&
+                                          document.activeElement.dataset.at);
+  ok('o Enter pula para o proximo atleta sem resultado',
+     focado && focado !== ids[0] && restam.includes(focado), String(focado));
+
+  // segundo lancamento: o primeiro NAO pode sumir do patch
+  await limpar();
+  await pag.fill(`#rGrid input[data-f="v"][data-at="${ids[1]}"]`, '3:58');
+  await pag.press(`#rGrid input[data-f="v"][data-at="${ids[1]}"]`, 'Enter');
+  await pag.waitForTimeout(350);
+  g = await ultimo();
+  ok('o resultado anterior vai junto no patch e nao se perde',
+     g && g.patch.resultados[ids[0]]['w1::p1'].v === 222 &&
+     g.patch.resultados[ids[1]]['w1::p1'].v === 238,
+     JSON.stringify(g && g.patch.resultados[ids[1]]));
+
   // tempo invalido nao pode gravar
   await limpar();
-  await pag.fill(`#rGrid input[data-f="v"][data-at="${ids[0]}"]`, 'nao é tempo');
-  await pag.click('button:has-text("SALVAR RESULTADOS")');
+  await pag.fill(`#rGrid input[data-f="v"][data-at="${ids[2]}"]`, 'nao é tempo');
+  await pag.press(`#rGrid input[data-f="v"][data-at="${ids[2]}"]`, 'Enter');
   await pag.waitForTimeout(300);
   const nGravou = await pag.evaluate(() => window.__gravado.length);
   const msgInv = (await pag.textContent('#rMsg')).trim();
   ok('tempo invalido bloqueia o salvamento', nGravou === 0, `gravou=${nGravou}`);
   ok('e avisa qual campo', /inv[aá]lido/i.test(msgInv), msgInv);
-  await pag.fill(`#rGrid input[data-f="v"][data-at="${ids[0]}"]`, '3:42');
+  ok('e o atleta do valor invalido continua pendente',
+     (await pend()).includes(ids[2]));
+  await pag.fill(`#rGrid input[data-f="v"][data-at="${ids[2]}"]`, '');
+
+  // apagar um resultado ja lancado tira ele do patch e devolve ao topo
+  await limpar();
+  await pag.fill(`#rGrid input[data-f="v"][data-at="${ids[1]}"]`, '');
+  await pag.press(`#rGrid input[data-f="v"][data-at="${ids[1]}"]`, 'Enter');
+  await pag.waitForTimeout(350);
+  g = await ultimo();
+  ok('apagar o valor remove o resultado daquele atleta',
+     g && !g.patch.resultados[ids[1]]['w1::p1'], JSON.stringify(g && g.patch.resultados[ids[1]]));
+  ok('mas nao mexe no resultado dos outros',
+     g && g.patch.resultados[ids[0]]['w1::p1'].v === 222);
+  ok('e ele volta para o topo como pendente', (await pend()).includes(ids[1]));
+  await pag.fill(`#rGrid input[data-f="v"][data-at="${ids[1]}"]`, '3:58');
+  await pag.press(`#rGrid input[data-f="v"][data-at="${ids[1]}"]`, 'Enter');
+  await pag.waitForTimeout(300);
 
   // parte B do mesmo WOD: pontuacao separada
   await limpar();
@@ -126,7 +178,7 @@ const WODS = [
   await pag.waitForTimeout(250);
   const idsB = await pag.$$eval('#rGrid input[data-f="v"]', es => es.map(e => e.dataset.at));
   await pag.fill(`#rGrid input[data-f="v"][data-at="${idsB[0]}"]`, '8:10');
-  await pag.click('button:has-text("SALVAR RESULTADOS")');
+  await pag.press(`#rGrid input[data-f="v"][data-at="${idsB[0]}"]`, 'Enter');
   await pag.waitForTimeout(400);
   g = await ultimo();
   ok('parte B salva sem apagar a parte A',
@@ -139,7 +191,7 @@ const WODS = [
   await pag.waitForTimeout(250);
   const idsC = await pag.$$eval('#rGrid input[data-f="v"]', es => es.map(e => e.dataset.at));
   await pag.fill(`#rGrid input[data-f="v"][data-at="${idsC[0]}"]`, '85,5');
-  await pag.click('button:has-text("SALVAR RESULTADOS")');
+  await pag.press(`#rGrid input[data-f="v"][data-at="${idsC[0]}"]`, 'Enter');
   await pag.waitForTimeout(400);
   g = await ultimo();
   ok('carga aceita virgula decimal', g && g.patch.resultados[idsC[0]].w2.v === 85.5,

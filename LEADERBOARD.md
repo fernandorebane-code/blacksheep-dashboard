@@ -36,7 +36,18 @@ e `publico/index.html` como `index.html` no `blacksheep-invitational`. O endere�
    - **PROVAS** — cadastre cada WOD, escolha o tipo de resultado, reordene e use o
      checkbox `pub` para segurar uma prova até a hora de divulgar.
    - **ATLETAS** — cadastro individual ou importação em lote (`Nome; Categoria; Unidade`, um por linha).
-   - **RESULTADOS** — escolha prova + categoria e digite os resultados na grade. Salvar publica na hora.
+   - **RESULTADOS** — escolha prova + categoria e digite na grade. **Cada resultado
+     salva sozinho** ao sair do campo ou no Enter; não há botão a clicar no fluxo
+     normal (o "SALVAR A GRADE TODA" ficou como rede de segurança). **Enter** grava e
+     pula para o próximo atleta que ainda não tem resultado.
+   - Quem ainda **não tem resultado fica sempre no topo**. Assim que grava, o atleta
+     desce para o bloco "Já lançados", marcado com ✓ e apagado, e um contador diz
+     quantos faltam. O bloco de baixo continua editável — apagar o valor devolve o
+     atleta ao topo.
+   - Cada gravação manda o mapa `resultados` **inteiro**, montado a partir do snapshot
+     (o `mergeFields` troca o campo por completo), então salvar um atleta nunca apaga
+     o resultado dos outros. Valor inválido não grava e não remonta a grade — o foco
+     fica onde está. Nada é gravado antes do primeiro snapshot chegar.
 
 Quem estiver com a página aberta vê a atualização ao vivo (sem dar refresh).
 
