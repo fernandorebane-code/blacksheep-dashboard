@@ -22,10 +22,10 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 
 # ------------------------------------------------------------------ config
-# Uma rodada por aba. As provas que rodam juntas entram no mesmo titulo, e cada
-# rodada tem o proprio numero de raias: a 4 e 5 sao 8 por bateria, a 6 e 7 sao 6.
+# Uma rodada por aba. As provas que rodam juntas entram no mesmo titulo.
+# Sao 6 raias em todas: o numero de raias e da estrutura do evento, nao da prova.
 RODADAS = [
-    {'titulo': 'PROVA 4 E 5', 'aba': 'PROVA 4 E 5', 'raias': 8,
+    {'titulo': 'PROVA 4 E 5', 'aba': 'PROVA 4 E 5', 'raias': 6,
      'inicio': '08:00', 'intervalo': 18},
     {'titulo': 'PROVA 6 E 7', 'aba': 'PROVA 6 E 7', 'raias': 6,
      'inicio': '08:00', 'intervalo': 18},
