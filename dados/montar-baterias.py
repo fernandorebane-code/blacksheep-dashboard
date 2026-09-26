@@ -135,6 +135,12 @@ def main():
     ap.add_argument('--inicio', default=INICIO)
     ap.add_argument('--intervalo', type=int, default=INTERVALO)
     ap.add_argument('--aba', default=ABA)
+    ap.add_argument('--janela', action='append', default=[], metavar='NIVEL=HH:MM-HH:MM',
+                    help='janela do nivel (repetivel). Todas as baterias dele — 4 e '
+                         '5 e depois 6 e 7 — sao distribuidas por igual dentro do '
+                         'intervalo, e o fim e quando a ultima acaba. Ex: '
+                         '--janela "SCALED=08:00-09:39". Nivel sem janela entra na '
+                         'fila do relogio corrido, logo apos o anterior.')
     ap.add_argument('--incluir', action='append', default=[], metavar='NOME',
                     help='escala o atleta mesmo devendo prova (repetivel). '
                          'O organizador decide quem segue no campeonato; o script '
@@ -142,6 +148,20 @@ def main():
     args = ap.parse_args()
     forcados = {chave(n) for n in args.incluir}
     usados = set()
+
+    janelas = {}
+    for j in args.janela:
+        if '=' not in j or '-' not in j.split('=', 1)[1]:
+            sys.exit(f'--janela mal formada: {j!r}. Use CATEGORIA=HH:MM-HH:MM.')
+        cat, faixa = j.split('=', 1)
+        ini, fim = [x.strip() for x in faixa.split('-', 1)]
+        try:
+            a = datetime.strptime(ini, '%H:%M'); b = datetime.strptime(fim, '%H:%M')
+        except ValueError:
+            sys.exit(f'--janela com horario invalido: {j!r}. Use HH:MM.')
+        if b <= a:
+            sys.exit(f'--janela termina antes de comecar: {j!r}.')
+        janelas[chave(cat)] = (a, b)
 
     conhecidas_cfg = [c for _, cats in TRILHAS for c in cats]
     primeiro = ler(args.csv[0])
@@ -189,17 +209,39 @@ def main():
     meio = Alignment(horizontal='center', vertical='center', wrap_text=True)
 
     resumo = []
+    passos = {}          # passo real de cada nivel: com janela ele nao e o padrao
     relogio = datetime.strptime(args.inicio, '%H:%M')
     ws = wb.create_sheet(args.aba)
     for t, (trilha, cats) in enumerate(TRILHAS):
         c0 = 1 + t * 5                                   # A, F, K, P...
         linha = 1
         # O nivel roda inteiro — 4 e 5, depois 6 e 7 — antes do proximo entrar.
+        # A fila e montada ANTES de cronometrar: para caber numa janela e preciso
+        # saber de quantas baterias o nivel e feito.
+        fila = []
         for rod in RODADAS:
-            raias = rod['raias']
             for cat in cats:
-                for bloco in baterias_da_categoria(porCat.get(cat, []), raias):
-                    hora = relogio.strftime('%H:%M')
+                for bloco in baterias_da_categoria(porCat.get(cat, []), rod['raias']):
+                    fila.append((rod, cat, bloco))
+        if not fila:
+            continue
+
+        jan = janelas.get(chave(trilha))
+        if jan:
+            # O fim da janela e quando a ultima bateria ACABA, entao o passo e a
+            # janela dividida pelo numero de baterias, e nao por uma a menos.
+            passo = (jan[1] - jan[0]) / len(fila)
+            horarios = [jan[0] + passo * i for i in range(len(fila))]
+        else:
+            passo = timedelta(minutes=args.intervalo)
+            horarios = [relogio + passo * i for i in range(len(fila))]
+        passos[trilha] = passo
+        relogio = horarios[-1] + passo          # o nivel seguinte entra depois
+
+        for (rod, cat, bloco), quando in zip(fila, horarios):
+                raias = rod['raias']
+                if True:
+                    hora = quando.strftime('%H:%M')
                     ws.merge_cells(start_row=linha, start_column=c0,
                                    end_row=linha, end_column=c0 + 3)
                     cel = ws.cell(linha, c0, f"{rod['titulo']} {trilha}")
@@ -221,7 +263,6 @@ def main():
                             ws.cell(p0 + r, cx).border = borda
                     resumo.append((trilha, rod['titulo'], cat, hora, [a['nome'] for a in bloco]))
                     linha = u + 1
-                    relogio += timedelta(minutes=args.intervalo)
         # get_column_letter, e nao ws.cell(...): a linha 1 esta mesclada e a
         # celula mesclada nao carrega column_letter.
         for desloc, larg in ((0, 26), (1, 7), (2, 28), (3, 11), (4, 3)):
@@ -248,19 +289,27 @@ def main():
         b = [x for x in resumo if x[0] == trilha]
         if not b:
             continue
-        fim = datetime.strptime(b[-1][3], '%H:%M') + timedelta(minutes=args.intervalo)
+        fim = datetime.strptime(b[-1][3], '%H:%M') + passos[trilha]
         # cada atleta passa uma vez por rodada, entao aqui vale contar cabecas
         cabecas = len({n for x in b for n in x[4]})
         print(f'{trilha:24s} {cabecas:3d} atleta(s), {len(b):2d} bateria(s)'
               f'  {b[0][3]} → última começa {b[-1][3]}, libera a raia {fim.strftime("%H:%M")}')
     todas = [x[3] for x in resumo]
     if todas:
-        fim = datetime.strptime(max(todas), '%H:%M') + timedelta(minutes=args.intervalo)
+        ultimo = max(resumo, key=lambda x: x[3])
+        fim = datetime.strptime(max(todas), '%H:%M') + passos[ultimo[0]]
         print(f'\nO dia inteiro: {len(resumo)} baterias, {min(todas)} às {fim.strftime("%H:%M")}.')
     if forcado:
         print(f'\nESCALADOS MESMO DEVENDO PROVA ({len(forcado)}) — por --incluir:')
         for cat, nome, falta in forcado:
             print(f'  {cat:26s} {nome:28s} falta: {falta}')
+    naoAchadasJ = [j for j in args.janela
+                   if chave(j.split('=', 1)[0]) not in {chave(t) for t, _ in TRILHAS}]
+    if naoAchadasJ:
+        print('\nATENÇÃO — janelas de níveis que não existem na configuração')
+        print(f'(os níveis são: {", ".join(t for t, _ in TRILHAS)}):')
+        for j in naoAchadasJ:
+            print(f'  {j}')
     naoAchados = forcados - usados
     if naoAchados:
         print('\nATENÇÃO — nomes passados em --incluir que não bateram com ninguém')

@@ -149,6 +149,11 @@ Regras aplicadas em toda prova:
   o dia inteiro. Começa em `INICIO`, com `INTERVALO` minutos entre baterias.
 - `RODADAS` diz quais provas rodam juntas e com quantas raias: 8 no `PROVA 4 E 5`,
   6 no `PROVA 6 E 7`. Dentro de um nível elas acontecem nessa ordem.
+- `--janela "SCALED=08:00-09:39"` encaixa todas as baterias do nível dentro da
+  janela, distribuídas por igual. O fim é quando a **última bateria acaba**, então o
+  passo é a janela dividida pelo número de baterias, e não por uma a menos. Nível
+  sem janela entra na fila logo depois do anterior, com `INTERVALO` entre baterias.
+  Nome de nível que não existe é denunciado, com a lista dos que existem.
 - O relatório fecha com o horário de início e fim de cada nível e do dia inteiro —
   é o número que diz na hora se a programação cabe. O layout replica a planilha do organizador:
   título mesclado, cabeçalho `CATEGORIA / RAIA: / NOME: / HORÁRIO:`, categoria e
