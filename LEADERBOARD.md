@@ -81,8 +81,12 @@ Dois sistemas, escolhidos em CONFIG:
 
 Regras aplicadas em toda prova:
 
-- Empates recebem a mesma colocação e **dividem os pontos** das posições empatadas —
-  dois atletas empatados em 1º ficam com 1,5 pt cada e o seguinte é o 3º, com 3 pts.
+- **Empate é empate**: os empatados recebem a mesma colocação e a **mesma pontuação
+  inteira** — a da melhor posição do bloco. Dois atletas empatados em 1º ficam com
+  1 pt cada, e o seguinte é o 3º com 3 pts — o empate consome as duas primeiras
+  posições. Pontuação quebrada (8,5 / 11,5) **não existe** no sistema.
+  Isso é calculado na hora de montar a tabela, a partir de `D.resultados` — mudar a
+  regra nunca mexe em resultado já lançado.
 - Quem estoura o time cap entra **depois** de todos que finalizaram, ordenado por repetições.
 - Quem não tem resultado na prova recebe a última colocação dela
   (na tabela de pontos, soma 0).

@@ -867,7 +867,7 @@ document.addEventListener('keydown', e => {
      1) quem completou (ordenado pelo tipo da prova)
      2) quem bateu o time cap (ordenado por reps, decrescente)
      3) quem não pontuou (últimos, todos empatados)
-   Empates recebem a mesma colocação e dividem os pontos do bloco.
+   Empates recebem a mesma colocação e a mesma pontuação (inteira, nunca 8.5).
 --------------------------------------------------- */
 function pontosDaPosicao(pos) {
   if (D.sistema === 'posicao') return pos;
@@ -899,10 +899,11 @@ function rankearProva(wod, atletas) {
     while (j + 1 < linhas.length &&
            linhas[j + 1].grupo === linhas[i].grupo &&
            linhas[j + 1].val === linhas[i].val) j++;
+    // Empate e empate: todos os empatados ficam com a MESMA colocacao e com a
+    // MESMA pontuacao inteira (a da melhor posicao do bloco). O proximo atleta
+    // pula as posicoes ocupadas pelo empate. Nunca sai 8.5 / 11.5 daqui.
     const pos = i + 1;
-    let soma = 0;
-    for (let p = i + 1; p <= j + 1; p++) soma += pontosDaPosicao(p);
-    const pts = soma / (j - i + 1);
+    const pts = pontosDaPosicao(pos);
     for (let k2 = i; k2 <= j; k2++) {
       const semNota = linhas[k2].grupo === 2;
       // sem resultado na prova: fica em ultimo e nao soma pontos (no sistema de
