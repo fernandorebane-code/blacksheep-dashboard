@@ -215,6 +215,38 @@ const WODS = [
      gc && gc.patch.wods && gc.patch.wods.some(w => (w.partes || []).some(pt => pt.cap === 720)),
      JSON.stringify(gc && gc.patch.wods && gc.patch.wods.map(w => (w.partes || []).map(pt => pt.cap))));
 
+  // ---- zero em prova por tempo ----
+  // Os dois campos erravam para lados opostos: 0 no tempo virava 0:00 e GANHAVA a
+  // prova; 0 em "reps faltando" jogava o atleta para o fim, atras de todos que
+  // terminaram — quando 0 faltando quer dizer justamente que ele terminou.
+  const zerar = async (campo, txt) => {
+    await limpar();
+    await pag.fill(`#rGrid input[data-f="${campo}"][data-at="${ids[3]}"]`, txt);
+    await pag.press(`#rGrid input[data-f="${campo}"][data-at="${ids[3]}"]`, 'Enter');
+    await pag.waitForTimeout(300);
+    return { n: await pag.evaluate(() => window.__gravado.length),
+             msg: (await pag.textContent('#rMsg')).trim() };
+  };
+
+  let z = await zerar('v', '0');
+  ok('tempo 0 nao grava', z.n === 0, `gravou=${z.n}`);
+  ok('e explica que 0:00 ganharia a prova', /0:00 não existe/.test(z.msg), z.msg.slice(0, 80));
+  await pag.fill(`#rGrid input[data-f="v"][data-at="${ids[3]}"]`, '');
+
+  z = await zerar('faltou', '0');
+  ok('0 em reps faltando nao grava', z.n === 0, `gravou=${z.n}`);
+  ok('e explica que 0 faltando quer dizer que terminou',
+     /TERMINOU/.test(z.msg), z.msg.slice(0, 90));
+  await pag.fill(`#rGrid input[data-f="faltou"][data-at="${ids[3]}"]`, '');
+  ok('o atleta do zero continua pendente', (await pend()).includes(ids[3]));
+
+  // reps faltando com valor de verdade continua valendo
+  z = await zerar('faltou', '7');
+  ok('reps faltando > 0 grava normalmente', z.n > 0, `gravou=${z.n}`);
+  await pag.fill(`#rGrid input[data-f="faltou"][data-at="${ids[3]}"]`, '');
+  await pag.press(`#rGrid input[data-f="faltou"][data-at="${ids[3]}"]`, 'Enter');
+  await pag.waitForTimeout(300);
+
   // parte B do mesmo WOD: pontuacao separada
   await limpar();
   await pag.selectOption('#rWod', 'w1::p2');
@@ -239,6 +271,16 @@ const WODS = [
   g = await ultimo();
   ok('carga aceita virgula decimal', g && g.patch.resultados[idsC[0]].w2.v === 85.5,
      JSON.stringify(g && g.patch.resultados[idsC[0]]));
+
+  // 0 kg e um resultado legitimo (o atleta nao levantou nada) e fica em ultimo —
+  // a recusa do zero vale so para prova por tempo.
+  await limpar();
+  await pag.fill(`#rGrid input[data-f="v"][data-at="${idsC[1]}"]`, '0');
+  await pag.press(`#rGrid input[data-f="v"][data-at="${idsC[1]}"]`, 'Enter');
+  await pag.waitForTimeout(350);
+  g = await ultimo();
+  ok('carga 0 continua valendo como resultado',
+     g && g.patch.resultados[idsC[1]].w2.v === 0, JSON.stringify(g && g.patch.resultados[idsC[1]]));
 
   // ---------- SUBIR A LISTA DOS ATLETAS ----------
   await pag.click('.admin-tab[data-ap="apAtletas"]');
