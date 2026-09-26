@@ -130,6 +130,29 @@ Regras aplicadas em toda prova:
 - O confronto direto é calculado só dentro do bloco de atletas com o mesmo total,
   e aparece no detalhamento do atleta como "ganhou N de M".
 
+## Baterias
+
+`dados/montar-baterias.py` monta a planilha de baterias a partir do CSV do botão
+**CSV DE TODAS** do leaderboard (classificação de todas as categorias num arquivo).
+
+- **Só entra quem está completo** — quem tem resultado em todas as provas que já
+  estão valendo. Quem ainda deve prova sai numa lista à parte, com o nome da prova
+  que falta, em vez de entrar na bateria com pontuação pela metade.
+- Dentro da categoria, a ordem é da **pior colocação para a melhor**: a última
+  bateria é a dos líderes.
+- Baterias de 8 raias. Quando a categoria não fecha um múltiplo exato, a bateria
+  **menor é a primeira** (a dos piores), para a bateria final sair cheia.
+- Cada trilha (`TRILHAS` no topo do script) vira uma coluna de blocos com o próprio
+  relógio, 18 minutos entre baterias. O layout replica a planilha do organizador:
+  título mesclado, cabeçalho `CATEGORIA / RAIA: / NOME: / HORÁRIO:`, categoria e
+  horário mesclados ao lado das 8 raias.
+- Categoria que não esteja em nenhuma trilha é denunciada no fim do relatório, para
+  não sumir em silêncio.
+
+```
+python3 dados/montar-baterias.py classificacao_todas_categorias.csv -o baterias-domingo.xlsx
+```
+
 ## Regras do Firestore
 
 Para o leaderboard ser público (leitura sem login) e só a gestão escrever, as regras
