@@ -84,10 +84,13 @@ async function totais(nav, resultados) {
     // na p2 so dois lancaram
     ...{ a1: { p1: tempo(600), p2: tempo(500) }, a2: { p1: tempo(610), p2: tempo(510) } },
   });
-  // a1: 1o + 1o = 2 | a2: 2o + 2o = 4 | a3 e a4: 3o/4o + empate em ultimo (3,5) = 6,5 e 7,5
+  // a1: 1o + 1o = 2 | a2: 2o + 2o = 4 | a3 e a4 empatam em 3o na p2 (3 pts cada,
+  // nao 3,5): 3+3 = 6 e 4+3 = 7.
   const t = r.fora.map(l => l.total);
   ok('prova parcial: quem nao lancou fica em ultimo nela',
-     t[0] === '2' && t[1] === '4', JSON.stringify(r.fora));
+     t.join(',') === '2,4,6,7', JSON.stringify(r.fora));
+  ok('prova parcial: nenhum total quebrado',
+     t.every(v => /^\d+$/.test(v)), JSON.stringify(t));
 
   // 5) todas as 7 lancadas: soma das 7 colocacoes
   const todas = {};
@@ -99,6 +102,39 @@ async function totais(nav, resultados) {
   ok('7 de 7 lancadas: total = 7x a colocacao',
      r.fora.map(l => l.total).join(',') === '7,14,21,28', JSON.stringify(r.fora.map(l => l.total)));
   ok('sem erro de JS em nenhum caso', r.erros.length === 0, JSON.stringify(r.erros));
+
+  // ---------- empate ----------
+  // Empate e empate: os empatados ficam com a MESMA colocacao e a MESMA
+  // pontuacao inteira, e o proximo pula as posicoes ocupadas. Antes daqui saia
+  // 8.5 / 11.5, porque o bloco empatado dividia os pontos das posicoes.
+  r = await totais(nav, {
+    a1: { p1: tempo(600) },   // 1o sozinho
+    a2: { p1: tempo(610) },   // empata em 2o
+    a3: { p1: tempo(610) },   // empata em 2o
+    a4: { p1: tempo(620) },   // pula o 3o e cai em 4o
+  });
+  const emp = r.fora.map(l => l.total);
+  ok('empate nao gera ponto quebrado',
+     emp.every(v => /^\d+$/.test(v)), JSON.stringify(emp));
+  ok('empatados ficam com a mesma pontuacao e o proximo pula a posicao',
+     emp.join(',') === '1,2,2,4', JSON.stringify(r.fora));
+  ok('a legenda explica que empate e empate',
+     /mesma colocação e os mesmos pontos/.test(r.legenda), r.legenda.slice(0, 200));
+
+  // tres empatados no meio, e o resto da tabela segue inteiro
+  r = await totais(nav, {
+    a1: { p1: tempo(600) }, a2: { p1: tempo(600) },
+    a3: { p1: tempo(600) }, a4: { p1: tempo(900) },
+  });
+  ok('tres empatados: todos com 1 e o proximo em 4o',
+     r.fora.map(l => l.total).join(',') === '1,1,1,4',
+     JSON.stringify(r.fora.map(l => l.total)));
+
+  // ninguem lancou na prova: todos empatados em ultimo, ainda inteiro
+  r = await totais(nav, { a1: { p1: tempo(600) }, a2: { p1: tempo(610) } });
+  ok('empatados em ultimo tambem ficam inteiros',
+     r.fora.map(l => l.total).every(v => /^\d+$/.test(v)),
+     JSON.stringify(r.fora.map(l => l.total)));
 
   // ---------- time cap ----------
   // Quem nao finaliza fica com o tempo do cap mais as reps que faltaram, e entre
