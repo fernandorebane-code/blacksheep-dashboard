@@ -140,8 +140,11 @@ Regras aplicadas em toda prova:
   que falta, em vez de entrar na bateria com pontuação pela metade.
 - Dentro da categoria, a ordem é da **pior colocação para a melhor**: a última
   bateria é a dos líderes.
-- Baterias de 8 raias. Quando a categoria não fecha um múltiplo exato, a bateria
-  **menor é a primeira** (a dos piores), para a bateria final sair cheia.
+- As baterias saem **o mais parelhas possível**, no menor número que cabe no teto:
+  7 atletas com teto 6 viram 3 e 4, 14 viram 4/5/5, 27 viram 5/5/5/6/6. Encher de
+  teto em teto e jogar o resto numa bateria deixava uma de 1 atleta.
+- As menores vão na frente, então a última bateria continua sendo a dos líderes e
+  a mais cheia. Nenhuma passa do teto.
 - O dia corre **por nível**, não por prova: o Scaled faz o 4 e 5 e emenda o 6 e 7,
   e só então entra o nível seguinte. Cada nível (`TRILHAS`) é uma coluna de blocos
   na folha e roda inteiro antes do próximo.

@@ -114,16 +114,28 @@ def coluna(linha, *nomes):
     return ''
 
 
-def baterias_da_categoria(atletas, raias):
-    """Da pior para a melhor colocacao, com a bateria menor na frente."""
+def baterias_da_categoria(atletas, maximo):
+    """Da pior para a melhor colocacao, em baterias o mais parelhas possivel.
+
+    Nao basta encher de 'maximo' em 'maximo' e jogar o resto numa bateria: com 7
+    atletas e teto 6 isso daria uma bateria de 1 e outra de 6. Aqui o numero de
+    baterias e o minimo que cabe no teto, e os atletas se dividem por igual entre
+    elas — 7 vira 3 e 4, 14 vira 4, 5 e 5, 27 vira 5, 5, 5, 6 e 6.
+
+    As menores vao na frente, entao a ultima bateria continua sendo a dos lideres
+    e a mais cheia. Nenhuma passa do teto: base+1 so e usado quando base < maximo.
+    """
     ordenado = sorted(atletas, key=lambda a: -a['pos'])       # pior primeiro
     n = len(ordenado)
-    resto = n % raias
+    if not n:
+        return []
+    k = -(-n // maximo)                                       # teto da divisao
+    base, resto = divmod(n, k)
+    tamanhos = [base] * (k - resto) + [base + 1] * resto       # menores primeiro
     blocos, i = [], 0
-    if resto:                                                 # a menor vem primeiro
-        blocos.append(ordenado[:resto]); i = resto
-    while i < n:
-        blocos.append(ordenado[i:i + raias]); i += raias
+    for t in tamanhos:
+        blocos.append(ordenado[i:i + t])
+        i += t
     return blocos
 
 
