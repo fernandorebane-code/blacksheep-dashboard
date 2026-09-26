@@ -1423,7 +1423,10 @@ function exportarCSV() {
     .concat(cache.itens.map(w => w.nome + ' (pts)')).concat(['Total']);
   const linhas = cache.linhas.map(l => {
     const res = cache.itens.map(w => fmtValor(w, l.provas[w.id].res) || '');
-    const pts = cache.itens.map(w => fmtPts(l.provas[w.id].pts));
+    // Prova ainda nao lancada nao entra no total — entao a coluna de pontos dela
+    // sai vazia. Antes saia "1" para todo mundo (ninguem tem resultado, logo
+    // todos empatam em primeiro), e quem lia o CSV achava que ja valia ponto.
+    const pts = cache.itens.map(w => l.provas[w.id].valendo ? fmtPts(l.provas[w.id].pts) : '');
     return [l.pontuou ? l.pos : '', l.atleta.nome, l.atleta.unidade || ''].concat(res).concat(pts).concat([fmtPts(l.total)]);
   });
   const csv = [cab].concat(linhas).map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(sep)).join('\n');
