@@ -1791,7 +1791,17 @@ function renderGradeResultados() {
     const porTempo = wod.tipo === 'tempo';
     linhaCap.style.display = porTempo ? '' : 'none';
     if (porTempo && document.activeElement !== campoCap) {
-      campoCap.value = wod.cap != null ? fmtTempo(wod.cap) : '';
+      // NAO sobrescrever o cap que acabou de ser salvo e ainda nao voltou do
+      // servidor. A grade remonta a cada resultado lancado, e sem isto o campo
+      // pulava de volta para o cap antigo no meio do lancamento — parecia que a
+      // correcao nao tinha pegado.
+      const esperando = capPendente && capPendente.id === wid && wod.cap !== capPendente.seg;
+      if (esperando) {
+        campoCap.value = capPendente.seg == null ? '' : fmtTempo(capPendente.seg);
+      } else {
+        if (capPendente && capPendente.id === wid) capPendente = null;   // confirmado
+        campoCap.value = wod.cap != null ? fmtTempo(wod.cap) : '';
+      }
     }
   }
 
@@ -1967,12 +1977,16 @@ function lancarResultado(inp, pular) {
 
 // O cap pertence a prova (ou a parte dela), mas se define aqui. Gravar aqui e o
 // que faz o "15:10" aparecer para todo mundo no leaderboard.
+// Cap salvo e ainda nao confirmado pelo servidor. Existe so para a grade nao
+// reescrever o campo com o valor velho enquanto a gravacao esta a caminho.
+let capPendente = null;
+
 function salvarCapDaProva() {
   const wid = document.getElementById('rWod').value;
   const txt = document.getElementById('rCap').value.trim();
   const cap = txt ? parseTempo(txt) : null;
   if (txt && (cap == null || cap <= 0)) {
-    avisar('err', 'Time cap inválido. Use mm:ss, por exemplo 15:00.');
+    avisar('err', 'Time cap inválido. Use 12:00 ou só os números, 1200.');
     return;
   }
   const [wodId, parteId] = String(wid).split('::');
@@ -1983,7 +1997,10 @@ function salvarCapDaProva() {
       partes: (w.partes || []).map(pt => pt.id === parteId ? Object.assign({}, pt, { cap }) : pt)
     });
   });
-  salvar({ wods }, 'rMsg', cap == null ? 'Time cap removido.' : 'Time cap salvo.');
+  capPendente = { id: wid, seg: cap };
+  salvar({ wods }, 'rMsg',
+    cap == null ? 'Time cap removido.' : 'Time cap salvo: ' + fmtTempo(cap) + '.')
+    .then(ok => { if (!ok && capPendente && capPendente.id === wid) capPendente = null; });
 }
 
 function salvarResultados() {
