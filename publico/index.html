@@ -630,6 +630,10 @@ function esc(s) {
 function num(v, def) { const n = Number(v); return isFinite(n) ? n : def; }
 
 // "3:21" | "3:21.5" | "201" -> segundos
+// Aceita "15:10" e tambem so os digitos, "1510" — na mesa de resultados nao da
+// para parar e procurar os dois pontos no teclado do celular a cada atleta.
+// A regra e uniforme: os DOIS ultimos digitos sao sempre os segundos, e o que
+// vier antes sao os minutos. 1510 = 15:10, 2301 = 23:01, 942 = 9:42, 45 = 0:45.
 function parseTempo(txt) {
   const t = String(txt).trim().replace(',', '.');
   if (!t) return null;
@@ -639,8 +643,15 @@ function parseTempo(txt) {
     if (!isFinite(m) || !isFinite(s)) return null;
     return m * 60 + s;
   }
-  const n = parseFloat(t);
-  return isFinite(n) ? n : null;
+  // so digitos, com decimo de segundo opcional
+  const puro = t.match(/^(\d+)(\.\d+)?$/);
+  if (!puro) return null;
+  const inteiro = puro[1], frac = puro[2] || '';
+  if (inteiro.length < 3) return parseFloat(t);        // 1 ou 2 digitos: segundos
+  const seg = parseFloat(inteiro.slice(-2) + frac);
+  // 1575 seria 15:75, que nao existe. Melhor recusar do que virar 16:15 calado.
+  if (seg >= 60) return null;
+  return parseInt(inteiro.slice(0, -2), 10) * 60 + seg;
 }
 function fmtTempo(seg) {
   if (seg == null) return '--';
