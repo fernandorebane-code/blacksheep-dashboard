@@ -154,6 +154,8 @@ Regras aplicadas em toda prova:
   passo é a janela dividida pelo número de baterias, e não por uma a menos. Nível
   sem janela entra na fila logo depois do anterior, com `INTERVALO` entre baterias.
   Nome de nível que não existe é denunciado, com a lista dos que existem.
+- `--sem-horario` deixa a coluna HORÁRIO em branco, para preencher na mão. A ordem
+  das baterias continua sendo a da programação.
 - O relatório fecha com o horário de início e fim de cada nível e do dia inteiro —
   é o número que diz na hora se a programação cabe. O layout replica a planilha do organizador:
   título mesclado, cabeçalho `CATEGORIA / RAIA: / NOME: / HORÁRIO:`, categoria e
