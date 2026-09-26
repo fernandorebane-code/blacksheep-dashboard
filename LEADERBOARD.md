@@ -90,7 +90,15 @@ Regras aplicadas em toda prova:
 - Quem estoura o time cap entra **depois** de todos que finalizaram, ordenado por repetições.
 - Quem não tem resultado na prova recebe a última colocação dela
   (na tabela de pontos, soma 0).
-- Desempate no geral: melhores colocações individuais.
+- **Desempate no geral: confronto direto.** Empatados no total **mantêm a mesma
+  pontuação** — o número na tabela não muda —, mas fica na frente quem venceu o
+  outro em mais provas já lançadas. Um duelo por prova contra cada empatado;
+  empate na prova não dá duelo a ninguém.
+- Se o confronto direto também empatar — o caso clássico é o circular com 3 ou
+  mais (A ganha de B, B de C, C de A) —, decide quem teve as melhores colocações
+  individuais. Empatando até nisso, dividem a colocação geral de verdade.
+- O confronto direto é calculado só dentro do bloco de atletas com o mesmo total,
+  e aparece no detalhamento do atleta como "ganhou N de M".
 
 ## Regras do Firestore
 

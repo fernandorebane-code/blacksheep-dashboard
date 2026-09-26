@@ -864,20 +864,56 @@ function calcularRanking(categoria) {
   const dir = D.sistema === 'posicao' ? 1 : -1; // posicao: menor vence
   linhas.sort((x, y) => {
     if (x.pontuou !== y.pontuou) return x.pontuou ? -1 : 1;
-    if (x.total !== y.total) return (x.total - y.total) * dir;
-    for (let i = 0; i < Math.max(x.posicoes.length, y.posicoes.length); i++) {
-      const a = x.posicoes[i] == null ? 999 : x.posicoes[i];
-      const b = y.posicoes[i] == null ? 999 : y.posicoes[i];
-      if (a !== b) return a - b;
-    }
-    return x.atleta.nome.localeCompare(y.atleta.nome, 'pt-BR');
+    return (x.total - y.total) * dir;
   });
 
-  // colocação geral com empate
+  // Desempate por CONFRONTO DIRETO. Mesma pontuacao: os dois continuam com o
+  // mesmo total (o numero na tabela nao muda), mas fica na frente quem venceu o
+  // outro mais vezes. Conta um duelo por prova ja lancada contra cada empatado —
+  // quem terminou melhor NELA leva; empate na prova nao da duelo a ninguem.
+  const contadas = itens.filter(w => valendo[w.id]);
+  let ini = 0;
+  while (ini < linhas.length) {
+    let fim = ini;
+    while (fim + 1 < linhas.length &&
+           linhas[fim + 1].total === linhas[ini].total &&
+           linhas[fim + 1].pontuou === linhas[ini].pontuou) fim++;
+    const bloco = linhas.slice(ini, fim + 1);
+    if (bloco.length > 1) {
+      bloco.forEach(l => {
+        let ganhos = 0;
+        bloco.forEach(o => {
+          if (o === l) return;
+          contadas.forEach(w => { if (l.provas[w.id].pos < o.provas[w.id].pos) ganhos++; });
+        });
+        l.duelos = ganhos;
+        l.confrontos = (bloco.length - 1) * contadas.length;
+        l.empatadoCom = bloco.length - 1;
+      });
+      bloco.sort((x, y) => {
+        if (x.duelos !== y.duelos) return y.duelos - x.duelos;
+        // O confronto direto pode empatar tambem — o caso classico e o circular
+        // com 3 ou mais (A ganha de B, B de C, C de A). Ai decide quem teve as
+        // melhores colocacoes individuais.
+        for (let i = 0; i < Math.max(x.posicoes.length, y.posicoes.length); i++) {
+          const a = x.posicoes[i] == null ? 999 : x.posicoes[i];
+          const b = y.posicoes[i] == null ? 999 : y.posicoes[i];
+          if (a !== b) return a - b;
+        }
+        return x.atleta.nome.localeCompare(y.atleta.nome, 'pt-BR');
+      });
+      for (let k = 0; k < bloco.length; k++) linhas[ini + k] = bloco[k];
+    }
+    ini = fim + 1;
+  }
+
+  // colocação geral com empate — so dividem a colocacao quem empatou em tudo,
+  // inclusive no confronto direto.
   let pos = 0;
   linhas.forEach((l, i) => {
     const ant = linhas[i - 1];
     const igual = ant && ant.total === l.total && ant.pontuou === l.pontuou &&
+                  (ant.duelos || 0) === (l.duelos || 0) &&
                   JSON.stringify(ant.posicoes) === JSON.stringify(l.posicoes);
     pos = igual ? pos : i + 1;
     l.pos = pos;
@@ -1039,12 +1075,12 @@ function renderLegenda(itens, totalAtletas, valendo) {
       '</b> por posição (mínimo 1). <b>Maior total vence.</b>';
   const contando = valendo ? itens.filter(w => valendo[w.id]).length : itens.length;
   document.getElementById('legend').innerHTML =
-    sis + ' Empatou, empatou: os dois ficam com a mesma colocação e os mesmos pontos, e o próximo pula as posições do empate. ' +
+    sis + ' Empatou numa prova, empatou: mesma colocação e mesmos pontos, e o próximo pula as posições do empate. ' +
     (D.sistema === 'posicao'
       ? 'Quem não tem resultado na prova recebe a última colocação dela. '
       : 'Quem não pontua na prova fica em último e soma 0. ') +
     'Quem estoura o time cap fica com o tempo do cap mais as repetições que faltaram (ex: <b>15:10</b>) e entra depois de quem finalizou, na ordem de quem faltou menos. ' +
-    'Critério de desempate: melhores colocações individuais. ' +
+    'Empate no total: os dois mantêm a mesma pontuação, mas fica na frente quem <b>venceu o outro em mais provas</b> (confronto direto). Se o confronto direto também empatar, decide quem teve as melhores colocações individuais. ' +
     'Prova dividida em partes pontua cada parte separadamente. ' +
     '<br>' + contando + ' de ' + itens.length + ' pontuação(ões) já lançada(s) · ' +
     totalAtletas + ' atleta(s) na categoria · toque em um atleta para ver o detalhamento.' +
@@ -1110,7 +1146,17 @@ function verAtleta(id) {
   '<div class="brk" style="border-bottom:none;margin-top:0.4rem">' +
     '<div class="brk-name" style="font-weight:600">TOTAL</div>' +
     '<div class="brk-val" style="color:var(--gold);font-size:1rem">' + fmtPts(l.total) + '</div>' +
-  '</div>';
+  '</div>' +
+  // Empatou em pontos com alguem? Mostra o confronto direto, senao a ordem entre
+  // os dois fica sem explicacao para quem olha a tabela.
+  (l.empatadoCom
+    ? '<div class="brk" style="border-bottom:none;padding-top:0">' +
+        '<div class="brk-name" style="color:var(--gray)">Confronto direto' +
+          '<small>empatou em pontos com ' + l.empatadoCom + ' atleta' +
+          (l.empatadoCom > 1 ? 's' : '') + '</small></div>' +
+        '<div class="brk-val">' + l.duelos + ' de ' + l.confrontos + '</div>' +
+      '</div>'
+    : '');
   abrir('mAtleta');
 }
 

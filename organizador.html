@@ -1035,20 +1035,56 @@ function calcularRanking(categoria) {
   const dir = D.sistema === 'posicao' ? 1 : -1; // posicao: menor vence
   linhas.sort((x, y) => {
     if (x.pontuou !== y.pontuou) return x.pontuou ? -1 : 1;
-    if (x.total !== y.total) return (x.total - y.total) * dir;
-    for (let i = 0; i < Math.max(x.posicoes.length, y.posicoes.length); i++) {
-      const a = x.posicoes[i] == null ? 999 : x.posicoes[i];
-      const b = y.posicoes[i] == null ? 999 : y.posicoes[i];
-      if (a !== b) return a - b;
-    }
-    return x.atleta.nome.localeCompare(y.atleta.nome, 'pt-BR');
+    return (x.total - y.total) * dir;
   });
 
-  // colocação geral com empate
+  // Desempate por CONFRONTO DIRETO. Mesma pontuacao: os dois continuam com o
+  // mesmo total (o numero na tabela nao muda), mas fica na frente quem venceu o
+  // outro mais vezes. Conta um duelo por prova ja lancada contra cada empatado —
+  // quem terminou melhor NELA leva; empate na prova nao da duelo a ninguem.
+  const contadas = itens.filter(w => valendo[w.id]);
+  let ini = 0;
+  while (ini < linhas.length) {
+    let fim = ini;
+    while (fim + 1 < linhas.length &&
+           linhas[fim + 1].total === linhas[ini].total &&
+           linhas[fim + 1].pontuou === linhas[ini].pontuou) fim++;
+    const bloco = linhas.slice(ini, fim + 1);
+    if (bloco.length > 1) {
+      bloco.forEach(l => {
+        let ganhos = 0;
+        bloco.forEach(o => {
+          if (o === l) return;
+          contadas.forEach(w => { if (l.provas[w.id].pos < o.provas[w.id].pos) ganhos++; });
+        });
+        l.duelos = ganhos;
+        l.confrontos = (bloco.length - 1) * contadas.length;
+        l.empatadoCom = bloco.length - 1;
+      });
+      bloco.sort((x, y) => {
+        if (x.duelos !== y.duelos) return y.duelos - x.duelos;
+        // O confronto direto pode empatar tambem — o caso classico e o circular
+        // com 3 ou mais (A ganha de B, B de C, C de A). Ai decide quem teve as
+        // melhores colocacoes individuais.
+        for (let i = 0; i < Math.max(x.posicoes.length, y.posicoes.length); i++) {
+          const a = x.posicoes[i] == null ? 999 : x.posicoes[i];
+          const b = y.posicoes[i] == null ? 999 : y.posicoes[i];
+          if (a !== b) return a - b;
+        }
+        return x.atleta.nome.localeCompare(y.atleta.nome, 'pt-BR');
+      });
+      for (let k = 0; k < bloco.length; k++) linhas[ini + k] = bloco[k];
+    }
+    ini = fim + 1;
+  }
+
+  // colocação geral com empate — so dividem a colocacao quem empatou em tudo,
+  // inclusive no confronto direto.
   let pos = 0;
   linhas.forEach((l, i) => {
     const ant = linhas[i - 1];
     const igual = ant && ant.total === l.total && ant.pontuou === l.pontuou &&
+                  (ant.duelos || 0) === (l.duelos || 0) &&
                   JSON.stringify(ant.posicoes) === JSON.stringify(l.posicoes);
     pos = igual ? pos : i + 1;
     l.pos = pos;
