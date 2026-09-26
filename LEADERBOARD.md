@@ -50,6 +50,13 @@ e `publico/index.html` como `index.html` no `blacksheep-invitational`. O endere�
      e o mesmo atalho serve no campo do time cap. Segundo acima de 59 (`1575`) é
      recusado em vez de virar 16:15 calado. Antes desta regra `1510` era lido como
      1510 segundos (25:10).
+   - O campo do **time cap** não é reescrito enquanto a gravação dele está a caminho
+     do servidor. A grade remonta a cada resultado salvo, e sem isso o campo pulava
+     de volta para o cap antigo no meio do lançamento — parecia que a correção não
+     tinha pegado. Trocar de prova mostra o cap da prova certa, sem vazar o pendente.
+   - O cap **não encosta** no tempo de quem terminou. Ele só compõe o resultado de
+     quem estourou (`fmtCapEstourado`), então um cap errado muda o que aparece para
+     esses atletas — e só para eles.
    - Cada gravação manda o mapa `resultados` **inteiro**, montado a partir do snapshot
      (o `mergeFields` troca o campo por completo), então salvar um atleta nunca apaga
      o resultado dos outros. Valor inválido não grava e não remonta a grade — o foco
