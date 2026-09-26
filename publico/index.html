@@ -386,6 +386,15 @@ textarea.field{min-height:80px;resize:vertical;line-height:1.5;}
 .score-grid input:focus{border-color:var(--gold);}
 .score-grid td.atl{font-size:0.9rem;}
 .score-grid td.atl .unit{display:block;font-size:0.78rem;color:var(--gray);}
+/* quem ja tem resultado desce para baixo do separador e fica apagado — o que
+   falta lancar tem de estar sempre no topo. */
+.score-grid tr.feito td{opacity:0.45;}
+.score-grid tr.feito:hover td{opacity:1;}
+.score-grid tr.sep td{
+  background:var(--surface2);font-size:0.7rem;letter-spacing:0.09em;
+  color:var(--gray);text-transform:uppercase;padding:0.3rem 0.6rem;font-weight:600;
+}
+.score-grid td.atl .ok{color:var(--gold);font-weight:700;margin-right:0.3rem;}
 .score-grid select{
   background:var(--surface2);border:1px solid var(--border-soft);color:var(--white);
   padding:0.35rem;font-size:0.78rem;outline:none;
