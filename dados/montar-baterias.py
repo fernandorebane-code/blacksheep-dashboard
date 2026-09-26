@@ -22,22 +22,23 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 
 # ------------------------------------------------------------------ config
-# Uma rodada por aba. As provas que rodam juntas entram no mesmo titulo, e cada
-# rodada tem o proprio numero de raias: 8 por bateria no 4 e 5, 6 no 6 e 7.
-# O relogio e UM so para o dia: as baterias de todas as categorias entram em fila,
-# 18 minutos uma da outra. As trilhas sao so o jeito de dispor na folha — nao sao
-# pistas paralelas, porque as raias sao as mesmas.
-RELOGIO_CONTINUO = True
+# O dia corre por NIVEL, nao por prova: o Scaled faz o 4 e 5 e emenda o 6 e 7, e
+# so entao entra o nivel seguinte. O relogio e um so e nao reinicia em momento
+# nenhum — as raias sao as mesmas o dia inteiro.
+ABA       = 'BATERIAS DOMINGO'
+INICIO    = '08:00'
+INTERVALO = 18
 
+# As provas que rodam juntas entram no mesmo titulo, e cada rodada tem o proprio
+# numero de raias: 8 por bateria no 4 e 5, 6 no 6 e 7. Dentro de um nivel elas
+# acontecem nesta ordem.
 RODADAS = [
-    {'titulo': 'PROVA 4 E 5', 'aba': 'PROVA 4 E 5', 'raias': 8,
-     'inicio': '08:00', 'intervalo': 18},
-    {'titulo': 'PROVA 6 E 7', 'aba': 'PROVA 6 E 7', 'raias': 6,
-     'inicio': '08:00', 'intervalo': 18},
+    {'titulo': 'PROVA 4 E 5', 'raias': 8},
+    {'titulo': 'PROVA 6 E 7', 'raias': 6},
 ]
 
-# Cada trilha vira uma coluna de blocos na planilha, com o proprio relogio.
-# A ordem das categorias aqui e a ordem em que elas entram na trilha.
+# Cada nivel vira uma coluna de blocos na planilha, e roda inteiro antes do
+# proximo. A ordem das categorias aqui e a ordem em que elas entram.
 TRILHAS = [
     ('SCALED',                  ['Scaled Feminino', 'Scaled Masculino']),
     ('INTERMEDIARIO E MASTER',  ['Intermediário Feminino', 'Master 45+ Feminino',
@@ -131,9 +132,9 @@ def main():
     ap.add_argument('csv', nargs='+',
                     help='o CSV DE TODAS, ou varios CSV por categoria')
     ap.add_argument('-o', '--saida', default='baterias.xlsx')
-    ap.add_argument('--raias', type=int, help='sobrepoe as raias de TODAS as rodadas')
-    ap.add_argument('--inicio', help='sobrepoe o horario inicial de TODAS as rodadas')
-    ap.add_argument('--intervalo', type=int, help='sobrepoe o intervalo de TODAS as rodadas')
+    ap.add_argument('--inicio', default=INICIO)
+    ap.add_argument('--intervalo', type=int, default=INTERVALO)
+    ap.add_argument('--aba', default=ABA)
     ap.add_argument('--incluir', action='append', default=[], metavar='NOME',
                     help='escala o atleta mesmo devendo prova (repetivel). '
                          'O organizador decide quem segue no campeonato; o script '
@@ -141,14 +142,6 @@ def main():
     args = ap.parse_args()
     forcados = {chave(n) for n in args.incluir}
     usados = set()
-
-    rodadas = []
-    for r in RODADAS:
-        r = dict(r)
-        if args.raias:     r['raias'] = args.raias
-        if args.inicio:    r['inicio'] = args.inicio
-        if args.intervalo: r['intervalo'] = args.intervalo
-        rodadas.append(r)
 
     conhecidas_cfg = [c for _, cats in TRILHAS for c in cats]
     primeiro = ler(args.csv[0])
@@ -196,15 +189,14 @@ def main():
     meio = Alignment(horizontal='center', vertical='center', wrap_text=True)
 
     resumo = []
-    for rod in rodadas:
-        ws = wb.create_sheet(rod['aba'])
-        raias = rod['raias']
-        relogio = datetime.strptime(rod['inicio'], '%H:%M')
-        for t, (trilha, cats) in enumerate(TRILHAS):
-            c0 = 1 + t * 5                               # A, F, K, P...
-            if not RELOGIO_CONTINUO:
-                relogio = datetime.strptime(rod['inicio'], '%H:%M')
-            linha = 1
+    relogio = datetime.strptime(args.inicio, '%H:%M')
+    ws = wb.create_sheet(args.aba)
+    for t, (trilha, cats) in enumerate(TRILHAS):
+        c0 = 1 + t * 5                                   # A, F, K, P...
+        linha = 1
+        # O nivel roda inteiro — 4 e 5, depois 6 e 7 — antes do proximo entrar.
+        for rod in RODADAS:
+            raias = rod['raias']
             for cat in cats:
                 for bloco in baterias_da_categoria(porCat.get(cat, []), raias):
                     hora = relogio.strftime('%H:%M')
@@ -215,48 +207,56 @@ def main():
                     for j, txt in enumerate(['CATEGORIA', 'RAIA:', 'NOME:', 'HORÁRIO:']):
                         c = ws.cell(linha + 1, c0 + j, txt)
                         c.font = cab; c.alignment = meio; c.border = borda
-                    p, u = linha + 2, linha + 1 + raias
-                    ws.merge_cells(start_row=p, start_column=c0, end_row=u, end_column=c0)
-                    cc = ws.cell(p, c0, cat.upper()); cc.alignment = meio; cc.border = borda
-                    ws.merge_cells(start_row=p, start_column=c0 + 3, end_row=u, end_column=c0 + 3)
-                    ch = ws.cell(p, c0 + 3, hora); ch.alignment = meio; ch.border = borda
+                    p0, u = linha + 2, linha + 1 + raias
+                    ws.merge_cells(start_row=p0, start_column=c0, end_row=u, end_column=c0)
+                    cc = ws.cell(p0, c0, cat.upper()); cc.alignment = meio; cc.border = borda
+                    ws.merge_cells(start_row=p0, start_column=c0 + 3, end_row=u, end_column=c0 + 3)
+                    ch = ws.cell(p0, c0 + 3, hora); ch.alignment = meio; ch.border = borda
                     for r in range(raias):
                         atleta = bloco[r] if r < len(bloco) else None
-                        cr = ws.cell(p + r, c0 + 1, r + 1); cr.alignment = meio; cr.border = borda
-                        cn = ws.cell(p + r, c0 + 2, atleta['nome'] if atleta else '')
+                        cr = ws.cell(p0 + r, c0 + 1, r + 1); cr.alignment = meio; cr.border = borda
+                        cn = ws.cell(p0 + r, c0 + 2, atleta['nome'] if atleta else '')
                         cn.alignment = Alignment(vertical='center'); cn.border = borda
                         for cx in (c0, c0 + 3):
-                            ws.cell(p + r, cx).border = borda
-                    resumo.append((rod['aba'], trilha, cat, hora, [a['nome'] for a in bloco]))
+                            ws.cell(p0 + r, cx).border = borda
+                    resumo.append((trilha, rod['titulo'], cat, hora, [a['nome'] for a in bloco]))
                     linha = u + 1
-                    relogio += timedelta(minutes=rod['intervalo'])
-            # get_column_letter, e nao ws.cell(...): a linha 1 esta mesclada e a
-            # celula mesclada nao carrega column_letter.
-            for desloc, larg in ((0, 26), (1, 7), (2, 28), (3, 11), (4, 3)):
-                if desloc == 4 and t == len(TRILHAS) - 1:
-                    continue
-                ws.column_dimensions[get_column_letter(c0 + desloc)].width = larg
+                    relogio += timedelta(minutes=args.intervalo)
+        # get_column_letter, e nao ws.cell(...): a linha 1 esta mesclada e a
+        # celula mesclada nao carrega column_letter.
+        for desloc, larg in ((0, 26), (1, 7), (2, 28), (3, 11), (4, 3)):
+            if desloc == 4 and t == len(TRILHAS) - 1:
+                continue
+            ws.column_dimensions[get_column_letter(c0 + desloc)].width = larg
 
     wb.save(args.saida)
 
     # ---------------------------------------------------------- relatorio
-    print(f'{args.saida}\n')
-    aba_atual = None
-    for aba, trilha, cat, hora, nomes in resumo:
-        if aba != aba_atual:
-            rod = next(r for r in rodadas if r['aba'] == aba)
-            print(f"\n=== {aba}  ({rod['raias']} raias por bateria) ===")
-            aba_atual = aba
-        print(f'  {hora}  {trilha:24s} {cat:26s} {len(nomes)} atleta(s)')
+    print(f'{args.saida}  ({args.aba})\n')
+    atual = None
+    for trilha, titulo, cat, hora, nomes in resumo:
+        if (trilha, titulo) != atual:
+            raias = next(r['raias'] for r in RODADAS if r['titulo'] == titulo)
+            print(f'\n=== {trilha} · {titulo}  ({raias} raias) ===')
+            atual = (trilha, titulo)
+        print(f'  {hora}  {cat:26s} {len(nomes)} atleta(s)')
         for i, n in enumerate(nomes, 1):
             print(f'           raia {i}: {n}')
-    print()
-    for rod in rodadas:
-        b = [x for x in resumo if x[0] == rod['aba']]
-        horas = [x[3] for x in b]
-        print(f"{rod['aba']}: {sum(len(x[4]) for x in b)} atleta(s) em {len(b)} bateria(s)"
-              f" de ate {rod['raias']} raias"
-              f" — {min(horas)} as {max(horas)}." if horas else '')
+
+    print('\n--- resumo por nível ---')
+    for trilha, _ in TRILHAS:
+        b = [x for x in resumo if x[0] == trilha]
+        if not b:
+            continue
+        fim = datetime.strptime(b[-1][3], '%H:%M') + timedelta(minutes=args.intervalo)
+        # cada atleta passa uma vez por rodada, entao aqui vale contar cabecas
+        cabecas = len({n for x in b for n in x[4]})
+        print(f'{trilha:24s} {cabecas:3d} atleta(s), {len(b):2d} bateria(s)'
+              f'  {b[0][3]} → última começa {b[-1][3]}, libera a raia {fim.strftime("%H:%M")}')
+    todas = [x[3] for x in resumo]
+    if todas:
+        fim = datetime.strptime(max(todas), '%H:%M') + timedelta(minutes=args.intervalo)
+        print(f'\nO dia inteiro: {len(resumo)} baterias, {min(todas)} às {fim.strftime("%H:%M")}.')
     if forcado:
         print(f'\nESCALADOS MESMO DEVENDO PROVA ({len(forcado)}) — por --incluir:')
         for cat, nome, falta in forcado:

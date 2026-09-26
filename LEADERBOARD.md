@@ -142,10 +142,15 @@ Regras aplicadas em toda prova:
   bateria é a dos líderes.
 - Baterias de 8 raias. Quando a categoria não fecha um múltiplo exato, a bateria
   **menor é a primeira** (a dos piores), para a bateria final sair cheia.
-- O relógio é **um só para o dia**: as baterias de todas as categorias entram em
-  fila, 18 minutos uma da outra. As trilhas (`TRILHAS` no topo do script) são só o
-  jeito de dispor na folha — não são pistas paralelas, porque as raias são as
-  mesmas. `RELOGIO_CONTINUO = False` volta ao relógio por trilha. O layout replica a planilha do organizador:
+- O dia corre **por nível**, não por prova: o Scaled faz o 4 e 5 e emenda o 6 e 7,
+  e só então entra o nível seguinte. Cada nível (`TRILHAS`) é uma coluna de blocos
+  na folha e roda inteiro antes do próximo.
+- O relógio é **um só** e não reinicia em momento nenhum — as raias são as mesmas
+  o dia inteiro. Começa em `INICIO`, com `INTERVALO` minutos entre baterias.
+- `RODADAS` diz quais provas rodam juntas e com quantas raias: 8 no `PROVA 4 E 5`,
+  6 no `PROVA 6 E 7`. Dentro de um nível elas acontecem nessa ordem.
+- O relatório fecha com o horário de início e fim de cada nível e do dia inteiro —
+  é o número que diz na hora se a programação cabe. O layout replica a planilha do organizador:
   título mesclado, cabeçalho `CATEGORIA / RAIA: / NOME: / HORÁRIO:`, categoria e
   horário mesclados ao lado das 8 raias.
 - Categoria que não esteja em nenhuma trilha é denunciada no fim do relatório, para
