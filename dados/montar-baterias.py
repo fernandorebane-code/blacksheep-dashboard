@@ -17,7 +17,7 @@ Uso:
     python3 dados/montar-baterias.py classificacao_todas_categorias.csv
     python3 dados/montar-baterias.py entrada.csv -o baterias-domingo.xlsx
 """
-import argparse, csv, sys
+import argparse, csv, os, re, sys, unicodedata
 from collections import OrderedDict
 from datetime import datetime, timedelta
 
@@ -39,6 +39,57 @@ TRILHAS = [
 ]
 
 # ------------------------------------------------------------------ leitura
+def chave(txt):
+    """Normaliza para comparar nome de categoria com nome de arquivo.
+
+    O CSV por categoria nasce com o nome da categoria no arquivo, e no caminho
+    ele chega sem acento e com a pontuacao trocada: "Intermediário Masculino"
+    vira "intermedia_rio_masculino". Tirando acento e tudo que nao e letra ou
+    numero, os dois viram "intermediariomasculino".
+    """
+    sem = unicodedata.normalize('NFKD', txt)
+    sem = ''.join(c for c in sem if not unicodedata.combining(c))
+    return re.sub(r'[^a-z0-9]', '', sem.lower())
+
+
+def categoria_do_arquivo(caminho, conhecidas):
+    k = chave(os.path.basename(caminho))
+    achadas = [c for c in conhecidas if chave(c) and chave(c) in k]
+    if not achadas:
+        return None
+    return max(achadas, key=lambda c: len(chave(c)))   # a mais especifica
+
+
+def ler_por_categoria(caminhos, conhecidas):
+    """CSV do botao CSV (uma categoria por arquivo, com as provas em colunas).
+
+    Aqui nao existe coluna "Completo": a prova conta como valendo quando ao menos
+    um atleta do arquivo tem resultado nela, e o atleta esta completo quando tem
+    resultado em todas essas.
+    """
+    saida = []
+    for caminho in caminhos:
+        cat = categoria_do_arquivo(caminho, conhecidas)
+        if not cat:
+            sys.exit('Nao consegui dizer de que categoria e o arquivo ' +
+                     os.path.basename(caminho) + '. Renomeie com o nome da categoria ' +
+                     'ou use o CSV DE TODAS.')
+        linhas = ler(caminho)
+        provas = [k for k in (linhas[0] if linhas else {}) if k.strip().endswith('(result)')]
+        valendo = [p for p in provas if any((l.get(p) or '').strip() for l in linhas)]
+        for l in linhas:
+            faltando = [p[:-len(' (result)')].strip() for p in valendo
+                        if not (l.get(p) or '').strip()]
+            saida.append({
+                'Categoria': cat, 'Pos': coluna(l, 'Pos'),
+                'Atleta': coluna(l, 'Atleta', 'Nome'), 'Unidade': coluna(l, 'Unidade'),
+                'Total': coluna(l, 'Total'),
+                'Completo': 'nao' if faltando else 'sim',
+                'Faltando': ' | '.join(faltando),
+            })
+    return saida
+
+
 def ler(caminho):
     with open(caminho, encoding='utf-8-sig', newline='') as f:
         amostra = f.read(4096); f.seek(0)
@@ -69,7 +120,8 @@ def baterias_da_categoria(atletas, raias):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('csv')
+    ap.add_argument('csv', nargs='+',
+                    help='o CSV DE TODAS, ou varios CSV por categoria')
     ap.add_argument('-o', '--saida', default='baterias.xlsx')
     ap.add_argument('--raias', type=int, default=RAIAS)
     ap.add_argument('--inicio', default=INICIO)
@@ -78,9 +130,16 @@ def main():
     ap.add_argument('--aba', default=ABA)
     args = ap.parse_args()
 
-    linhas = ler(args.csv)
-    if not linhas:
+    conhecidas_cfg = [c for _, cats in TRILHAS for c in cats]
+    primeiro = ler(args.csv[0])
+    if not primeiro:
         sys.exit('CSV vazio.')
+    if any(k.strip().lower() == 'categoria' for k in primeiro[0]):
+        if len(args.csv) > 1:
+            sys.exit('O CSV DE TODAS ja traz tudo — passe um arquivo so.')
+        linhas = primeiro
+    else:
+        linhas = ler_por_categoria(args.csv, conhecidas_cfg)
 
     porCat, fora, semPos = OrderedDict(), [], []
     for l in linhas:
@@ -96,8 +155,9 @@ def main():
         porCat.setdefault(cat, []).append(
             {'nome': nome, 'unidade': coluna(l, 'Unidade'), 'pos': int(pos)})
 
-    conhecidas = {c for _, cats in TRILHAS for c in cats}
+    conhecidas = set(conhecidas_cfg)
     orfas = [c for c in porCat if c not in conhecidas]
+    ausentes = [c for c in conhecidas_cfg if c not in porCat]
 
     # ---------------------------------------------------------- planilha
     from openpyxl import Workbook
@@ -171,6 +231,10 @@ def main():
         print('\nATENÇÃO — categorias que não estão em nenhuma trilha do script:')
         for c in orfas:
             print(f'  {c}  ({len(porCat[c])} atleta(s) COMPLETOS ficaram de fora)')
+    if ausentes:
+        print('\nSEM DADOS — categorias da configuração que não vieram em nenhum CSV:')
+        for c in ausentes:
+            print(f'  {c}')
 
 
 if __name__ == '__main__':
