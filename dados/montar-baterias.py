@@ -141,6 +141,8 @@ def main():
                          'intervalo, e o fim e quando a ultima acaba. Ex: '
                          '--janela "SCALED=08:00-09:39". Nivel sem janela entra na '
                          'fila do relogio corrido, logo apos o anterior.')
+    ap.add_argument('--sem-horario', action='store_true',
+                    help='deixa a coluna HORARIO em branco, para preencher na mao')
     ap.add_argument('--incluir', action='append', default=[], metavar='NOME',
                     help='escala o atleta mesmo devendo prova (repetivel). '
                          'O organizador decide quem segue no campeonato; o script '
@@ -253,7 +255,8 @@ def main():
                     ws.merge_cells(start_row=p0, start_column=c0, end_row=u, end_column=c0)
                     cc = ws.cell(p0, c0, cat.upper()); cc.alignment = meio; cc.border = borda
                     ws.merge_cells(start_row=p0, start_column=c0 + 3, end_row=u, end_column=c0 + 3)
-                    ch = ws.cell(p0, c0 + 3, hora); ch.alignment = meio; ch.border = borda
+                    ch = ws.cell(p0, c0 + 3, '' if args.sem_horario else hora)
+                    ch.alignment = meio; ch.border = borda
                     for r in range(raias):
                         atleta = bloco[r] if r < len(bloco) else None
                         cr = ws.cell(p0 + r, c0 + 1, r + 1); cr.alignment = meio; cr.border = borda
