@@ -148,6 +148,10 @@ Regras aplicadas em toda prova:
   horário mesclados ao lado das 8 raias.
 - Categoria que não esteja em nenhuma trilha é denunciada no fim do relatório, para
   não sumir em silêncio.
+- `--incluir "Nome do Atleta"` escala quem está devendo prova. Quem segue no
+  campeonato é decisão do organizador, e o script não adivinha isso — mas o nome
+  sai listado à parte no relatório, para a exceção ficar visível. Nome que não
+  bate com ninguém também é denunciado, em vez de ser ignorado.
 
 ```
 python3 dados/montar-baterias.py classificacao_todas_categorias.csv -o baterias-domingo.xlsx
