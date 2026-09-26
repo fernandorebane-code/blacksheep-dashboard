@@ -24,6 +24,11 @@ from datetime import datetime, timedelta
 # ------------------------------------------------------------------ config
 # Uma rodada por aba. As provas que rodam juntas entram no mesmo titulo, e cada
 # rodada tem o proprio numero de raias: 8 por bateria no 4 e 5, 6 no 6 e 7.
+# O relogio e UM so para o dia: as baterias de todas as categorias entram em fila,
+# 18 minutos uma da outra. As trilhas sao so o jeito de dispor na folha — nao sao
+# pistas paralelas, porque as raias sao as mesmas.
+RELOGIO_CONTINUO = True
+
 RODADAS = [
     {'titulo': 'PROVA 4 E 5', 'aba': 'PROVA 4 E 5', 'raias': 8,
      'inicio': '08:00', 'intervalo': 18},
@@ -194,9 +199,11 @@ def main():
     for rod in rodadas:
         ws = wb.create_sheet(rod['aba'])
         raias = rod['raias']
+        relogio = datetime.strptime(rod['inicio'], '%H:%M')
         for t, (trilha, cats) in enumerate(TRILHAS):
             c0 = 1 + t * 5                               # A, F, K, P...
-            relogio = datetime.strptime(rod['inicio'], '%H:%M')
+            if not RELOGIO_CONTINUO:
+                relogio = datetime.strptime(rod['inicio'], '%H:%M')
             linha = 1
             for cat in cats:
                 for bloco in baterias_da_categoria(porCat.get(cat, []), raias):
@@ -246,8 +253,10 @@ def main():
     print()
     for rod in rodadas:
         b = [x for x in resumo if x[0] == rod['aba']]
+        horas = [x[3] for x in b]
         print(f"{rod['aba']}: {sum(len(x[4]) for x in b)} atleta(s) em {len(b)} bateria(s)"
-              f" de ate {rod['raias']} raias.")
+              f" de ate {rod['raias']} raias"
+              f" — {min(horas)} as {max(horas)}." if horas else '')
     if forcado:
         print(f'\nESCALADOS MESMO DEVENDO PROVA ({len(forcado)}) — por --incluir:')
         for cat, nome, falta in forcado:

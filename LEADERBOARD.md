@@ -142,8 +142,10 @@ Regras aplicadas em toda prova:
   bateria é a dos líderes.
 - Baterias de 8 raias. Quando a categoria não fecha um múltiplo exato, a bateria
   **menor é a primeira** (a dos piores), para a bateria final sair cheia.
-- Cada trilha (`TRILHAS` no topo do script) vira uma coluna de blocos com o próprio
-  relógio, 18 minutos entre baterias. O layout replica a planilha do organizador:
+- O relógio é **um só para o dia**: as baterias de todas as categorias entram em
+  fila, 18 minutos uma da outra. As trilhas (`TRILHAS` no topo do script) são só o
+  jeito de dispor na folha — não são pistas paralelas, porque as raias são as
+  mesmas. `RELOGIO_CONTINUO = False` volta ao relógio por trilha. O layout replica a planilha do organizador:
   título mesclado, cabeçalho `CATEGORIA / RAIA: / NOME: / HORÁRIO:`, categoria e
   horário mesclados ao lado das 8 raias.
 - Categoria que não esteja em nenhuma trilha é denunciada no fim do relatório, para
