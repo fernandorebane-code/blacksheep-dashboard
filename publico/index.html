@@ -395,6 +395,19 @@ textarea.field{min-height:80px;resize:vertical;line-height:1.5;}
   color:var(--gray);text-transform:uppercase;padding:0.3rem 0.6rem;font-weight:600;
 }
 .score-grid td.atl .ok{color:var(--gold);font-weight:700;margin-right:0.3rem;}
+/* Resultado gravado mas ainda nao publicado. Tem de saltar aos olhos: esquecer
+   de publicar deixa o leaderboard parado sem ninguem perceber. */
+.represados{
+  display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap;
+  margin-top:0.6rem;padding:0.6rem 0.8rem;
+  border:1px solid var(--gold);border-radius:6px;
+  background:rgba(197,164,90,0.10);font-size:0.9rem;
+}
+.represados b{color:var(--gold);font-size:1.05rem;}
+.score-grid td.atl .hold{
+  color:var(--gold);font-weight:700;margin-right:0.3rem;
+}
+.score-grid tr.represada td{background:rgba(197,164,90,0.07);}
 .score-grid select{
   background:var(--surface2);border:1px solid var(--border-soft);color:var(--white);
   padding:0.35rem;font-size:0.78rem;outline:none;
@@ -733,9 +746,34 @@ function chaveResultado(wod, res) {
   return [2, 0];
 }
 
+/* Resultado represado: gravado, visivel para o organizador, invisivel para o
+   publico ate ele apertar PUBLICAR.
+
+   Resultado SEM a marca `pub` conta como publicado. Isso e o que garante que
+   nada do que ja foi lancado antes desta mudanca suma do ar: so fica escondido
+   quem tem pub === false, escrito de proposito. */
+function represado(res) { return !!res && res.pub === false; }
+
+function resultadoDe(atletaId, itemId) {
+  const res = (D.resultados[atletaId] || {})[itemId] || null;
+  if (!res) return null;
+  if (!isAdmin && represado(res)) return null;   // o publico ainda nao ve
+  return res;
+}
+
+function contarRepresados() {
+  let n = 0;
+  Object.keys(D.resultados || {}).forEach(at => {
+    Object.keys(D.resultados[at] || {}).forEach(w => {
+      if (represado(D.resultados[at][w])) n++;
+    });
+  });
+  return n;
+}
+
 function rankearProva(wod, atletas) {
   const linhas = atletas.map(a => {
-    const res = (D.resultados[a.id] || {})[wod.id] || null;
+    const res = resultadoDe(a.id, wod.id);
     const k = chaveResultado(wod, res);
     return { id: a.id, res, grupo: k[0], val: k[1] };
   });
@@ -861,7 +899,7 @@ function calcularRanking(categoria) {
   // A ordem ate ficava certa, mas o numero nao queria dizer nada.
   const valendo = {};
   itens.forEach(w => {
-    valendo[w.id] = atletas.some(a => (D.resultados[a.id] || {})[w.id]);
+    valendo[w.id] = atletas.some(a => resultadoDe(a.id, w.id));
   });
 
   const linhas = atletas.map(a => {
