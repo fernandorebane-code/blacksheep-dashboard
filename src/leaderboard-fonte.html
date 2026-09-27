@@ -694,6 +694,7 @@ footer{
         <div class="modal-foot" style="padding-left:0;padding-right:0">
           <span class="msg" id="rMsg" style="flex:1;text-align:left"></span>
           <button class="btn-ghost" onclick="salvarResultados()">SALVAR A GRADE TODA</button>
+          <button class="btn-ghost" onclick="segurarProva()">SEGURAR ESTA PROVA</button>
           <button class="btn-solid" onclick="publicarResultados()">PUBLICAR</button>
         </div>
       </div>
@@ -2132,15 +2133,30 @@ function renderGradeResultados() {
   const pendentes = atletas.filter(a => !temResultado(a));
   const feitos = atletas.filter(temResultado);
 
+  // quantos DESTA prova o publico ja esta vendo
+  let publicadosAqui = 0;
+  Object.keys(D.resultados || {}).forEach(at => {
+    const r = (D.resultados[at] || {})[wod.id];
+    if (r && !represado(r)) publicadosAqui++;
+  });
+
   const faixa = document.getElementById('rRepresados');
   if (faixa) {
     const n = contarRepresados();
-    faixa.style.display = n ? 'flex' : 'none';
-    if (n) {
-      document.getElementById('rRepresadosN').textContent = n;
-      document.getElementById('rRepresadosTxt').textContent =
-        n === 1 ? 'resultado gravado e ainda NÃO publicado — o público não vê.'
-                : 'resultados gravados e ainda NÃO publicados — o público não vê.';
+    faixa.style.display = (n || publicadosAqui) ? 'flex' : 'none';
+    if (n || publicadosAqui) {
+      // Dois avisos diferentes: o que esta segurado, e o que ja vazou para o
+      // publico nesta prova. Com zero represados o segundo aviso vira o titulo.
+      const aviso = publicadosAqui
+        ? ' <b style="color:var(--red)">Nesta prova o público JÁ VÊ ' + publicadosAqui +
+          '</b> — use SEGURAR ESTA PROVA para recolher.'
+        : '';
+      document.getElementById('rRepresadosN').textContent = n || publicadosAqui;
+      document.getElementById('rRepresadosTxt').innerHTML = n
+        ? (n === 1 ? 'resultado gravado e ainda NÃO publicado — o público não vê.'
+                   : 'resultados gravados e ainda NÃO publicados — o público não vê.') + aviso
+        : 'resultado(s) desta prova <b style="color:var(--red)">o público JÁ VÊ</b>' +
+          ' — use SEGURAR ESTA PROVA para recolher.';
     }
   }
 
@@ -2321,6 +2337,42 @@ function lancarResultado(inp, pular) {
     lancarResultado(e.target, true);
   });
 })();
+
+// O contrario de publicar: recolhe do publico TODOS os resultados da prova
+// escolhida. Existe porque resultado lancado antes desta funcionalidade nao tem
+// a marca e portanto conta como publicado — sem isto nao havia como segurar uma
+// prova que ja estava saindo ao vivo.
+function segurarProva() {
+  if (!D) return;
+  const wid = document.getElementById('rWod').value;
+  const item = itensPontuados(document.getElementById('rCat').value).find(w => w.id === wid);
+  if (!item) return;
+
+  let quantos = 0;
+  Object.keys(D.resultados || {}).forEach(at => {
+    const r = (D.resultados[at] || {})[wid];
+    if (r && !represado(r)) quantos++;
+  });
+  if (!quantos) {
+    avisar('info', 'Nenhum resultado publicado nesta prova para segurar.', 4);
+    return;
+  }
+  if (!confirm('Segurar ' + quantos + ' resultado(s) de "' + item.nome + '"?\n\n' +
+               'Eles somem do leaderboard público agora e só voltam quando você ' +
+               'apertar PUBLICAR. Nenhum valor é apagado.')) return;
+
+  const resultados = {};
+  Object.keys(D.resultados || {}).forEach(at => {
+    const doAtleta = Object.assign({}, D.resultados[at] || {});
+    const r = doAtleta[wid];
+    if (r && !represado(r)) doAtleta[wid] = { v: r.v, faltou: r.faltou, pub: false };
+    resultados[at] = doAtleta;
+  });
+  D.resultados = resultados;
+  renderGradeResultados();
+  render();
+  salvar({ resultados }, 'rMsg', quantos + ' resultado(s) recolhido(s) do público.');
+}
 
 // Solta para o publico tudo que estava represado. Nao toca em valor nenhum:
 // so tira a marca que escondia o resultado.
