@@ -50,6 +50,15 @@ e `publico/index.html` como `index.html` no `blacksheep-invitational`. O endere�
      0 reps faltando quer dizer justamente que ele terminou. Os dois são recusados
      com a mensagem dizendo o que lançar. Em **reps e carga**, `0` continua sendo
      resultado legítimo (o atleta não fez nada) e fica em último.
+   - **O resultado nasce represado**: gravado na hora, visível no organizador,
+     **invisível para o público** até o botão **PUBLICAR**. Uma faixa dourada mostra
+     quantos estão esperando, e a linha do atleta fica marcada na grade.
+   - Resultado **sem a marca `pub` conta como publicado**. É o que garante que nada
+     lançado antes desta mudança suma do ar: só fica escondido quem tem
+     `pub === false`, escrito de propósito.
+   - `PUBLICAR` só tira a marca — não encosta em valor nenhum. A leitura mora em
+     `resultadoDe()`, que devolve `null` para o público quando o resultado está
+     represado; quem decide é o `isAdmin`, o mesmo que já decidia a prova oculta.
    - **Tempo aceita só os dígitos**: `1510` = 15:10, `2301` = 23:01, `942` = 9:42.
      A regra é uniforme — os **dois últimos dígitos são sempre os segundos**, o que
      vier antes são os minutos, então `45` = 0:45. Digitar `15:10` continua valendo,

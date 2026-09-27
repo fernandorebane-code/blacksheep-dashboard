@@ -33,6 +33,10 @@ comportamento: a página funciona, só que ilegível.
 `provas.js` cobre a prova por categoria no leaderboard público. `painel.js` cobre o caminho de uso real: entrar, lançar resultados (inclusive um
 WOD de duas partes pontuadas), salvar, importar a lista oficial e salvar a
 configuração — e falha se o JS estourar em qualquer ponto.
+`publicar.js` cobre o resultado represado — gravado mas ainda não publicado. O
+primeiro caso dele é o da compatibilidade: resultado sem a marca `pub` continua
+visível e continua pontuando. Existe porque a mudança entrou com o campeonato
+rodando e resultado já lançado no ar.
 `cap.js` cobre o time cap, e o dublê dele atrasa o eco do snapshot para simular a
 rede. Existe por causa de um bug no meio do campeonato: corrigir o cap de 20:00
 para 12:00 e lançar o resultado seguinte fazia o campo pular de volta para 20:00,
