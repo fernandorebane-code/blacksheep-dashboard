@@ -465,6 +465,11 @@ footer{
   .modal-bg{padding:0;align-items:flex-start;}
   .modal{max-width:none;max-height:100vh;min-height:100vh;border:none;}
   .modal-head,.modal-body,.modal-foot{padding-left:1rem;padding-right:1rem;}
+  /* O rodape da tela de resultados tem quatro botoes; em 390px eles nao cabem
+     numa linha e vazavam para fora da tela. */
+  .modal-foot{flex-wrap:wrap;justify-content:stretch;}
+  .modal-foot .btn-ghost,.modal-foot .btn-solid{flex:1 1 auto;min-width:0;}
+  .modal-foot .msg{flex:1 1 100%;}
   .modal-x{min-width:44px;min-height:44px;font-size:1.8rem;}
 
   /* Linha de lista (atletas e provas): sao ate seis controles na mesma linha e
@@ -640,6 +645,7 @@ footer{
         <div class="modal-foot" style="padding-left:0;padding-right:0">
           <span class="msg" id="rMsg" style="flex:1;text-align:left"></span>
           <button class="btn-ghost" onclick="salvarResultados()">SALVAR A GRADE TODA</button>
+          <button class="btn-ghost" onclick="abrirPrevia()">VER CLASSIFICAÇÃO</button>
           <button class="btn-ghost" onclick="segurarProva()">SEGURAR ESTA PROVA</button>
           <button class="btn-solid" onclick="publicarResultados()">PUBLICAR</button>
         </div>
@@ -764,6 +770,21 @@ footer{
     </div>
     <div class="modal-foot">
       <button class="btn-solid" onclick="salvarPartes()">SALVAR PARTES</button>
+    </div>
+  </div>
+</div>
+
+<!-- A classificacao como ELA ESTA, contando o que ainda nao foi publicado. O
+     organizador precisa saber quem ganhou antes de revelar. -->
+<div class="modal-bg" id="mPrevia" onclick="if(event.target===this)fechar('mPrevia')">
+  <div class="modal" style="max-width:900px">
+    <div class="modal-head">
+      <div><h2>PRÉVIA DA CLASSIFICAÇÃO</h2><div class="sub" id="pvTitulo"></div></div>
+      <button class="modal-x" onclick="fechar('mPrevia')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="hint" id="pvAviso"></div>
+      <div class="score-grid" id="pvCorpo" style="margin-top:0.6rem"></div>
     </div>
   </div>
 </div>
@@ -2079,6 +2100,48 @@ function lancarResultado(inp, pular) {
     lancarResultado(e.target, true);
   });
 })();
+
+// A classificacao da categoria como ela esta AGORA, ja contando o resultado
+// segurado. O organizador nao tem leaderboard nenhum na tela dele, entao sem
+// isto ele so descobre quem ganhou depois de publicar — tarde demais.
+function abrirPrevia() {
+  if (!D) return;
+  const cat = document.getElementById('rCat').value;
+  const r = calcularRanking(cat);          // isAdmin: conta os represados
+  document.getElementById('pvTitulo').textContent = cat;
+
+  let segurados = 0;
+  r.linhas.forEach(l => r.itens.forEach(w => {
+    if (represado(l.provas[w.id] && l.provas[w.id].res)) segurados++;
+  }));
+  document.getElementById('pvAviso').innerHTML = segurados
+    ? '<b style="color:var(--gold)">Esta é a classificação real, contando ' + segurados +
+      ' resultado(s) que o público ainda NÃO vê</b> (marcados com •). ' +
+      'Só aparece para todo mundo quando você apertar PUBLICAR.'
+    : 'Nenhum resultado segurado nesta categoria — o público já vê esta mesma classificação.';
+
+  const cab = '<tr><th style="width:44px">#</th><th>Atleta</th>' +
+    r.itens.map(w => '<th class="num">' + esc(w.curto) + '</th>').join('') +
+    '<th class="num">Total</th></tr>';
+  const corpo = r.linhas.map(l => {
+    const cels = r.itens.map(w => {
+      const c = l.provas[w.id];
+      const v = fmtValor(w, c && c.res);
+      if (!v) return '<td class="num" style="color:var(--gray)">—</td>';
+      const oculto = represado(c && c.res);
+      return '<td class="num"' + (oculto ? ' style="color:var(--gold);font-weight:700"' +
+             ' title="ainda não publicado"' : '') + '>' + esc(v) +
+             (oculto ? ' •' : '') + '</td>';
+    }).join('');
+    return '<tr><td class="num">' + (l.pontuou ? l.pos : '—') + '</td>' +
+      '<td class="atl">' + esc(l.atleta.nome) +
+      (l.atleta.unidade ? '<span class="unit">' + esc(l.atleta.unidade) + '</span>' : '') +
+      '</td>' + cels + '<td class="num"><b>' + fmtPts(l.total) + '</b></td></tr>';
+  }).join('');
+  document.getElementById('pvCorpo').innerHTML =
+    '<table><thead>' + cab + '</thead><tbody>' + corpo + '</tbody></table>';
+  abrir('mPrevia');
+}
 
 // O contrario de publicar: recolhe do publico TODOS os resultados da prova
 // escolhida. Existe porque resultado lancado antes desta funcionalidade nao tem

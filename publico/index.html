@@ -465,6 +465,11 @@ footer{
   .modal-bg{padding:0;align-items:flex-start;}
   .modal{max-width:none;max-height:100vh;min-height:100vh;border:none;}
   .modal-head,.modal-body,.modal-foot{padding-left:1rem;padding-right:1rem;}
+  /* O rodape da tela de resultados tem quatro botoes; em 390px eles nao cabem
+     numa linha e vazavam para fora da tela. */
+  .modal-foot{flex-wrap:wrap;justify-content:stretch;}
+  .modal-foot .btn-ghost,.modal-foot .btn-solid{flex:1 1 auto;min-width:0;}
+  .modal-foot .msg{flex:1 1 100%;}
   .modal-x{min-width:44px;min-height:44px;font-size:1.8rem;}
 
   /* Linha de lista (atletas e provas): sao ate seis controles na mesma linha e

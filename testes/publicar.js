@@ -136,7 +136,27 @@ async function organizador(nav, resultados) {
   ok('sem erro de JS no organizador', erros.length === 0, JSON.stringify(erros));
   await p.close();
 
-  // 5) SEGURAR ESTA PROVA recolhe o que ja estava publico
+  // 5) PREVIA: o organizador ve a classificacao real antes de publicar
+  ({ p, erros } = await organizador(nav, {
+    a1: { w1: { v: 300, faltou: null } },                  // publicado
+    a2: { w1: { v: 200, faltou: null, pub: false } },      // SEGURADO e mais rapido
+  }));
+  await p.click('button:has-text("VER CLASSIFICAÇÃO")');
+  await p.waitForTimeout(400);
+  ok('a previa abre', await p.isVisible('#mPrevia'));
+  const prev = await p.$$eval('#pvCorpo tbody tr', trs => trs.map(t =>
+    [...t.querySelectorAll('td')].map(x => x.textContent.trim())));
+  ok('a previa mostra a classificacao REAL, com o segurado na frente',
+     prev[0][1].startsWith('Bia') && prev[0][0] === '1', JSON.stringify(prev));
+  ok('e marca com bolinha o que o publico nao ve',
+     prev[0].some(c => c.includes('•')), JSON.stringify(prev[0]));
+  ok('o aviso diz quantos estao segurados',
+     /1 resultado\(s\) que o público ainda NÃO vê/.test(await p.textContent('#pvAviso')),
+     await p.textContent('#pvAviso'));
+  ok('sem erro de JS na previa', erros.length === 0, JSON.stringify(erros));
+  await p.close();
+
+  // 6) SEGURAR ESTA PROVA recolhe o que ja estava publico
   //    (resultado lancado antes desta funcionalidade nao tem a marca)
   ({ p, erros } = await organizador(nav, {
     a1: { w1: { v: 300, faltou: null } },              // publico, sem marca
