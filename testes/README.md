@@ -14,6 +14,7 @@ node testes/painel.js
 node testes/provas.js
 node testes/pontuacao.js
 node testes/cap.js
+node testes/publicar.js
 node testes/celular.js
 ```
 
