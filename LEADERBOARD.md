@@ -61,6 +61,10 @@ e `publico/index.html` como `index.html` no `blacksheep-invitational`. O endere�
      É o que permite segurar uma prova que já vinha saindo ao vivo — inclusive os
      resultados lançados antes desta funcionalidade, que não têm a marca e por isso
      contam como publicados. Pede confirmação e diz quantos serão recolhidos.
+   - `VER CLASSIFICAÇÃO` abre a **prévia**: a classificação da categoria como ela
+     está de verdade, já contando os resultados segurados, com eles marcados com •.
+     O organizador não tem leaderboard na tela dele — sem isso ele só descobriria
+     quem ganhou depois de publicar, tarde demais para conferir.
    - A faixa avisa as duas coisas: quantos estão segurados e, em vermelho, quantos
      **desta prova o público já vê**.
    - `PUBLICAR` só tira a marca — não encosta em valor nenhum. A leitura mora em
