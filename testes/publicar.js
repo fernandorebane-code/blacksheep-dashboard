@@ -127,11 +127,46 @@ async function organizador(nav, resultados) {
      g && g.patch.resultados.a2.w1.pub === undefined, JSON.stringify(g && g.patch.resultados.a2));
   ok('publicar NAO mexe no valor', g && g.patch.resultados.a2.w1.v === 400 &&
      g.patch.resultados.a1.w1.v === 300, JSON.stringify(g && g.patch.resultados));
-  ok('a faixa some depois de publicar', !(await p.isVisible('#rRepresados')));
+  // depois de publicar nao ha mais represado, mas a faixa continua — agora
+  // avisando que o publico JA VE esses resultados. E o estado normal do dia.
+  ok('depois de publicar a faixa avisa que o publico ja ve',
+     /JÁ VÊ/.test(await p.textContent('#rRepresados')), await p.textContent('#rRepresados'));
+  ok('e nao mostra mais nenhum represado',
+     (await p.locator('#rGrid tr.represada').count()) === 0);
   ok('sem erro de JS no organizador', erros.length === 0, JSON.stringify(erros));
   await p.close();
 
-  // 5) lancar um resultado novo nasce represado
+  // 5) SEGURAR ESTA PROVA recolhe o que ja estava publico
+  //    (resultado lancado antes desta funcionalidade nao tem a marca)
+  ({ p, erros } = await organizador(nav, {
+    a1: { w1: { v: 300, faltou: null } },              // publico, sem marca
+    a2: { w1: { v: 400, faltou: null } },              // publico, sem marca
+  }));
+  ok('a faixa avisa que o publico ja ve resultados desta prova',
+     /JÁ VÊ/.test(await p.textContent('#rRepresados')) &&
+     (await p.textContent('#rRepresadosN')).trim() === '2',
+     (await p.textContent('#rRepresados')).replace(/\s+/g, ' ').trim());
+  p.on('dialog', d => d.accept());
+  await p.evaluate(() => { window.__gravado = []; });
+  await p.click('button:has-text("SEGURAR ESTA PROVA")');
+  await p.waitForTimeout(400);
+  const gs = await p.evaluate(() => {
+    const x = window.__gravado.filter(y => y.patch.resultados);
+    return x.length ? x[x.length-1].patch.resultados : null;
+  });
+  ok('segurar marca os dois como represados',
+     gs && gs.a1.w1.pub === false && gs.a2.w1.pub === false, JSON.stringify(gs));
+  ok('segurar NAO mexe no valor',
+     gs && gs.a1.w1.v === 300 && gs.a2.w1.v === 400, JSON.stringify(gs));
+  const sumiu = await p.evaluate(() => {
+    // o publico deixa de ver: simula isAdmin falso no motor
+    const antes = window.isAdmin;
+    return { comAdmin: calcularRanking('C').linhas.filter(l => l.pontuou).length };
+  });
+  ok('o organizador continua vendo os dois', sumiu.comAdmin === 2, JSON.stringify(sumiu));
+  await p.close();
+
+  // 6) lancar um resultado novo nasce represado
   ({ p, erros } = await organizador(nav, {}));
   await p.fill('#rGrid input[data-f="v"][data-at="a1"]', '5:00');
   await p.press('#rGrid input[data-f="v"][data-at="a1"]', 'Enter');

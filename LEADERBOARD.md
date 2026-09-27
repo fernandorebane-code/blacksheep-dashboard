@@ -56,6 +56,13 @@ e `publico/index.html` como `index.html` no `blacksheep-invitational`. O endere�
    - Resultado **sem a marca `pub` conta como publicado**. É o que garante que nada
      lançado antes desta mudança suma do ar: só fica escondido quem tem
      `pub === false`, escrito de propósito.
+   - `SEGURAR ESTA PROVA` faz o contrário: marca como represados todos os
+     resultados da prova escolhida, **recolhendo do público** o que já estava no ar.
+     É o que permite segurar uma prova que já vinha saindo ao vivo — inclusive os
+     resultados lançados antes desta funcionalidade, que não têm a marca e por isso
+     contam como publicados. Pede confirmação e diz quantos serão recolhidos.
+   - A faixa avisa as duas coisas: quantos estão segurados e, em vermelho, quantos
+     **desta prova o público já vê**.
    - `PUBLICAR` só tira a marca — não encosta em valor nenhum. A leitura mora em
      `resultadoDe()`, que devolve `null` para o público quando o resultado está
      represado; quem decide é o `isAdmin`, o mesmo que já decidia a prova oculta.
