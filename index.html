@@ -837,6 +837,39 @@ function findUnit(arr, nome) {
   return arr.find(u => u.nome && u.nome.toLowerCase().replace(/[^a-z]/g,'') === nome.toLowerCase().replace(/[^a-z]/g,''));
 }
 
+// Totalpass e rateado: a unidade recebe uma % da receita da rede, nao o que capturou.
+// Gympass fica fora do rateio - cada unidade recebe o que faturou de fato.
+// Em ambos os casos a soma das unidades fecha com o total da rede.
+const TP_PCT = { 'Moema': 0.26, 'Pinheiros': 0.24, 'Itaim': 0.24, 'Vila Olímpia': 0.13, 'Berrini': 0.13, 'Alphaville': 0 };
+
+// Unidade com 0% nao participa do rateio: fica com o proprio capturado, que sai da base.
+function rateioTP(totalpass) {
+  const totalRede = totalpass?.total_receita || 0;
+  const dentro = UNIDADES.filter(n => TP_PCT[n] > 0);
+  const capturadoFora = UNIDADES
+    .filter(n => !TP_PCT[n])
+    .reduce((s, n) => s + (findUnit(totalpass?.unidades, n)?.receita || 0), 0);
+  const base = totalRede - capturadoFora;
+
+  const out = {};
+  UNIDADES.forEach(nome => {
+    const pct = TP_PCT[nome] || 0;
+    const capturado = findUnit(totalpass?.unidades, nome)?.receita || 0;
+    out[nome] = { pct, capturado, devido: pct > 0 ? Math.round(base * pct) : capturado };
+  });
+
+  // Arredondar unidade por unidade nao fecha com a base (sobra de centavos), e e essa
+  // soma que entra no faturamento da rede. A maior cota absorve a sobra.
+  if (dentro.length) {
+    const maior = dentro.reduce((a, b) => (TP_PCT[b] > TP_PCT[a] ? b : a));
+    const somaOutras = dentro.filter(n => n !== maior).reduce((s, n) => s + out[n].devido, 0);
+    out[maior].devido = base - somaOutras;
+  }
+
+  UNIDADES.forEach(n => { out[n].diff = out[n].devido - out[n].capturado; });
+  return out;
+}
+
 // --- RENDER MES ATUAL ---
 function renderMesAtual(resp) {
   const periodo = resp.periodo || document.getElementById('mesSelector').value;
@@ -867,29 +900,24 @@ function renderMesAtual(resp) {
   document.getElementById('kpiPlanos').textContent = totalPlanos != null ? fmtNum(totalPlanos) : '\u2014';
 
   // Unit cards
-  const TP_PCT = { 'Moema': 0.26, 'Pinheiros': 0.24, 'Itaim': 0.24, 'Vila Olímpia': 0.13, 'Berrini': 0.13, 'Alphaville': 0 };
-  const tpTotalRede = receitaTotalpass;
+  const rateio = rateioTP(totalpass);
   const grid = document.getElementById('unitGrid');
   grid.innerHTML = '';
   UNIDADES.forEach(nome => {
     const ug = findUnit(gympass.unidades, nome);
-    const ut = findUnit(totalpass.unidades, nome);
     const gCheckins = ug?.checkins ?? null;
     const gReceita = ug?.receita ?? 0;
-    const tReceita = ut?.receita ?? 0;
-    const total = gReceita + tReceita;
+    // Gympass entra pelo que a unidade faturou; Totalpass pelo rateio.
+    const { pct, capturado, devido, diff } = rateio[nome];
+    const total = gReceita + devido;
 
-    // Totalpass: rateio por % devida vs capturado
-    const pct = TP_PCT[nome] || 0;
-    const devido = Math.round(tpTotalRede * pct);
-    const diff = devido - tReceita;
     const pctLabel = pct > 0 ? ` (${(pct * 100).toFixed(0)}%)` : '';
     let tpExtraLines = '';
-    if (pct > 0 && tpTotalRede > 0) {
+    if (pct > 0 && capturado > 0) {
       tpExtraLines += `
         <div class="unit-line" style="padding-left:0.6rem">
-          <span class="label" style="color:var(--gray);font-size:0.78rem">↳ Devido (${(pct * 100).toFixed(0)}%)</span>
-          <span class="val" style="color:var(--gold);font-size:0.85rem">${fmtMoeda(devido)}</span>
+          <span class="label" style="color:var(--gray);font-size:0.78rem">↳ Faturou</span>
+          <span class="val" style="color:var(--gray);font-size:0.85rem">${fmtMoeda(capturado)}</span>
         </div>`;
       if (diff > 0) {
         tpExtraLines += `
@@ -916,7 +944,7 @@ function renderMesAtual(resp) {
       </div>
       <div class="unit-line">
         <span class="label">Totalpass${pctLabel}</span>
-        <span class="val">${fmtMoeda(tReceita)}</span>
+        <span class="val">${fmtMoeda(devido)}</span>
       </div>
       ${tpExtraLines}
       <div class="unit-line total">
@@ -1103,9 +1131,9 @@ function renderHistorico(meses) {
   gHtml += '</tr></table>';
   gWrap.innerHTML = gHtml;
 
-  // TOTALPASS table — capturado + % + diferença (receber/pagar)
-  const TP_PCT = { 'Moema': 0.26, 'Pinheiros': 0.24, 'Itaim': 0.24, 'Vila Olímpia': 0.13, 'Berrini': 0.13, 'Alphaville': 0 };
+  // TOTALPASS table — rateio (o que recebe) + faturado + diferença (receber/pagar)
   const tWrap = document.getElementById('historicoTotalpassWrap');
+  const rateioMes = meses.map(m => rateioTP(dadosHistorico[m]?.data?.totalpass));
 
   const tTotals = meses.map(m => {
     const d = dadosHistorico[m]?.data;
@@ -1121,20 +1149,17 @@ function renderHistorico(meses) {
 
   UNIDADES.forEach(nome => {
     const pct = TP_PCT[nome] || 0;
-    // Linha 1: capturado + calculado
     tHtml += `<tr><td>${nome}</td><td class="mono" style="color:var(--gray)">${pct > 0 ? (pct * 100) + '%' : '\u2014'}</td>`;
     meses.forEach((m, i) => {
-      const d = dadosHistorico[m]?.data;
-      const tU = findUnit(d?.totalpass?.unidades, nome);
-      const capturado = tU?.receita || 0;
-      const calculado = Math.round(tTotals[i] * pct);
+      const { capturado, devido, diff } = rateioMes[i][nome];
       if (tTotals[i] === 0) {
         tHtml += `<td class="mono">\u2014</td>`;
+      } else if (pct === 0) {
+        tHtml += `<td class="mono">${fmtMoeda(devido)}</td>`;
       } else {
-        const diff = calculado - capturado;
         const diffLabel = diff > 0 ? `receber ${fmtMoeda(diff)}` : diff < 0 ? `pagar ${fmtMoeda(Math.abs(diff))}` : 'ok';
         const diffColor = diff > 0 ? 'var(--green)' : diff < 0 ? 'var(--red)' : 'var(--gray)';
-        tHtml += `<td class="mono">${fmtMoeda(capturado)}<br><span style="color:var(--gold);font-size:0.72rem">${fmtMoeda(calculado)}</span><br><span style="color:${diffColor};font-size:0.68rem;font-weight:600">${diffLabel}</span></td>`;
+        tHtml += `<td class="mono">${fmtMoeda(devido)}<br><span style="color:var(--gray);font-size:0.72rem">faturou ${fmtMoeda(capturado)}</span><br><span style="color:${diffColor};font-size:0.68rem;font-weight:600">${diffLabel}</span></td>`;
       }
     });
     tHtml += '</tr>';
@@ -1214,22 +1239,20 @@ function renderResultadoUnidade(meses) {
   const unidades = filtroUni === 'TODAS' ? UNIDADES : [filtroUni];
   const mesesFiltrados = filtroMes === 'ANO' ? meses : [filtroMes];
   const isAno = filtroMes === 'ANO';
-  const TP_PCT = { 'Moema': 0.26, 'Pinheiros': 0.24, 'Itaim': 0.24, 'Vila Olímpia': 0.13, 'Berrini': 0.13, 'Alphaville': 0 };
 
   const grandTotals = { gympass: 0, totalpass: 0, planos: 0, total: 0 };
 
   const unitData = {};
   unidades.forEach(nome => {
     unitData[nome] = { gympass: 0, totalpass: 0, planos: 0, total: 0, meses: [] };
-    const pct = TP_PCT[nome] || 0;
     mesesFiltrados.forEach(m => {
       const mm = m.split('-')[1];
       const label = MESES_ABREV[mm] + ' ' + m.split('-')[0];
       const d = dadosHistorico[m]?.data;
       const gU = findUnit(d?.gympass?.unidades, nome);
       const gymVal = gU?.receita || 0;
-      const tpTotal = d?.totalpass?.total_receita || 0;
-      const tpVal = Math.round(tpTotal * pct);
+      // Totalpass pelo rateio; Gympass pelo faturado.
+      const tpVal = rateioTP(d?.totalpass)[nome].devido;
       const pr = d?.planos_receita?.unidades;
       const pU = pr ? pr.find(x => x.nome === nome) : null;
       const plVal = pU?.receita || 0;
@@ -1335,7 +1358,7 @@ function renderIndicadores(resp, periodo) {
   const gympass = data.gympass || {};
   const totalpass = data.totalpass || {};
   const planosRec = data.planos_receita || {};
-  const TP_PCT = { 'Moema': 0.26, 'Pinheiros': 0.24, 'Itaim': 0.24, 'Vila Olímpia': 0.13, 'Berrini': 0.13, 'Alphaville': 0 };
+  const rateio = rateioTP(totalpass);
 
   document.getElementById('indicadoresLabel').innerHTML = `INDICADORES \u2014 ${nomeDoMes(periodo)} ${periodo.split('-')[0]}`;
 
@@ -1360,11 +1383,10 @@ function renderIndicadores(resp, periodo) {
   const grid = document.getElementById('indUnitGrid');
   grid.innerHTML = '';
   UNIDADES.forEach(nome => {
-    const pct = TP_PCT[nome] || 0;
+    const { pct, devido: tpVal } = rateio[nome];
     const ug = findUnit(gympass.unidades, nome);
     const gVal = ug?.receita || 0;
     const gCk = ug?.checkins || 0;
-    const tpVal = Math.round(tRec * pct);
     const prU = planosRec.unidades ? planosRec.unidades.find(x => x.nome === nome) : null;
     const plVal = prU?.receita || 0;
     const total = gVal + tpVal + plVal;
@@ -1378,7 +1400,7 @@ function renderIndicadores(resp, periodo) {
         <span class="val">${gCk > 0 ? fmtNum(gCk) + ' check-ins' : '\u2014'} | ${fmtMoeda(gVal)}</span>
       </div>
       <div class="unit-line">
-        <span class="label">Totalpass (${(pct*100)}%)</span>
+        <span class="label">Totalpass${pct > 0 ? ' (' + (pct*100) + '%)' : ''}</span>
         <span class="val">${fmtMoeda(tpVal)}</span>
       </div>
       <div class="unit-line">
