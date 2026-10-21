@@ -8,8 +8,24 @@ const CHROME = process.env.CHROME_PATH || '';
 const LARGURA = Number(process.env.LARGURA || 1280);
 const JANELA = { viewport: { width: LARGURA, height: 900 } };
 const fs = require('fs');
+const path = require('path');
 const BASE = process.env.BASE || 'http://127.0.0.1:8931';
-const DADOS = JSON.parse(fs.readFileSync(require('path').resolve(__dirname, '..', 'dados', 'campeonato-inicial.json'), 'utf8'));
+const RAIZ = path.resolve(__dirname, '..');
+
+// Esta suite e amarrada a lista oficial do Blacksheep: ela confere numeros de
+// verdade (121 atletas, 8 sem unidade, 4 no Elite Masculino, busca sem acento
+// achando "João"), e nao so que a tela abre. Outro campeonato tem outra lista,
+// entao contra as paginas dele ela se declara pulada em vez de acusar uma falha
+// que nao existe. O que vale para qualquer evento esta em times.js, login.js,
+// publicar.js, cap.js e celular.js.
+const LISTA_PADRAO = 'dados/campeonato-inicial.json';
+const LISTA = (fs.readFileSync(path.join(RAIZ, 'organizador.html'), 'utf8')
+  .match(/const ARQUIVO_INICIAL = '([^']+)'/) || [])[1] || LISTA_PADRAO;
+if (LISTA !== LISTA_PADRAO) {
+  console.log('pulado: esta pagina usa ' + LISTA + ', e as conferencias aqui sao da lista do Blacksheep.');
+  process.exit(0);
+}
+const DADOS = JSON.parse(fs.readFileSync(path.join(RAIZ, LISTA), 'utf8'));
 
 const WODS = [
   { id: 'w1', nome: 'WOD 1 — Remo + For Time', pub: true,

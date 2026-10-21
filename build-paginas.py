@@ -86,6 +86,11 @@ def aplicar_evento(t):
     velho = "const DOMINIO_ORGANIZADOR = '%s';" % base_dom
     if EV.get('dominio_login') and EV['dominio_login'] != base_dom and velho in t:
         t = troca(t, velho, "const DOMINIO_ORGANIZADOR = '%s';" % EV['dominio_login'])
+    # o arquivo da lista oficial, que fica ao lado da pagina
+    base_arq = base.get('arquivo_inicial')
+    velho_arq = "const ARQUIVO_INICIAL = '%s';" % base_arq
+    if EV.get('arquivo_inicial') and EV['arquivo_inicial'] != base_arq and velho_arq in t:
+        t = troca(t, velho_arq, "const ARQUIVO_INICIAL = '%s';" % EV['arquivo_inicial'])
     # as cores
     for var, valor in (EV.get('cores') or {}).items():
         t = troca(t, var + ':', var + ':' + valor + ';#', 1)
@@ -298,5 +303,16 @@ org = troca(org, '</style>', '''
 
 org = aplicar_evento(org)
 io.open(destino_org, 'w', encoding='utf-8').write(org)
+
 print('%-26s %7d bytes' % (destino_pub, len(pub)))
 print('%-26s %7d bytes' % (destino_org, len(org)))
+
+if args.saida and EV.get('arquivo_inicial'):
+    # A pagina busca a lista oficial por caminho relativo, entao ela precisa
+    # viajar junto para o repositorio do evento.
+    origem = EV['arquivo_inicial']
+    if os.path.exists(origem):
+        alvo = os.path.join(args.saida, origem)
+        os.makedirs(os.path.dirname(alvo), exist_ok=True)
+        io.open(alvo, 'w', encoding='utf-8').write(io.open(origem, encoding='utf-8').read())
+        print('%-28s %6d bytes' % (alvo, os.path.getsize(alvo)))

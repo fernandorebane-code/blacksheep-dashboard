@@ -668,20 +668,22 @@ footer{
       <div class="apane" id="apAtletas">
         <div class="carga">
           <div><b>Carga inicial</b> — importa de uma vez os dados do evento (nome, data e local),
-          as categorias, as unidades, a lista oficial de atletas e, quando o arquivo trouxer,
-          as provas. Pode rodar mais de uma vez: atletas e provas têm identificador fixo,
+          as categorias, as unidades, a lista oficial de inscritos e, quando o arquivo trouxer,
+          as provas. Pode rodar mais de uma vez: inscritos e provas têm identificador fixo,
           então nada duplica e os resultados já lançados ficam.</div>
           <button class="btn-solid" style="margin-top:0.6rem" onclick="cargaInicial()">IMPORTAR LISTA OFICIAL</button>
           <div class="msg" id="cargaMsg"></div>
         </div>
         <div class="form-row">
           <input class="field" id="atNome" placeholder="Nome do atleta">
+          <!-- So aparece em campeonato de times (ver preencherAdmin) -->
+          <input class="field soTime" id="atInt" placeholder="Integrantes (ex: Ana, Bia, Caio)" style="display:none">
           <select class="field" id="atCat"></select>
           <select class="field" id="atUni"></select>
           <button class="btn-solid" onclick="addAtleta()">ADICIONAR</button>
         </div>
         <div class="msg" id="atMsg"></div>
-        <div class="hint">Cole vários de uma vez (um por linha, formato <b>Nome; Categoria; Unidade</b>) no campo abaixo.</div>
+        <div class="hint" id="atDica">Cole vários de uma vez (um por linha, formato <b>Nome; Categoria; Unidade</b>) no campo abaixo.</div>
         <textarea class="field" id="atBulk" style="width:100%;margin-top:0.5rem" placeholder="João Silva; Elite Masculino; Moema&#10;Maria Souza; Scaled Feminino; Pinheiros"></textarea>
         <button class="btn-ghost" style="margin-top:0.4rem" onclick="importarAtletas()">IMPORTAR LISTA</button>
 
@@ -729,6 +731,15 @@ footer{
         <div class="form-row">
           <div><label class="lbl">Data</label><input class="field" id="cData" style="width:100%" placeholder="14 e 15 de março"></div>
           <div><label class="lbl">Local</label><input class="field" id="cLocal" style="width:100%" placeholder="Blacksheep Moema"></div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label class="lbl">Quem compete</label>
+            <select class="field" id="cCompetidor" style="width:100%">
+              <option value="atleta">Atletas — um resultado por pessoa</option>
+              <option value="time">Times — um resultado por time, com os integrantes embaixo do nome</option>
+            </select>
+          </div>
         </div>
         <div class="form-row">
           <div>
@@ -841,6 +852,16 @@ const PADRAO = {
   atletas: [],
   resultados: {}
 };
+
+// Campeonato de times: o competidor e o time, e os nomes de quem o compoe ficam
+// no campo `integrantes`. Muda o rotulo na tela e mais nada — o motor de
+// pontuacao nao sabe a diferenca entre um time e uma pessoa, entao prova, cap,
+// empate e confronto direto continuam valendo igual.
+function rotulo() {
+  return (D && D.competidor === 'time')
+    ? { um: 'time',   uns: 'times',   Um: 'Time',   artigo: 'do time' }
+    : { um: 'atleta', uns: 'atletas', Um: 'Atleta', artigo: 'do atleta' };
+}
 
 let D = null;            // dados do campeonato
 let catAtiva = null;     // categoria selecionada
@@ -1379,10 +1400,12 @@ function preencherAdmin() {
   document.getElementById('cSistema').value = D.sistema || 'tabela';
   document.getElementById('cP1').value = num(D.p1, 100);
   document.getElementById('cDec').value = num(D.dec, 5);
+  document.getElementById('cCompetidor').value = D.competidor === 'time' ? 'time' : 'atleta';
   document.getElementById('cCats').value = (D.categorias || []).join('\n');
   document.getElementById('cUnis').value = (D.unidades || []).join('\n');
   document.getElementById('cPublicado').checked = D.publicado !== false;
   alternarCamposPontuacao();
+  alternarCamposTime();
 
   // selects de atleta
   opcoes('atCat', D.categorias);
@@ -1423,12 +1446,27 @@ function alternarCamposPontuacao() {
 }
 document.getElementById('cSistema').addEventListener('change', alternarCamposPontuacao);
 
+// Campeonato de times: aparece o campo dos integrantes e os rotulos passam a
+// falar em time. Roda ao abrir o painel e ao trocar o seletor, para o
+// organizador ver o efeito antes de salvar.
+function alternarCamposTime() {
+  const time = document.getElementById('cCompetidor').value === 'time';
+  document.querySelectorAll('.soTime').forEach(el => { el.style.display = time ? '' : 'none'; });
+  const nome = document.getElementById('atNome');
+  if (nome) nome.placeholder = time ? 'Nome do time' : 'Nome do atleta';
+  const dica = document.getElementById('atDica');
+  if (dica) dica.innerHTML = 'Cole vários de uma vez (um por linha, formato <b>Nome; Categoria; Unidade' +
+    (time ? '; Integrantes' : '') + '</b>) no campo abaixo.';
+}
+document.getElementById('cCompetidor').addEventListener('change', alternarCamposTime);
+
 function salvarConfig() {
   const linhas = t => t.split('\n').map(s => s.trim()).filter(Boolean);
   const patch = {
     nome: document.getElementById('cNome').value.trim() || PADRAO.nome,
     data: document.getElementById('cData').value.trim(),
     local: document.getElementById('cLocal').value.trim(),
+    competidor: document.getElementById('cCompetidor').value,
     sistema: document.getElementById('cSistema').value,
     p1: num(document.getElementById('cP1').value, 100),
     dec: num(document.getElementById('cDec').value, 5),
@@ -1445,12 +1483,16 @@ function salvarConfig() {
 // quando o arquivo trouxer — as provas, de uma vez so. Roda com o login do
 // organizador. E por aqui que uma lista de provas montada fora do painel entra
 // no campeonato sem ninguem digitar prova por prova.
+// O arquivo da lista oficial e proprio de cada campeonato (o do evento sai do
+// arquivo em eventos/, na hora do build) e fica ao lado da pagina.
+const ARQUIVO_INICIAL = 'dados/campeonato-inicial.json';
+
 async function cargaInicial() {
   const msg = document.getElementById('cargaMsg');
   msg.className = 'msg'; msg.textContent = 'Carregando a lista…';
   let d;
   try {
-    const r = await fetch('dados/campeonato-inicial.json', { cache: 'no-store' });
+    const r = await fetch(ARQUIVO_INICIAL, { cache: 'no-store' });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     d = await r.json();
   } catch (e) {
@@ -1469,10 +1511,10 @@ async function cargaInicial() {
   const atuais = (D.atletas || []).length;
   const provasAtuais = (D.wods || []).length;
   const avisos = [];
-  if (atuais) avisos.push('os ' + atuais + ' atleta(s) já cadastrados');
+  if (atuais) avisos.push('os ' + atuais + ' ' + rotulo().um + '(s) já cadastrados');
   if (temProvas && provasAtuais) avisos.push('as ' + provasAtuais + ' prova(s) já cadastradas');
   if (avisos.length && !confirm('Isso substitui ' + avisos.join(' e ') + '. ' +
-      'Resultados de atletas ou provas que saírem da lista serão descartados. Continuar?')) {
+      'Resultados de quem sair da lista, ou de provas que saírem dela, serão descartados. Continuar?')) {
     msg.textContent = ''; return;
   }
 
@@ -1510,7 +1552,7 @@ async function cargaInicial() {
   // nome, subtitulo, data e local do evento
   Object.keys(d.config || {}).forEach(k => { patch[k] = d.config[k]; });
 
-  await salvar(patch, 'cargaMsg', d.atletas.length + ' atletas, ' + d.categorias.length +
+  await salvar(patch, 'cargaMsg', d.atletas.length + ' ' + rotulo().uns + ', ' + d.categorias.length +
      ' categorias, ' + d.unidades.length + ' unidades' +
      (temProvas ? ' e ' + d.wods.length + ' provas' : '') + ' importados.');
 }
@@ -1525,8 +1567,12 @@ function addAtleta() {
     categoria: document.getElementById('atCat').value,
     unidade: document.getElementById('atUni').value
   };
-  salvar({ atletas: (D.atletas || []).concat([novo]) }, 'atMsg', 'Atleta adicionado.');
+  const integrantes = document.getElementById('atInt').value.trim();
+  if (integrantes) novo.integrantes = integrantes;
+  salvar({ atletas: (D.atletas || []).concat([novo]) }, 'atMsg',
+    rotulo().Um + ' adicionado.');
   document.getElementById('atNome').value = '';
+  document.getElementById('atInt').value = '';
   document.getElementById('atNome').focus();
 }
 
@@ -1537,15 +1583,19 @@ function importarAtletas() {
   txt.split('\n').map(l => l.trim()).filter(Boolean).forEach(l => {
     const p = l.split(/[;\t]|,(?=\s*\S)/).map(s => s.trim());
     if (!p[0]) return;
-    novos.push({
+    const novo = {
       id: uid('at'),
       nome: p[0],
       categoria: (D.categorias || []).find(c => c.toLowerCase() === String(p[1] || '').toLowerCase()) || p[1] || D.categorias[0],
       unidade: (D.unidades || []).find(u => u.toLowerCase() === String(p[2] || '').toLowerCase()) || p[2] || ''
-    });
+    };
+    // quarto campo: os integrantes do time, quando o campeonato for de times
+    if (p[3]) novo.integrantes = p[3];
+    novos.push(novo);
   });
   if (!novos.length) { msg.className = 'msg err'; msg.textContent = 'Nada para importar.'; return; }
-  salvar({ atletas: (D.atletas || []).concat(novos) }, 'atMsg', novos.length + ' atleta(s) importado(s).');
+  salvar({ atletas: (D.atletas || []).concat(novos) }, 'atMsg',
+    novos.length + ' ' + rotulo().um + '(s) importado(s).');
   document.getElementById('atBulk').value = '';
 }
 
@@ -1554,11 +1604,14 @@ function removerAtleta(id) {
   if (!a || !confirm('Remover ' + a.nome + ' e todos os resultados dele?')) return;
   const res = Object.assign({}, D.resultados);
   delete res[id];
-  salvar({ atletas: D.atletas.filter(x => x.id !== id), resultados: res }, 'atMsg', 'Atleta removido.');
+  salvar({ atletas: D.atletas.filter(x => x.id !== id), resultados: res }, 'atMsg',
+    rotulo().Um + ' removido.');
 }
 
 function editarAtleta(id, campo, valor) {
-  const v = campo === 'nome' ? String(valor).trim().replace(/\s+/g, ' ') : valor;
+  const v = (campo === 'nome' || campo === 'integrantes')
+    ? String(valor).trim().replace(/\s+/g, ' ')
+    : valor;
   if (campo === 'nome' && !v) {
     // um nome em branco sumiria da lista sem sumir do campeonato
     avisar('err', 'O nome não pode ficar em branco.');
@@ -1609,20 +1662,30 @@ function renderListaAtletas() {
   const total = (D.atletas || []).length;
   const ordenados = atletasFiltrados().sort((a, b) =>
     (a.categoria || '').localeCompare(b.categoria || '', 'pt-BR') || a.nome.localeCompare(b.nome, 'pt-BR'));
+  const rot = rotulo();
   if (conta) {
     conta.textContent = !total ? ''
-      : ordenados.length === total ? total + ' atletas'
+      : ordenados.length === total ? total + ' ' + rot.uns
       : 'mostrando ' + ordenados.length + ' de ' + total;
   }
-  if (!total) { el.innerHTML = '<div class="hint">Nenhum atleta cadastrado.</div>'; return; }
-  if (!ordenados.length) { el.innerHTML = '<div class="hint">Nenhum atleta com esse filtro.</div>'; return; }
+  if (!total) { el.innerHTML = '<div class="hint">Nenhum ' + rot.um + ' cadastrado.</div>'; return; }
+  if (!ordenados.length) { el.innerHTML = '<div class="hint">Nenhum ' + rot.um + ' com esse filtro.</div>'; return; }
   const opcao = (v, atual) => '<option value="' + esc(v) + '"' +
     (v === atual ? ' selected' : '') + '>' + esc(v || 'sem unidade') + '</option>';
   el.innerHTML = ordenados.map(a =>
     '<div class="list-item">' +
       '<div class="grow">' +
-        '<input class="nm-edit" value="' + esc(a.nome) + '" aria-label="Nome do atleta"' +
+        '<input class="nm-edit" value="' + esc(a.nome) + '" aria-label="Nome ' + rot.artigo + '"' +
           ' onchange="editarAtleta(' + jq(a.id) + ',\'nome\',this.value)">' +
+        // Os integrantes ficam embaixo do nome, na mesma caixa: sao texto livre e
+        // a linha ja tem quatro controles — um quinto lado a lado estouraria a
+        // largura do celular.
+        (rot.um === 'time'
+          ? '<input class="nm-edit" style="margin-top:0.25rem;font-size:0.8rem"' +
+            ' value="' + esc(a.integrantes || '') + '" placeholder="Integrantes"' +
+            ' aria-label="Integrantes do time"' +
+            ' onchange="editarAtleta(' + jq(a.id) + ',\'integrantes\',this.value)">'
+          : '') +
       '</div>' +
       '<select class="field mini" aria-label="Categoria"' +
         ' onchange="editarAtleta(' + jq(a.id) + ',\'categoria\',this.value)">' +
@@ -1895,7 +1958,7 @@ function renderGradeResultados() {
     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
   const contagem = document.getElementById('rContagem');
   if (!atletas.length) {
-    grid.innerHTML = '<div class="empty-state">Nenhum atleta nesta categoria.</div>';
+    grid.innerHTML = '<div class="empty-state">Nenhum ' + rotulo().um + ' nesta categoria.</div>';
     if (contagem) contagem.textContent = '';
     return;
   }
@@ -1939,10 +2002,11 @@ function renderGradeResultados() {
 
   if (contagem) {
     contagem.innerHTML = pendentes.length
-      ? '<b>' + pendentes.length + '</b> atleta(s) ainda sem resultado nesta prova · ' +
+      ? '<b>' + pendentes.length + '</b> ' + rotulo().um + '(s) ainda sem resultado nesta prova · ' +
         feitos.length + ' de ' + atletas.length + ' lançado(s). ' +
         'Salva sozinho a cada resultado — <b>Enter</b> pula para o próximo que falta.'
-      : '<b>Categoria completa</b> — os ' + atletas.length + ' atletas têm resultado nesta prova.';
+      : '<b>Categoria completa</b> — os ' + atletas.length + ' ' + rotulo().uns +
+        ' têm resultado nesta prova.';
   }
 
   // A unidade vai embaixo do nome, e nao numa coluna propria: numa tela estreita
@@ -1957,14 +2021,15 @@ function renderGradeResultados() {
       '<td class="atl" title="' + esc(a.nome) + (espera ? ' — aguardando publicação' : '') + '">' +
       (espera ? '<span class="hold" title="aguardando publicação">&#9679;</span>'
               : (feito ? '<span class="ok">&#10003;</span>' : '')) + esc(a.nome) +
-      (a.unidade ? '<span class="unit">' + esc(a.unidade) + '</span>' : '') + '</td>' +
+      ((a.integrantes || a.unidade)
+        ? '<span class="unit">' + esc(a.integrantes || a.unidade) + '</span>' : '') + '</td>' +
       '<td class="num"><input data-at="' + esc(a.id) + '" data-f="v" value="' + esc(valor) + '" placeholder="' + (ehTempo ? '8:42' : '--') + '"></td>' +
       (ehTempo ? '<td class="num"><input data-at="' + esc(a.id) + '" data-f="faltou" value="' + (r.faltou == null ? '' : r.faltou) + '" placeholder="--"></td>' : '') +
       '</tr>';
   };
 
   const foco = focoDaGrade();
-  grid.innerHTML = '<table><thead><tr><th>Atleta</th>' +
+  grid.innerHTML = '<table><thead><tr><th>' + rotulo().Um + '</th>' +
     '<th class="num">' + (ehTempo ? 'Tempo (mm:ss)' : 'Resultado') + '</th>' +
     (ehTempo ? '<th class="num">Reps faltando</th>' : '') +
     '</tr></thead><tbody>' +
@@ -2134,7 +2199,7 @@ function abrirPrevia() {
       'Só aparece para todo mundo quando você apertar PUBLICAR.'
     : 'Nenhum resultado segurado nesta categoria — o público já vê esta mesma classificação.';
 
-  const cab = '<tr><th style="width:44px">#</th><th>Atleta</th>' +
+  const cab = '<tr><th style="width:44px">#</th><th>' + rotulo().Um + '</th>' +
     r.itens.map(w => '<th class="num">' + esc(w.curto) + '</th>').join('') +
     '<th class="num">Total</th></tr>';
   const corpo = r.linhas.map(l => {
@@ -2149,7 +2214,8 @@ function abrirPrevia() {
     }).join('');
     return '<tr><td class="num">' + (l.pontuou ? l.pos : '—') + '</td>' +
       '<td class="atl">' + esc(l.atleta.nome) +
-      (l.atleta.unidade ? '<span class="unit">' + esc(l.atleta.unidade) + '</span>' : '') +
+      ((l.atleta.integrantes || l.atleta.unidade)
+        ? '<span class="unit">' + esc(l.atleta.integrantes || l.atleta.unidade) + '</span>' : '') +
       '</td>' + cels + '<td class="num"><b>' + fmtPts(l.total) + '</b></td></tr>';
   }).join('');
   document.getElementById('pvCorpo').innerHTML =

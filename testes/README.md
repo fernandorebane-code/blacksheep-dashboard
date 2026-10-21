@@ -15,6 +15,7 @@ node testes/provas.js
 node testes/pontuacao.js
 node testes/cap.js
 node testes/publicar.js
+node testes/times.js
 node testes/celular.js
 ```
 
@@ -30,6 +31,11 @@ Para rodar nas páginas de outro campeonato (`eventos/`), monte uma pasta com
 organizador da própria página, então ele cobre a regra e não o domínio de um
 evento específico.
 
+`painel.js` é a exceção: ele confere números da lista oficial do Blacksheep (121
+atletas, 8 sem unidade, busca sem acento achando "João"), então contra as páginas
+de outro evento ele **se declara pulado** em vez de acusar falha. Vale mais do que
+afrouxar as conferências para caberem em qualquer lista.
+
 `login.js` cobre o mapeamento usuário → e-mail e as mensagens de erro.
 `celular.js` percorre os 11 estados das duas páginas numa tela de 390px e falha
 se algo vazar para fora da tela, se um alvo de toque ficar abaixo de 36px ou se
@@ -43,6 +49,11 @@ configuração — e falha se o JS estourar em qualquer ponto.
 primeiro caso dele é o da compatibilidade: resultado sem a marca `pub` continua
 visível e continua pontuando. Existe porque a mudança entrou com o campeonato
 rodando e resultado já lançado no ar.
+`times.js` cobre o campeonato de times: o competidor é o time, os integrantes
+aparecem embaixo do nome e a tela inteira passa a falar em time em vez de atleta.
+Existe porque "atleta" estava escrito em quinze lugares — um leaderboard de times
+com "Atleta" no cabeçalho e "11 atletas" no topo é defeito que o público vê.
+O teste roda os dois modos na mesma página: com a marca de time e sem ela.
 `cap.js` cobre o time cap, e o dublê dele atrasa o eco do snapshot para simular a
 rede. Existe por causa de um bug no meio do campeonato: corrigir o cap de 20:00
 para 12:00 e lançar o resultado seguinte fazia o campo pular de volta para 20:00,
