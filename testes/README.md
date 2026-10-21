@@ -24,6 +24,12 @@ Os três primeiros aceitam `LARGURA` para rodar numa janela estreita:
 LARGURA=390 node testes/painel.js
 ```
 
+Para rodar nas páginas de outro campeonato (`eventos/`), monte uma pasta com
+`publico/index.html` e `organizador.html` nos lugares de sempre, suba o
+`http.server` nela e aponte `BASE` para a porta — `login.js` lê o domínio do
+organizador da própria página, então ele cobre a regra e não o domínio de um
+evento específico.
+
 `login.js` cobre o mapeamento usuário → e-mail e as mensagens de erro.
 `celular.js` percorre os 11 estados das duas páginas numa tela de 390px e falha
 se algo vazar para fora da tela, se um alvo de toque ficar abaixo de 36px ou se

@@ -16,6 +16,9 @@ As duas são **geradas** a partir de `src/leaderboard-fonte.html`, que é a font
 python3 build-paginas.py
 ```
 
+O mesmo código serve mais de um campeonato: cada um é um arquivo em `eventos/`
+— ver **Mais de um campeonato**.
+
 O leaderboard público não tem login nem qualquer referência ao host do dashboard —
 o link que vai para os atletas não revela o painel de gestão. O painel do organizador
 fica só no host do dashboard, atrás do login.
@@ -466,6 +469,84 @@ Para criar o segredo, uma vez só:
 Um PAT expira e está preso a uma pessoa. Depois do evento, vale trocar por uma
 **deploy key** do `blacksheep-invitational`, que não expira nem depende de conta.
 
+## Mais de um campeonato
+
+Um campeonato é um arquivo em `eventos/`. O código é o mesmo para todos — não
+existe cópia da página para manter em paralelo.
+
+```
+python3 build-paginas.py                        # Blacksheep, nos caminhos de sempre
+python3 build-paginas.py ctstorm -o sites/ctstorm
+```
+
+O arquivo do evento diz:
+
+| Campo | O que faz |
+|---|---|
+| `documento` | o documento em `campeonatos/` onde esse campeonato vive — é o que separa um dos outros |
+| `dominio_login` | o domínio do usuário do organizador (`organizador@<dominio_login>`) |
+| `titulo`, `descricao`, `descricao_og`, `logo_html`, `h1_html`, `rodape`, `local_exemplo`, `painel` | os textos da marca |
+| `cores` | as variáveis CSS do `:root` |
+
+`eventos/blacksheep.json` é a **referência**: a fonte continua escrita com os
+textos e as cores do Blacksheep, então ela abre no navegador como uma página
+pronta, e o diff de um campeonato novo é só o arquivo dele. O gerador compara
+os dois arquivos e troca o que for diferente, por último, sobre a página já
+montada — tentar trocar antes apaga as âncoras que os recortes procuram.
+
+Toda cor fica no `:root`. Uma cor fixa solta no meio do CSS vira resquício do
+tema anterior no tema novo: foi assim que a primeira prova do tema CT Storm saiu
+vermelha com o brilho verde-limão do Blacksheep atrás do título.
+
+Os testes rodam igual num evento novo: copie as duas páginas geradas para uma
+pasta com `publico/index.html` e `organizador.html` nos lugares de sempre, suba
+o `http.server` nela e aponte o `BASE` para a porta.
+
+### CT Storm
+
+Segundo campeonato, de outra academia.
+
+| Onde | Arquivo | Vai para |
+|---|---|---|
+| Leaderboard público | `sites/ctstorm/index.html` | `index.html` no repositório `ctstorm-leaderboard.github.io` |
+| Painel do organizador | `sites/ctstorm/organizador.html` | `organizador.html` no mesmo repositório |
+
+Endereço: `https://ctstorm-leaderboard.github.io`. É um **user site** do GitHub
+Pages — o nome do repositório tem que ser igual ao da conta, e por isso ele exige
+uma conta (ou organização) chamada `ctstorm-leaderboard`. Sem domínio próprio não
+há `CNAME` para manter.
+
+As duas páginas no mesmo endereço, diferente do Blacksheep: lá a separação existia
+para o link dos atletas não revelar o host do dashboard de gestão, o que aqui não
+se aplica. O que protege o painel é o login, não o endereço.
+
+Falta, e só o dono da conta do Firebase pode fazer:
+
+1. Criar a conta do organizador do CT Storm em Authentication → Users → **Add user**,
+   e-mail `organizador@ctstorm-leaderboard.github.io`, e copiar o **UID**.
+2. Trocar a regra do Firestore pela versão abaixo, com esse UID no lugar do
+   `UID_DO_ORGANIZADOR_CT_STORM`.
+
+```
+    match /campeonatos/{id} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && ((id == 'atual'
+             && (request.auth.uid in ['eOMZrPKQlHdEQif3EkmOMsM7Bwo2']
+                 || (request.auth.token.email_verified == true
+                     && exists(/databases/$(database)/documents/dashboard_users/$(request.auth.token.email.lower())))))
+            || (id == 'ctstorm'
+                && request.auth.uid in [
+                     'eOMZrPKQlHdEQif3EkmOMsM7Bwo2',
+                     'UID_DO_ORGANIZADOR_CT_STORM'
+                   ]));
+    }
+```
+
+O `id ==` é o ponto todo: quem lança o CT Storm escreve em `campeonatos/ctstorm`
+e em mais nada — não chega no Blacksheep, nem no `dashboard_users`, nem no
+financeiro da rede. A permissão do Blacksheep fica exatamente como estava.
+
 ## Acesso e regras
 
 ### Login do organizador
@@ -475,8 +556,9 @@ resultados é quem estiver de plantão na mesa, e essa pessoa não deve precisar
 conta pessoal de ninguém.
 
 O Firebase Auth só trabalha com e-mail, então o que for digitado sem `@` vira
-`usuario@invitational.bjjblacksheepfit.com` (a constante `DOMINIO_ORGANIZADOR`
-na fonte). Um e-mail inteiro continua valendo — é assim que as contas do
+`usuario@invitational.bjjblacksheepfit.com` (a constante `DOMINIO_ORGANIZADOR`,
+que vem do campo `dominio_login` do arquivo do evento — cada campeonato tem o
+seu, então o organizador de um não entra no painel do outro). Um e-mail inteiro continua valendo — é assim que as contas do
 dashboard de gestão entram. O cabeçalho mostra só o usuário, sem o domínio.
 
 Esse domínio não precisa receber e-mail: é apenas o formato que o Firebase exige.

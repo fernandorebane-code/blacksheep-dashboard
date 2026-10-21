@@ -5,6 +5,10 @@
 exclude:
   - src
   - publico
+  # sites/ sao as paginas prontas de outros campeonatos (ver eventos/).
+  # Cada uma vai para o repositorio do seu evento; nenhuma e servida daqui.
+  - sites
+  - eventos
   - build-paginas.py
   - LEADERBOARD.md
   - testes

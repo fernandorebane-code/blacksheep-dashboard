@@ -1,0 +1,14 @@
+{
+  "id": "blacksheep",
+  "documento": "atual",
+  "dominio_login": "invitational.bjjblacksheepfit.com",
+  "titulo": "Blacksheep Invitational",
+  "descricao": "Leaderboard oficial do Blacksheep Invitational — Setembro 2026, São Paulo.",
+  "descricao_og": "Ranking ao vivo do Blacksheep Invitational — Setembro 2026, São Paulo.",
+  "logo_html": "<span class=\"gold\">BLACKSHEEP </span><span class=\"wht\">INVITATIONAL</span>",
+  "h1_html": "BLACKSHEEP <em>INVITATIONAL</em>",
+  "rodape": "Blacksheep — Leaderboard oficial",
+  "painel": "dashboard.bjjblacksheepfit.com/organizador.html",
+  "local_exemplo": "Blacksheep Moema",
+  "cores": {}
+}

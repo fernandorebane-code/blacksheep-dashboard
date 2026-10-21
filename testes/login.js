@@ -8,12 +8,16 @@ const LARGURA = Number(process.env.LARGURA || 1280);
 const JANELA = { viewport: { width: LARGURA, height: 900 } };
 const path = process.env.PAGINA || require('path').resolve(__dirname, '..', 'organizador.html');
 
-const CASOS = [
-  ['organizador',                 'organizador@invitational.bjjblacksheepfit.com', 'usuario simples'],
-  ['  Organizador  ',             'organizador@invitational.bjjblacksheepfit.com', 'com espaco e maiuscula'],
-  ['MESA',                        'mesa@invitational.bjjblacksheepfit.com',        'tudo maiusculo'],
-  ['fernando.rebane@me.com',      'fernando.rebane@me.com',                        'e-mail do dashboard'],
-  ['Fernando.Rebane@ME.com',      'fernando.rebane@me.com',                        'e-mail com maiusculas'],
+// O dominio do usuario do evento sai do arquivo em eventos/ e muda de um
+// campeonato para o outro, entao o teste le o da propria pagina: o que ele
+// cobre e a regra (usuario vira usuario@dominio, e-mail inteiro passa direto),
+// nao o dominio de um evento especifico.
+const CASOS = (dominio) => [
+  ['organizador',                 'organizador@' + dominio,  'usuario simples'],
+  ['  Organizador  ',             'organizador@' + dominio,  'com espaco e maiuscula'],
+  ['MESA',                        'mesa@' + dominio,         'tudo maiusculo'],
+  ['fernando.rebane@me.com',      'fernando.rebane@me.com',  'e-mail do dashboard'],
+  ['Fernando.Rebane@ME.com',      'fernando.rebane@me.com',  'e-mail com maiusculas'],
 ];
 
 (async () => {
@@ -54,7 +58,9 @@ const CASOS = [
   await pagina.waitForTimeout(300);
 
   let falhas = 0;
-  for (const [digitado, esperado, descricao] of CASOS) {
+  const dominio = await pagina.evaluate(() => DOMINIO_ORGANIZADOR);
+  console.log('dominio do evento: ' + dominio);
+  for (const [digitado, esperado, descricao] of CASOS(dominio)) {
     await pagina.evaluate(() => { window.__enviados = []; });
     await pagina.fill('#logEmail', digitado);
     await pagina.fill('#logSenha', 'errada');
