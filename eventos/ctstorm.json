@@ -2,6 +2,7 @@
   "id": "ctstorm",
   "documento": "ctstorm",
   "dominio_login": "ctstorm-leaderboard.github.io",
+  "arquivo_inicial": "dados/ctstorm-inicial.json",
   "titulo": "CT Storm Championship",
   "descricao": "Leaderboard oficial do CT Storm Championship.",
   "descricao_og": "Ranking ao vivo do CT Storm Championship.",

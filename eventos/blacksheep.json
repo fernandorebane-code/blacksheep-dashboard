@@ -2,6 +2,7 @@
   "id": "blacksheep",
   "documento": "atual",
   "dominio_login": "invitational.bjjblacksheepfit.com",
+  "arquivo_inicial": "dados/campeonato-inicial.json",
   "titulo": "Blacksheep Invitational",
   "descricao": "Leaderboard oficial do Blacksheep Invitational — Setembro 2026, São Paulo.",
   "descricao_og": "Ranking ao vivo do Blacksheep Invitational — Setembro 2026, São Paulo.",

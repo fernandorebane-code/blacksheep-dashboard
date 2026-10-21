@@ -485,6 +485,7 @@ O arquivo do evento diz:
 |---|---|
 | `documento` | o documento em `campeonatos/` onde esse campeonato vive — é o que separa um dos outros |
 | `dominio_login` | o domínio do usuário do organizador (`organizador@<dominio_login>`) |
+| `arquivo_inicial` | a lista oficial que o botão **IMPORTAR LISTA OFICIAL** lê; o gerador copia o arquivo para a pasta do evento |
 | `titulo`, `descricao`, `descricao_og`, `logo_html`, `h1_html`, `rodape`, `local_exemplo`, `painel` | os textos da marca |
 | `cores` | as variáveis CSS do `:root` |
 
@@ -546,6 +547,44 @@ Falta, e só o dono da conta do Firebase pode fazer:
 O `id ==` é o ponto todo: quem lança o CT Storm escreve em `campeonatos/ctstorm`
 e em mais nada — não chega no Blacksheep, nem no `dashboard_users`, nem no
 financeiro da rede. A permissão do Blacksheep fica exatamente como estava.
+
+## Campeonato de times
+
+Quando o competidor é o time e não a pessoa, a configuração tem **Quem compete →
+Times**. Muda só o rótulo da tela e um campo; o motor de pontuação não sabe a
+diferença entre um time e uma pessoa, então prova, time cap, empate e confronto
+direto continuam valendo igual.
+
+O que muda:
+
+- onde se lia *Atleta*, lê-se **Time** — cabeçalho da tabela, busca, contagem do
+  topo, legenda, grade de lançamento, prévia e CSV;
+- cada time tem **integrantes** (texto livre, ex: `Ana, Bia, Caio`), que aparecem
+  embaixo do nome dele no leaderboard, na grade de lançamento e na prévia;
+- o colar em massa passa a aceitar quatro campos: `Nome; Categoria; Unidade; Integrantes`.
+
+O resultado é **um por time, por prova** — quem lança digita uma vez para o trio.
+
+Um campeonato já lançado não muda de comportamento: sem a marca de times, tudo
+continua falando em atleta, e o campo `integrantes` que não existir simplesmente
+não aparece.
+
+### Os times do CT Storm
+
+`dados/ctstorm-inicial.json` — 11 times, 33 atletas, em duas categorias:
+
+| Categoria | Times |
+|---|---|
+| RX | XURIS · Team Turista · As Mashas e o Urso · 48 do segundo tempo · 3x mais cansados |
+| Scale | Os RXs · Anilhas Apocalípticas · Barba, Careca e Cabeluda · Eu Sofro, mas vou · Mais Master · TCK TEAM |
+
+Entram no campeonato pelo botão **IMPORTAR LISTA OFICIAL**, no painel do
+organizador. O arquivo já traz `competidor: time` e o leaderboard fechado
+(`publicado: false`), então nada aparece para o público antes da hora.
+
+**Aline aparece em dois times do RX** (48 do segundo tempo e 3x mais cansados).
+Se forem a mesma pessoa, é erro de inscrição; se forem duas, vale diferenciar os
+nomes para quem olha o leaderboard não se confundir.
 
 ## Acesso e regras
 
