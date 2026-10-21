@@ -840,20 +840,33 @@ function findUnit(arr, nome) {
 // Totalpass e rateado: a unidade recebe uma % da receita da rede, nao o que capturou.
 // Gympass fica fora do rateio - cada unidade recebe o que faturou de fato.
 // Em ambos os casos a soma das unidades fecha com o total da rede.
-const TP_PCT = { 'Moema': 0.26, 'Pinheiros': 0.24, 'Itaim': 0.24, 'Vila Olímpia': 0.13, 'Berrini': 0.13, 'Alphaville': 0 };
+//
+// As cotas mudam por vigencia. Mais recente primeiro; cada entrada vale do mes
+// 'desde' em diante, ate a vigencia seguinte.
+const TP_VIGENCIAS = [
+  { desde: '2026-09', pct: { 'Moema': 0.24, 'Pinheiros': 0.23, 'Itaim': 0.21, 'Vila Olímpia': 0.11, 'Berrini': 0.11, 'Alphaville': 0.10 } },
+  { desde: '0000-00', pct: { 'Moema': 0.26, 'Pinheiros': 0.24, 'Itaim': 0.24, 'Vila Olímpia': 0.13, 'Berrini': 0.13, 'Alphaville': 0 } }
+];
 
-// Unidade com 0% nao participa do rateio: fica com o proprio capturado, que sai da base.
-function rateioTP(totalpass) {
+function cotasTP(periodo) {
+  const p = periodo || '9999-99';
+  return (TP_VIGENCIAS.find(v => p >= v.desde) || TP_VIGENCIAS[TP_VIGENCIAS.length - 1]).pct;
+}
+
+// Unidade com 0% na vigencia nao participa do rateio: fica com o proprio capturado,
+// que sai da base das demais.
+function rateioTP(totalpass, periodo) {
+  const PCT = cotasTP(periodo);
   const totalRede = totalpass?.total_receita || 0;
-  const dentro = UNIDADES.filter(n => TP_PCT[n] > 0);
+  const dentro = UNIDADES.filter(n => PCT[n] > 0);
   const capturadoFora = UNIDADES
-    .filter(n => !TP_PCT[n])
+    .filter(n => !PCT[n])
     .reduce((s, n) => s + (findUnit(totalpass?.unidades, n)?.receita || 0), 0);
   const base = totalRede - capturadoFora;
 
   const out = {};
   UNIDADES.forEach(nome => {
-    const pct = TP_PCT[nome] || 0;
+    const pct = PCT[nome] || 0;
     const capturado = findUnit(totalpass?.unidades, nome)?.receita || 0;
     out[nome] = { pct, capturado, devido: pct > 0 ? Math.round(base * pct) : capturado };
   });
@@ -861,7 +874,7 @@ function rateioTP(totalpass) {
   // Arredondar unidade por unidade nao fecha com a base (sobra de centavos), e e essa
   // soma que entra no faturamento da rede. A maior cota absorve a sobra.
   if (dentro.length) {
-    const maior = dentro.reduce((a, b) => (TP_PCT[b] > TP_PCT[a] ? b : a));
+    const maior = dentro.reduce((a, b) => (PCT[b] > PCT[a] ? b : a));
     const somaOutras = dentro.filter(n => n !== maior).reduce((s, n) => s + out[n].devido, 0);
     out[maior].devido = base - somaOutras;
   }
@@ -900,7 +913,7 @@ function renderMesAtual(resp) {
   document.getElementById('kpiPlanos').textContent = totalPlanos != null ? fmtNum(totalPlanos) : '\u2014';
 
   // Unit cards
-  const rateio = rateioTP(totalpass);
+  const rateio = rateioTP(totalpass, periodo);
   const grid = document.getElementById('unitGrid');
   grid.innerHTML = '';
   UNIDADES.forEach(nome => {
@@ -913,7 +926,9 @@ function renderMesAtual(resp) {
 
     const pctLabel = pct > 0 ? ` (${(pct * 100).toFixed(0)}%)` : '';
     let tpExtraLines = '';
-    if (pct > 0 && capturado > 0) {
+    // mostra o acerto tambem quando a unidade nao capturou nada (caso Alphaville,
+    // que nao aceita token): ali o valor recebido e inteiramente acerto.
+    if (pct > 0 && (capturado > 0 || devido > 0)) {
       tpExtraLines += `
         <div class="unit-line" style="padding-left:0.6rem">
           <span class="label" style="color:var(--gray);font-size:0.78rem">↳ Faturou</span>
@@ -1133,7 +1148,7 @@ function renderHistorico(meses) {
 
   // TOTALPASS table — rateio (o que recebe) + faturado + diferença (receber/pagar)
   const tWrap = document.getElementById('historicoTotalpassWrap');
-  const rateioMes = meses.map(m => rateioTP(dadosHistorico[m]?.data?.totalpass));
+  const rateioMes = meses.map(m => rateioTP(dadosHistorico[m]?.data?.totalpass, m));
 
   const tTotals = meses.map(m => {
     const d = dadosHistorico[m]?.data;
@@ -1148,10 +1163,11 @@ function renderHistorico(meses) {
   tHtml += '</tr>';
 
   UNIDADES.forEach(nome => {
-    const pct = TP_PCT[nome] || 0;
-    tHtml += `<tr><td>${nome}</td><td class="mono" style="color:var(--gray)">${pct > 0 ? (pct * 100) + '%' : '\u2014'}</td>`;
+    // a cota muda por vigencia, entao a % vai em cada celula em vez de uma coluna fixa
+    const pctAtual = cotasTP(meses[meses.length - 1])[nome] || 0;
+    tHtml += `<tr><td>${nome}</td><td class="mono" style="color:var(--gray)">${pctAtual > 0 ? (pctAtual * 100) + '%' : '\u2014'}</td>`;
     meses.forEach((m, i) => {
-      const { capturado, devido, diff } = rateioMes[i][nome];
+      const { pct, capturado, devido, diff } = rateioMes[i][nome];
       if (tTotals[i] === 0) {
         tHtml += `<td class="mono">\u2014</td>`;
       } else if (pct === 0) {
@@ -1159,7 +1175,7 @@ function renderHistorico(meses) {
       } else {
         const diffLabel = diff > 0 ? `receber ${fmtMoeda(diff)}` : diff < 0 ? `pagar ${fmtMoeda(Math.abs(diff))}` : 'ok';
         const diffColor = diff > 0 ? 'var(--green)' : diff < 0 ? 'var(--red)' : 'var(--gray)';
-        tHtml += `<td class="mono">${fmtMoeda(devido)}<br><span style="color:var(--gray);font-size:0.72rem">faturou ${fmtMoeda(capturado)}</span><br><span style="color:${diffColor};font-size:0.68rem;font-weight:600">${diffLabel}</span></td>`;
+        tHtml += `<td class="mono">${fmtMoeda(devido)} <span style="color:var(--gray);font-size:0.62rem">${(pct*100).toFixed(0)}%</span><br><span style="color:var(--gray);font-size:0.72rem">faturou ${fmtMoeda(capturado)}</span><br><span style="color:${diffColor};font-size:0.68rem;font-weight:600">${diffLabel}</span></td>`;
       }
     });
     tHtml += '</tr>';
@@ -1252,7 +1268,7 @@ function renderResultadoUnidade(meses) {
       const gU = findUnit(d?.gympass?.unidades, nome);
       const gymVal = gU?.receita || 0;
       // Totalpass pelo rateio; Gympass pelo faturado.
-      const tpVal = rateioTP(d?.totalpass)[nome].devido;
+      const tpVal = rateioTP(d?.totalpass, m)[nome].devido;
       const pr = d?.planos_receita?.unidades;
       const pU = pr ? pr.find(x => x.nome === nome) : null;
       const plVal = pU?.receita || 0;
@@ -1358,7 +1374,7 @@ function renderIndicadores(resp, periodo) {
   const gympass = data.gympass || {};
   const totalpass = data.totalpass || {};
   const planosRec = data.planos_receita || {};
-  const rateio = rateioTP(totalpass);
+  const rateio = rateioTP(totalpass, periodo);
 
   document.getElementById('indicadoresLabel').innerHTML = `INDICADORES \u2014 ${nomeDoMes(periodo)} ${periodo.split('-')[0]}`;
 
