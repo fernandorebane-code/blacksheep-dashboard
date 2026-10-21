@@ -1,0 +1,33 @@
+{
+  "id": "ctstorm",
+  "documento": "ctstorm",
+  "dominio_login": "ctstorm-leaderboard.github.io",
+  "titulo": "CT Storm Championship",
+  "descricao": "Leaderboard oficial do CT Storm Championship.",
+  "descricao_og": "Ranking ao vivo do CT Storm Championship.",
+  "logo_html": "<span class=\"wht\">CT </span><span class=\"gold\">STORM</span>",
+  "h1_html": "CT <em>STORM</em>",
+  "rodape": "CT Storm — Leaderboard oficial",
+  "painel": "organizador.html, no mesmo endereco",
+  "local_exemplo": "CT Storm",
+  "cores": {
+    "--gold": "#EE0F14",
+    "--gold-light": "#FF3B40",
+    "--gold-dim": "rgba(238,15,20,0.14)",
+    "--black": "#000000",
+    "--surface": "#0C0C0C",
+    "--surface2": "#141414",
+    "--surface3": "#1C1C1C",
+    "--border": "rgba(238,15,20,0.22)",
+    "--white": "#FFFFFF",
+    "--gray": "#8A8A8A",
+    "--brilho": "rgba(238,15,20,0.12)",
+    "--destaque-linha": "rgba(238,15,20,0.08)",
+    "--represado-fundo": "rgba(238,15,20,0.12)",
+    "--represado-linha": "rgba(238,15,20,0.07)",
+    "--red": "#FFA726",
+    "--perigo-borda": "rgba(255,167,38,0.5)",
+    "--perigo-fundo": "rgba(255,167,38,0.12)",
+    "--sobre-vermelho": "#2a1a06"
+  }
+}

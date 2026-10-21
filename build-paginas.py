@@ -6,9 +6,25 @@
   organizador.html    -> painel do organizador, fica no host do dashboard
 
 Fonte: src/leaderboard-fonte.html (nao publicada — ver _config.yml)
-Rodar: python3 build-paginas.py
+
+Cada campeonato e um arquivo em eventos/: nome, textos da marca, cores e o
+documento do Firestore em que ele vive. O mesmo codigo serve todos, entao nao
+existe copia para manter em paralelo.
+
+  python3 build-paginas.py                       # Blacksheep, nos caminhos de sempre
+  python3 build-paginas.py ctstorm -o sites/ctstorm
 """
-import io, re, os
+import io, re, os, json, argparse
+
+ap = argparse.ArgumentParser()
+ap.add_argument('evento', nargs='?', default='blacksheep',
+                help='nome do arquivo em eventos/ (sem .json)')
+ap.add_argument('-o', '--saida', default=None,
+                help='pasta de destino; o padrao escreve publico/index.html e '
+                     'organizador.html na raiz, como sempre')
+args = ap.parse_args()
+
+EV = json.load(io.open(os.path.join('eventos', args.evento + '.json'), encoding='utf-8'))
 
 src = io.open('src/leaderboard-fonte.html', encoding='utf-8').read()
 
@@ -33,6 +49,48 @@ def troca(texto, velho, novo, quantas=1):
             'build-paginas.py: esperava %d ocorrencia(s) e achei %d de:\n---\n%s\n---\n'
             'A fonte mudou; ajuste esta substituicao.' % (quantas, achadas, velho[:300]))
     return texto.replace(velho, novo)
+
+# ---- marca e cores do evento (aplicadas no fim, sobre a pagina pronta) ----
+def aplicar_evento(t):
+    """Troca a marca e as cores da fonte pelas do evento.
+
+    A fonte continua sendo a do Blacksheep: assim ela abre no navegador como uma
+    pagina pronta, e o diff de um evento novo e so o arquivo em eventos/.
+
+    Roda no FIM, sobre a pagina ja montada. Rodando antes, a troca de marca
+    apagava as ancoras que os recortes abaixo procuram — o build parava no
+    <title>, que ja tinha virado CT Storm."""
+    base = json.load(io.open(os.path.join('eventos', 'blacksheep.json'), encoding='utf-8'))
+    if EV.get('id') != base['id']:
+        for campo, antes in (
+            ('titulo',        base['titulo']),
+            ('descricao',     base['descricao']),
+            ('descricao_og',  base['descricao_og']),
+            ('logo_html',     base['logo_html']),
+            ('h1_html',       base['h1_html']),
+            ('rodape',        base['rodape']),
+            ('local_exemplo', base['local_exemplo']),
+        ):
+            depois = EV.get(campo)
+            if depois and depois != antes:
+                t = troca(t, antes, depois, t.count(antes))
+    # o documento do Firestore: e o que separa um campeonato do outro
+    if EV.get('documento', 'atual') != 'atual':
+        t = troca(t, "db.collection('campeonatos').doc('atual')",
+                     "db.collection('campeonatos').doc(%r)" % str(EV['documento']))
+    # o dominio dos usuarios do evento: 'organizador' vira
+    # organizador@<dominio_login>. Cada campeonato tem os seus, entao o
+    # organizador de um nao entra no painel do outro.
+    # (a pagina publica nao tem login, entao la essa linha nao existe)
+    base_dom = base.get('dominio_login')
+    velho = "const DOMINIO_ORGANIZADOR = '%s';" % base_dom
+    if EV.get('dominio_login') and EV['dominio_login'] != base_dom and velho in t:
+        t = troca(t, velho, "const DOMINIO_ORGANIZADOR = '%s';" % EV['dominio_login'])
+    # as cores
+    for var, valor in (EV.get('cores') or {}).items():
+        t = troca(t, var + ':', var + ':' + valor + ';#', 1)
+        t = re.sub(re.escape(var + ':' + valor + ';#') + r'[^;]*;', var + ':' + valor + ';', t, count=1)
+    return t
 
 CABECA   = bloco('<!DOCTYPE html>', '<body>')
 HEAD_TAG = bloco('<header>', '<div class="hero">')
@@ -61,7 +119,7 @@ pub += troca(JS_BASE,
 pub += JS_RENDER
 pub += '''
 /* Pagina publica: nao existe area de organizador aqui. O painel fica em
-   dashboard.bjjblacksheepfit.com/organizador.html, atras do login. */
+   ''' + EV.get('painel', 'organizador.html') + ''', atras do login. */
 </script>
 </body>
 </html>
@@ -71,7 +129,18 @@ pub = troca(pub, "let isAdmin = false;     // usuário autorizado logado",
 pub = troca(pub, "  if (isAdmin) preencherAdmin();\n", "")
 
 os.makedirs('publico', exist_ok=True)
-io.open('publico/index.html', 'w', encoding='utf-8').write(pub)
+pub = aplicar_evento(pub)
+
+if args.saida:
+    # um evento proprio sai numa pasta so, pronta para virar o repositorio dele:
+    # index.html publico na raiz e organizador.html ao lado.
+    os.makedirs(args.saida, exist_ok=True)
+    destino_pub = os.path.join(args.saida, 'index.html')
+    destino_org = os.path.join(args.saida, 'organizador.html')
+else:
+    destino_pub, destino_org = 'publico/index.html', 'organizador.html'
+
+io.open(destino_pub, 'w', encoding='utf-8').write(pub)
 
 # ------------------------------------------------------------ ORGANIZADOR
 org = troca(CABECA, '<title>Blacksheep Invitational — Leaderboard</title>',
@@ -227,6 +296,7 @@ org = troca(org, '</style>', '''
 }
 </style>''')
 
-io.open('organizador.html', 'w', encoding='utf-8').write(org)
-print('publico/index.html :', len(pub), 'bytes')
-print('organizador.html   :', len(org), 'bytes')
+org = aplicar_evento(org)
+io.open(destino_org, 'w', encoding='utf-8').write(org)
+print('%-26s %7d bytes' % (destino_pub, len(pub)))
+print('%-26s %7d bytes' % (destino_org, len(org)))

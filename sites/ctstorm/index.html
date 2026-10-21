@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- favicon da marca, embutido: as paginas viajam como arquivo unico (assets/gerar-favicon.py) -->
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADJ0lEQVR42u2XXYhVVRTHf3vtc+9NnRknKCxTnEbDtCFEw2KCZFQsJLlqhKgFKkYQlCLYCL71YiHhYNHDgD1EDSjzUASDL+WDPShaiB/hkx+gU9IIEyN659yz9+ph34+5d+6MUznXB2e/HPZhn/X/r//aa62zDFXroqJM4mozmJF7qSd4LQypJ3gtLKk3eDUJ8zDAx7wDUwQeSQLRyM1bL07j5jWDelCFxmalsyumYSZcOitYG96rQkOTsumDBGPg6FcRQ38bjAFjwDl44SXP0CAc+DDD3TsQpcA7mDNf6T13r4RZkQU/f2/ZtzVDy0JPR9bR1xPxV7/BCLhkNPuXVznSGTjZZ0d7lgrP55d4Xlnt+OZQijgHB74dZtUGVzsEK9c7tn+cp/+acOOKMO85T5QK4FI4mUqDjcL+9E+Wk30WkQBoC3raCJI8ND2uzJqr/P6rEOfgvf35CvBRCngHYoMSvd0Rt24IQ4MweNuQzgSDA3+WS7kIYMJ3xfXkbGXgj3CmsVmZ0QRzWz1vv5+wYp3D+7IzNQtR9YHe7oiDe9KIhQ07EuYv9hz5NMXtW6ayySz3bP0oz3eHU1w6I6hCZ1fMxp3JmLZrZoFI8CgeLn+kGi5Xb3fEgjZPZ1eMapC6+PzyxxznT1kunBaiVHjvCsrEwwV1ZYJpKJaSkfY1jsZmxftAYtf6DL8ct6WQAUxvUD7fm6bniwgbQT4O8revcagGW2Jrp+G4vaB4J078YOnckkFsZbxLRkwgO/JOfNYzTEfWlWz8p0IkNmRAR9axdnOCd0FuUxn+ErgphG/tloSOrAvZY8cvRPfthkXpb141bFo2jSRfBq1WoZj/x367x+wWLavyf0qxCKiHOa1K++shpkbKoEVgKVTJV99wPPOsov7+4P+qF6jC9r35Cm+LZdlGgSSEM6oPuBmJDQCLl3my2xJU4ZOvY56ep7z5TsK7u/N4Dxt3Jixa6oP3dmIEJvxH5F2Q/uplYdtrj9Gy0DM4YHjiKaX/uiF313DkRI7WRZNEYOqHZIrApBGontXqudpMoaY9DBJFTBlraq3XhCzjjc71GM//AdVTVAwSuoq5AAAAAElFTkSuQmCC">
+<link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,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">
+<title>CT Storm Championship — Leaderboard</title>
+<meta name="description" content="Leaderboard oficial do CT Storm Championship — Setembro 2026, São Paulo.">
+<meta property="og:title" content="CT Storm Championship — Leaderboard">
+<meta property="og:description" content="Ranking ao vivo do CT Storm Championship — Setembro 2026, São Paulo.">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#000000;
+  --gold:#EE0F14;
+  --gold-light:#FF3B40;
+  --gold-dim:rgba(238,15,20,0.14);
+  --white:#FFFFFF;
+  --gray:#8A8A8A;
+  --surface:#0C0C0C;
+  --surface2:#141414;
+  --surface3:#1C1C1C;
+  --border:rgba(238,15,20,0.22);
+  --border-soft:rgba(255,255,255,0.07);
+  --green:#52C07A;
+  --red:#FFA726;
+  --bronze:#C08A52;
+  --silver:#C9C9C2;
+  /* Derivadas. Existiam espalhadas pelo CSS como cor fixa, e por isso um tema
+     novo nascia com resquicio do anterior — a primeira prova do tema CT STORM
+     saiu vermelha com o brilho verde da Blacksheep atras do titulo. */
+  --brilho:rgba(238,15,20,0.12);
+  --destaque-linha:rgba(238,15,20,0.08);
+  --perigo-borda:rgba(255,167,38,0.5);
+  --perigo-fundo:rgba(255,167,38,0.12);
+  --sobre-verde:#062a13;
+  --sobre-vermelho:#2a1a06;
+  --vazio:#3a3a38;
+  --rodape:#4a4a46;
+  --represado-fundo:rgba(238,15,20,0.12);
+  --represado-linha:rgba(238,15,20,0.07);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  background:var(--black);
+  color:var(--white);
+  font-family:'DM Sans',sans-serif;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font-family:'DM Sans',sans-serif;}
+::selection{background:var(--gold);color:var(--black);}
+
+/* ---------- HEADER ---------- */
+header{
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:0 1.5rem;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  height:60px;
+  position:sticky;
+  top:0;
+  z-index:60;
+}
+.logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.25rem;
+  letter-spacing:0.12em;
+  white-space:nowrap;
+}
+.logo .gold{color:var(--gold);}
+.logo .wht{color:var(--white);}
+.header-right{display:flex;align-items:center;gap:0.7rem;}
+.live-badge{
+  display:flex;align-items:center;gap:0.4rem;
+  font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--gray);
+}
+.live-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--green);
+  animation:pulse 2s infinite;
+}
+.live-dot.off{background:var(--gray);animation:none;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.25;}}
+.btn-ghost{
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--gray);
+  padding:0.45rem 0.8rem;
+  font-size:0.75rem;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold);}
+.btn-ghost:disabled{opacity:0.3;cursor:not-allowed;}
+.btn-ghost:disabled:hover{border-color:var(--border);color:var(--gray);}
+.btn-solid{
+  background:var(--gold);
+  border:1px solid var(--gold);
+  color:var(--black);
+  padding:0.5rem 0.9rem;
+  font-size:0.78rem;
+  font-weight:600;
+  letter-spacing:0.09em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:background 0.2s;
+}
+.btn-solid:hover{background:var(--gold-light);}
+.btn-solid:disabled{opacity:0.45;cursor:not-allowed;}
+.btn-danger{
+  background:transparent;border:1px solid var(--perigo-borda);color:var(--red);
+  padding:0.4rem 0.7rem;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;
+}
+.btn-danger:hover{background:var(--perigo-fundo);}
+
+/* ---------- HERO ---------- */
+.hero{
+  padding:2.6rem 1.5rem 1.8rem;
+  text-align:center;
+  border-bottom:1px solid var(--border-soft);
+  background:
+    radial-gradient(circle at 50% -20%, var(--brilho), transparent 60%),
+    var(--black);
+}
+.hero h1{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(2.2rem,8vw,4rem);
+  letter-spacing:0.05em;
+  line-height:0.95;
+  color:var(--white);
+}
+.hero h1 em{font-style:normal;color:var(--gold);}
+.hero-quando{
+  margin-top:0.8rem;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(1rem,3.6vw,1.5rem);
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color:var(--gold);
+}
+.hero-meta{
+  margin-top:1.1rem;
+  display:flex;justify-content:center;gap:1.6rem;flex-wrap:wrap;
+  font-family:'DM Mono',monospace;
+  font-size:0.78rem;
+  letter-spacing:0.08em;
+  color:var(--gray);
+}
+.hero-meta span b{color:var(--white);font-weight:500;}
+
+/* ---------- LAYOUT ---------- */
+.container{max-width:1400px;margin:0 auto;padding:1.5rem;}
+.toolbar{
+  display:flex;flex-wrap:wrap;gap:0.6rem;align-items:center;
+  margin-bottom:1.2rem;
+}
+.seletor-cat{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.15rem;
+  letter-spacing:0.08em;
+  color:var(--gold);
+  border-color:var(--border);
+  padding:0.45rem 0.7rem;
+  min-width:230px;
+}
+.cat{
+  background:transparent;
+  border:1px solid var(--border-soft);
+  color:var(--gray);
+  padding:0.5rem 0.9rem;
+  font-size:0.78rem;
+  font-weight:500;
+  letter-spacing:0.09em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all 0.18s;
+  white-space:nowrap;
+}
+.cat:hover{color:var(--white);border-color:var(--border);}
+.cat.active{background:var(--gold);border-color:var(--gold);color:var(--black);font-weight:600;}
+.field{
+  background:var(--surface2);
+  border:1px solid var(--border-soft);
+  color:var(--white);
+  padding:0.5rem 0.7rem;
+  font-size:0.84rem;
+  outline:none;
+  transition:border-color 0.2s;
+}
+.field:focus{border-color:var(--gold);}
+.field::placeholder{color:var(--gray);}
+select.field{cursor:pointer;}
+
+/* ---------- TABLE ---------- */
+.table-wrap{
+  border:1px solid var(--border-soft);
+  background:var(--surface);
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+table{border-collapse:collapse;width:100%;min-width:640px;}
+thead th{
+  background:var(--surface2);
+  font-size:0.7rem;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--gray);
+  font-weight:500;
+  text-align:left;
+  padding:0.7rem 0.8rem;
+  border-bottom:1px solid var(--border-soft);
+  white-space:nowrap;
+  position:sticky;top:0;z-index:2;
+}
+thead th.wodcol{text-align:center;cursor:help;}
+thead th.num{text-align:right;}
+tbody td{
+  padding:0.7rem 0.8rem;
+  font-size:0.9rem;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  white-space:nowrap;
+}
+tbody tr{cursor:pointer;transition:background 0.15s;}
+tbody tr:hover{background:var(--surface2);}
+tbody tr.me{background:var(--destaque-linha);}
+/* Largura da coluna de posicao e o deslocamento da coluna de nome ficam aqui,
+   e nao no markup: no celular elas encolhem, e um style inline venceria a regra
+   do @media e desalinharia o cabecalho das linhas. */
+.col-pos,td.pos{width:52px;}
+.col-atleta{left:52px;}
+td.pos{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.15rem;
+  color:var(--gray);
+  width:52px;
+}
+tr.top1 td.pos{color:var(--gold);}
+tr.top2 td.pos{color:var(--silver);}
+tr.top3 td.pos{color:var(--bronze);}
+td.atleta{font-weight:500;}
+td.atleta .unit{display:block;font-size:0.76rem;color:var(--gray);font-weight:400;}
+td.wod{text-align:center;font-family:'DM Mono',monospace;font-size:0.82rem;color:var(--gray);}
+td.wod b{display:block;color:var(--white);font-size:0.88rem;font-weight:500;}
+td.wod .pl{font-size:0.72rem;color:var(--gold);}
+td.wod.vazio{color:var(--vazio);}
+td.total{
+  text-align:right;
+  font-family:'DM Mono',monospace;
+  font-size:0.95rem;
+  color:var(--gold);
+  font-weight:500;
+  position:sticky;right:0;
+  background:var(--surface);
+  border-left:1px solid var(--border-soft);
+}
+tbody tr:hover td.total{background:var(--surface2);}
+thead th.num{position:sticky;right:0;background:var(--surface2);z-index:3;border-left:1px solid var(--border-soft);}
+#rGrid thead th.num,#rGrid td.num{position:static;background:transparent;border-left:none;}
+.sticky-col{position:sticky;left:0;background:var(--surface);z-index:1;}
+tbody tr:hover .sticky-col{background:var(--surface2);}
+thead th.sticky-col{background:var(--surface2);z-index:3;}
+.empty-state{
+  padding:3rem 1.5rem;text-align:center;color:var(--gray);font-size:0.9rem;
+}
+.legend{
+  margin-top:0.8rem;font-size:0.75rem;color:var(--gray);line-height:1.7;
+}
+.legend b{color:var(--white);font-weight:500;}
+
+/* ---------- WOD CARDS ---------- */
+.section-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.1rem;letter-spacing:0.14em;color:var(--gold);
+  margin:2.2rem 0 0.9rem;
+  padding-bottom:0.4rem;
+  border-bottom:1px solid var(--border-soft);
+}
+.wod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:0.8rem;}
+/* so aparece no celular, onde o bloco comeca fechado */
+.dica-toque{display:none;}
+.wod-card{background:var(--surface);border:1px solid var(--border-soft);padding:1rem;}
+.wod-card h3{
+  font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:0.06em;color:var(--white);
+}
+.wod-tag{
+  display:inline-block;margin-top:0.3rem;
+  font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--gold);border:1px solid var(--border);padding:0.15rem 0.45rem;
+}
+.wod-parte{
+  margin-top:0.45rem;font-size:0.82rem;color:var(--white);
+  display:flex;align-items:baseline;gap:0.45rem;
+}
+.wod-parte b{
+  font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--black);
+  background:var(--gold);padding:0.05rem 0.3rem;font-weight:500;
+}
+.wod-parte span{color:var(--gray);font-size:0.76rem;text-transform:lowercase;}
+.wod-desc{
+  margin-top:0.7rem;font-size:0.85rem;color:var(--gray);line-height:1.6;white-space:pre-wrap;
+}
+
+/* ---------- MODAL ---------- */
+.aviso{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  padding:0.9rem 1.2rem;text-align:center;
+  font-size:0.9rem;font-weight:500;
+  display:none;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);
+}
+.aviso.ok{display:block;background:var(--green);color:var(--sobre-verde);}
+.aviso.err{display:block;background:var(--red);color:var(--sobre-vermelho);}
+.aviso.info{display:block;background:var(--gold);color:var(--black);}
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,0.82);
+  display:none;align-items:center;justify-content:center;padding:1rem;z-index:100;
+  overflow-y:auto;
+}
+.modal-bg.open{display:flex;}
+#mPartes{z-index:120;} /* abre por cima do painel do organizador */
+.modal{
+  background:var(--surface);
+  border:1px solid var(--border);
+  width:100%;max-width:560px;
+  max-height:90vh;overflow-y:auto;
+}
+.modal.wide{max-width:1100px;}
+.modal-head{
+  padding:1.1rem 1.3rem;border-bottom:1px solid var(--border-soft);
+  display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;
+  position:sticky;top:0;background:var(--surface);z-index:2;
+}
+.modal-head h2{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:0.05em;}
+.modal-head .sub{font-size:0.78rem;color:var(--gray);margin-top:0.15rem;}
+.modal-x{background:none;border:none;color:var(--gray);font-size:1.4rem;cursor:pointer;line-height:1;}
+.modal-x:hover{color:var(--gold);}
+.modal-body{padding:1.2rem 1.3rem;}
+.modal-foot{
+  padding:1rem 1.3rem;border-top:1px solid var(--border-soft);
+  display:flex;justify-content:flex-end;gap:0.6rem;
+  position:sticky;bottom:0;background:var(--surface);
+}
+.brk{display:flex;justify-content:space-between;align-items:center;padding:0.65rem 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.brk-name{font-size:0.9rem;}
+.brk-name small{display:block;color:var(--gray);font-size:0.76rem;}
+.brk-val{font-family:'DM Mono',monospace;font-size:0.9rem;text-align:right;}
+.brk-val .pl{color:var(--gold);font-size:0.78rem;}
+
+/* ---------- FORMS / ADMIN ---------- */
+.form-row{display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.6rem;}
+.form-row > *{flex:1;min-width:130px;}
+label.lbl{
+  display:block;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--gray);margin-bottom:0.3rem;
+}
+textarea.field{min-height:80px;resize:vertical;line-height:1.5;}
+.admin-tabs{display:flex;gap:0.3rem;flex-wrap:wrap;margin-bottom:1.2rem;}
+.admin-tab{
+  background:transparent;border:1px solid var(--border-soft);color:var(--gray);
+  padding:0.45rem 0.8rem;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;
+}
+.admin-tab.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+.apane{display:none;}
+.apane.active{display:block;}
+.carga{
+  background:var(--gold-dim);
+  border:1px solid var(--border);
+  padding:0.9rem 1rem;
+  margin-bottom:1.2rem;
+  font-size:0.85rem;
+  line-height:1.6;
+}
+.list-item{
+  display:flex;align-items:center;gap:0.6rem;
+  padding:0.55rem 0.7rem;border:1px solid var(--border-soft);margin-bottom:0.4rem;background:var(--surface2);
+}
+.list-item .grow{flex:1;min-width:0;}
+.list-item .nm{font-size:0.9rem;}
+.list-item .mt{font-size:0.75rem;color:var(--gray);}
+.msg{font-size:0.84rem;margin-top:0.6rem;min-height:1.1rem;}
+.msg.ok{color:var(--green);}
+.msg.err{color:var(--red);}
+.hint{font-size:0.78rem;color:var(--gray);line-height:1.6;margin-top:0.5rem;}
+.score-grid{overflow-x:auto;border:1px solid var(--border-soft);}
+.score-grid table{min-width:520px;}
+.score-grid input{
+  width:100px;background:var(--surface2);border:1px solid var(--border-soft);color:var(--white);
+  padding:0.35rem 0.45rem;font-family:'DM Mono',monospace;font-size:0.86rem;outline:none;text-align:center;
+}
+.score-grid input:focus{border-color:var(--gold);}
+.score-grid td.atl{font-size:0.9rem;}
+.score-grid td.atl .unit{display:block;font-size:0.78rem;color:var(--gray);}
+/* quem ja tem resultado desce para baixo do separador e fica apagado — o que
+   falta lancar tem de estar sempre no topo. */
+.score-grid tr.feito td{opacity:0.45;}
+.score-grid tr.feito:hover td{opacity:1;}
+.score-grid tr.sep td{
+  background:var(--surface2);font-size:0.7rem;letter-spacing:0.09em;
+  color:var(--gray);text-transform:uppercase;padding:0.3rem 0.6rem;font-weight:600;
+}
+.score-grid td.atl .ok{color:var(--gold);font-weight:700;margin-right:0.3rem;}
+/* Resultado gravado mas ainda nao publicado. Tem de saltar aos olhos: esquecer
+   de publicar deixa o leaderboard parado sem ninguem perceber. */
+.represados{
+  display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap;
+  margin-top:0.6rem;padding:0.6rem 0.8rem;
+  border:1px solid var(--gold);border-radius:6px;
+  background:var(--represado-fundo);font-size:0.9rem;
+}
+.represados b{color:var(--gold);font-size:1.05rem;}
+.score-grid td.atl .hold{
+  color:var(--gold);font-weight:700;margin-right:0.3rem;
+}
+.score-grid tr.represada td{background:var(--represado-linha);}
+.score-grid select{
+  background:var(--surface2);border:1px solid var(--border-soft);color:var(--white);
+  padding:0.35rem;font-size:0.78rem;outline:none;
+}
+.toggle{display:flex;align-items:center;gap:0.5rem;font-size:0.84rem;color:var(--gray);cursor:pointer;}
+.toggle input{accent-color:var(--gold);width:16px;height:16px;cursor:pointer;}
+
+footer{
+  padding:2.5rem 1.5rem;text-align:center;
+  font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--rodape);
+  border-top:1px solid var(--border-soft);margin-top:3rem;
+}
+
+/* ---------- LOADER ---------- */
+#loader{padding:4rem 1.5rem;text-align:center;color:var(--gray);font-size:0.88rem;letter-spacing:0.1em;text-transform:uppercase;}
+
+@media (max-width:700px){
+  /* O cabecalho tem altura fixa de 60px e nao quebra linha: no organizador, o
+     link VER LEADERBOARD mais o usuario mais o SAIR empurravam a pagina para
+     600px de largura numa tela de 390px. Aqui ele cresce em vez de vazar. */
+  header{padding:0.5rem 0.8rem;height:auto;flex-wrap:wrap;gap:0.4rem 0.5rem;}
+  .header-right{flex-wrap:wrap;gap:0.4rem;min-width:0;}
+  /* o cabecalho do organizador comia 250px dos 844px da tela antes de qualquer
+     conteudo; aqui ele fica numa faixa so */
+  .header-right .btn-ghost{padding:0.4rem 0.55rem;font-size:0.76rem;min-height:36px;}
+  .live-badge{font-size:0.7rem;}
+  .logo{font-size:1.05rem;}
+  .container{padding:1rem;}
+  .hero{padding:2rem 1rem 1.4rem;}
+  .hero-meta{gap:1rem;}
+
+  /* Alvo de toque: o minimo confortavel com o dedo e ~40px de altura. Os
+     controles vinham entre 27px e 34px. */
+  .field,.btn-ghost,.btn-solid,.btn-danger,.admin-tab,select.field{
+    min-height:40px;
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+  textarea.field{min-height:76px;display:block;}
+  .toolbar .field,.toolbar .btn-ghost{flex:1 1 auto;}
+  .seletor-cat{flex:1 1 100%;font-size:1.25rem;}
+  summary.section-title{min-height:44px;display:flex;align-items:center;}
+
+  /* Piso de tamanho de fonte: havia dezenas de trechos abaixo de 10px, que num
+     telefone viram borrao. */
+  .live-badge,.resumo-rot,label.lbl,.hint,.unit,footer,
+  td.wod .pl,.brk-name small,.wod-tag{font-size:0.78rem;}
+  #tabela td.wod::before{font-size:0.72rem;}
+  .btn-ghost,.btn-solid,.btn-danger,.admin-tab{font-size:0.82rem;}
+
+  /* Formularios empilham em vez de espremer tres campos na mesma linha. */
+  .form-row{gap:0.5rem;}
+  .form-row > *{flex:1 1 100%;min-width:0;}
+
+  /* Modais ocupam a tela inteira: com 1rem de margem sobrava pouco. */
+  .modal-bg{padding:0;align-items:flex-start;}
+  .modal{max-width:none;max-height:100vh;min-height:100vh;border:none;}
+  .modal-head,.modal-body,.modal-foot{padding-left:1rem;padding-right:1rem;}
+  /* O rodape da tela de resultados tem quatro botoes; em 390px eles nao cabem
+     numa linha e vazavam para fora da tela. */
+  .modal-foot{flex-wrap:wrap;justify-content:stretch;}
+  .modal-foot .btn-ghost,.modal-foot .btn-solid{flex:1 1 auto;min-width:0;}
+  .modal-foot .msg{flex:1 1 100%;}
+  .modal-x{min-width:44px;min-height:44px;font-size:1.8rem;}
+
+  /* Linha de lista (atletas e provas): sao ate seis controles na mesma linha e
+     eles empurravam a pagina para 472px. Agora o nome ocupa a primeira linha e
+     os controles quebram embaixo. */
+  .list-item{flex-wrap:wrap;gap:0.4rem;}
+  .list-item .grow{flex:1 1 100%;}
+  .list-item > select,.list-item > button,.list-item > label{flex:1 1 auto;min-height:40px;}
+  .list-item .btn-danger{flex:0 0 3rem;}
+  .list-item .toggle{justify-content:center;}
+
+  /* Lancamento de resultados: o campo de digitar a nota era o menor alvo da
+     tela, justo o que mais se toca durante o evento. */
+  .score-grid input{min-height:40px;width:68px;font-size:0.9rem;}
+  .score-grid select{min-height:40px;}
+  /* sem min-width a grade cabe na tela; o nome corta com reticencias em vez de
+     quebrar em varias linhas e esticar a linha inteira */
+  .score-grid{overflow-x:visible;}
+  /* table-layout:fixed e o que faz a coluna do nome ficar com a sobra; sem isso
+     o max-width do corte colapsa a coluna e so aparece a primeira letra */
+  .score-grid table{min-width:0;width:100%;table-layout:fixed;}
+  .score-grid th.num,.score-grid td.num{width:78px;}
+  .score-grid td.atl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .score-grid td.atl .unit{overflow:hidden;text-overflow:ellipsis;}
+  .score-grid td,.score-grid th{padding:0.5rem 0.4rem;}
+  /* os rotulos das colunas cabem em duas linhas em vez de se sobreporem */
+  .score-grid th{font-size:0.74rem;white-space:normal;line-height:1.2;}
+
+  /* O nome do atleta e editavel na propria linha; com 22px de altura era dificil
+     acertar. O checkbox tambem cresce, embora o rotulo inteiro ja seja clicavel. */
+  .list-item .nm-edit{min-height:40px;font-size:0.9rem;}
+  .toggle input{width:22px;height:22px;}
+
+  /* A tabela tem min-width 640px e as bordas sao sticky: num telefone de 380px
+     as colunas das provas ficavam escondidas ATRAS da coluna do total, e o
+     espectador via so nome e total, sem nada indicando que dava para arrastar.
+     Aqui cada linha vira um cartao: posicao, nome e total em cima, e as provas
+     como fichas embaixo. Sem rolagem lateral. */
+  /* No celular a tabela mostra so posicao, nome e total — nada de rolar para o
+     lado. O resultado prova a prova sai no toque sobre o atleta, no mesmo
+     pop-up que ja existe no computador. */
+  #tabela{min-width:0;}
+  #tabela td.wod,#tabela th.wodcol{display:none;}
+  #tabela thead th{padding:0.6rem 0.5rem;}
+  #tabela tbody td{padding:0.7rem 0.5rem;}
+  #tabela .sticky-col,#tabela td.total{position:static;}
+  #tabela td.atleta{white-space:normal;}
+  /* deixa claro que a linha abre alguma coisa */
+  #tabela tbody td.atleta::after{
+    content:'ver as provas \203A';
+    display:block;margin-top:0.15rem;
+    font-size:0.72rem;letter-spacing:0.06em;
+    /* cinza, nao dourado: com 25 linhas o dourado competiria com os totais */
+    color:var(--gray);
+  }
+
+  #wodBloco summary{cursor:pointer;gap:0.6rem;}
+  .dica-toque{
+    display:inline;font-family:'DM Sans',sans-serif;font-size:0.78rem;
+    letter-spacing:0.08em;text-transform:none;color:var(--gray);margin-left:0.6rem;
+  }
+  #wodBloco[open] .dica-toque{display:none;}
+  .wod-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo" id="logo"><span class="wht">CT </span><span class="gold">STORM</span></div>
+  <div class="header-right">
+    <div class="live-badge"><span class="live-dot off" id="liveDot"></span><span id="liveTxt">Conectando</span></div>
+  </div>
+</header>
+
+<div class="hero">
+  <h1 id="hTitulo">CT <em>STORM</em></h1>
+  <div class="hero-quando" id="hQuando">Setembro 2026 · São Paulo</div>
+  <div class="hero-meta">
+    <span id="hAtletas"></span>
+  </div>
+</div>
+
+<div id="aviso" class="aviso"></div>
+
+<div id="loader">Carregando leaderboard…</div>
+
+<div class="container" id="fechado" style="display:none">
+  <div class="empty-state">O leaderboard será liberado em breve.</div>
+</div>
+
+<div class="container" id="app" style="display:none">
+
+  <div class="toolbar">
+    <select class="field seletor-cat" id="seletorCat" onchange="trocarCat(this.value)"></select>
+    <input class="field" id="busca" placeholder="Buscar atleta…" style="flex:1;min-width:150px" oninput="render()">
+    <button class="btn-ghost" onclick="exportarCSV()">CSV</button>
+    <button class="btn-ghost" onclick="exportarClassificacaoGeral()">CSV DE TODAS</button>
+  </div>
+
+  <div class="table-wrap" id="tabelaWrap">
+    <table id="tabela">
+      <thead id="thead"></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <div class="legend" id="legend"></div>
+
+  <details id="wodBloco" style="display:none">
+    <summary class="section-title"><span id="wodRot">PROVAS</span><small class="dica-toque">toque para ver</small></summary>
+    <div class="wod-grid" id="wodGrid"></div>
+  </details>
+</div>
+
+<footer>CT Storm — Leaderboard oficial</footer>
+
+<!-- MODAL: detalhe do atleta -->
+<div class="modal-bg" id="mAtleta" onclick="if(event.target===this)fechar('mAtleta')">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h2 id="aNome"></h2>
+        <div class="sub" id="aSub"></div>
+      </div>
+      <button class="modal-x" onclick="fechar('mAtleta')">&times;</button>
+    </div>
+    <div class="modal-body" id="aBody"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+/* ============================================================
+   LEADERBOARD DE CAMPEONATO
+   Leitura pública + painel de organização (Firebase).
+   Um documento por campeonato em campeonatos/ — qual deles é decidido pelo
+   arquivo do evento em eventos/, na hora do build.
+   ============================================================ */
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAcyQMnedG-XcRzMPv8_hyLcnF_VIAF7AQ",
+  authDomain: "bjj-blacksheep.firebaseapp.com",
+  projectId: "bjj-blacksheep",
+  storageBucket: "bjj-blacksheep.firebasestorage.app",
+  messagingSenderId: "1005609332876",
+  appId: "1:1005609332876:web:a11586795be7f886454ba9"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const DOC = db.collection('campeonatos').doc('ctstorm');
+
+const PADRAO = {
+  nome: 'CT Storm Championship',
+  data: 'Setembro 2026',
+  local: 'São Paulo',
+  sistema: 'posicao',
+  p1: 100,
+  dec: 5,
+  publicado: true,
+  categorias: ['Elite Masculino', 'Elite Feminino', 'RX Masculino', 'RX Feminino', 'Scaled Masculino', 'Scaled Feminino'],
+  unidades: ['Moema', 'Pinheiros', 'Berrini', 'Itaim', 'Vila Olímpia', 'Alphaville'],
+  wods: [],
+  atletas: [],
+  resultados: {}
+};
+
+let D = null;            // dados do campeonato
+let catAtiva = null;     // categoria selecionada
+const isAdmin = false;   // esta pagina e somente leitura
+let rankCache = {};      // ranking por categoria (cache do último render)
+
+/* ---------------- UTILS ---------------- */
+function uid(p) { return p + '_' + Math.random().toString(36).slice(2, 9); }
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function num(v, def) { const n = Number(v); return isFinite(n) ? n : def; }
+
+// Aceita "15:10" e tambem so os digitos, "1510" — na mesa de resultados nao da
+// para parar e procurar os dois pontos no teclado do celular a cada atleta.
+// A regra e uniforme: os DOIS ultimos digitos sao sempre os segundos, e o que
+// vier antes sao os minutos. 1510 = 15:10, 2301 = 23:01, 942 = 9:42, 45 = 0:45.
+function parseTempo(txt) {
+  const t = String(txt).trim().replace(',', '.');
+  if (!t) return null;
+  if (t.includes(':')) {
+    const p = t.split(':');
+    const m = parseFloat(p[0]), s = parseFloat(p[1]);
+    if (!isFinite(m) || !isFinite(s)) return null;
+    return m * 60 + s;
+  }
+  // so digitos, com decimo de segundo opcional
+  const puro = t.match(/^(\d+)(\.\d+)?$/);
+  if (!puro) return null;
+  const inteiro = puro[1], frac = puro[2] || '';
+  if (inteiro.length < 3) return parseFloat(t);        // 1 ou 2 digitos: segundos
+  const seg = parseFloat(inteiro.slice(-2) + frac);
+  // 1575 seria 15:75, que nao existe. Melhor recusar do que virar 16:15 calado.
+  if (seg >= 60) return null;
+  return parseInt(inteiro.slice(0, -2), 10) * 60 + seg;
+}
+function fmtTempo(seg) {
+  if (seg == null) return '--';
+  const m = Math.floor(seg / 60);
+  const s = seg - m * 60;
+  const ss = (s < 10 ? '0' : '') + (Math.round(s * 10) % 10 === 0 ? String(Math.round(s)) : s.toFixed(1));
+  return m + ':' + ss;
+}
+// Quem estoura o time cap fica com o tempo do cap mais as repeticoes que
+// faltaram: cap de 15 min e 10 reps faltando vira "15:10". Quando o cap tem
+// segundos quebrados, mostra o tempo inteiro e as reps separadas, para nao
+// confundir os segundos com a contagem.
+function fmtCapEstourado(item, faltou) {
+  const cap = num(item.cap, null);
+  if (cap == null) return '+' + faltou + ' reps';
+  if (cap % 60 === 0) return (cap / 60) + ':' + faltou;
+  return fmtTempo(cap) + ' +' + faltou;
+}
+
+function fmtValor(wod, res) {
+  if (!res) return null;
+  if (res.v == null) {
+    if (wod.tipo === 'tempo' && res.faltou != null) return fmtCapEstourado(wod, res.faltou);
+    return null;
+  }
+  if (wod.tipo === 'tempo') return fmtTempo(res.v);
+  if (wod.tipo === 'carga') return res.v + ' kg';
+  if (wod.tipo === 'reps') return res.v + ' reps';
+  return String(res.v);
+}
+function fmtPts(n) {
+  if (n == null) return '--';
+  return Math.round(n * 10) % 10 === 0 ? String(Math.round(n)) : n.toFixed(1);
+}
+function ordinal(n) { return n + 'º'; }
+
+// Aviso fixo no topo da tela: o retorno de um salvamento nao pode depender de
+// onde a pessoa esta com a rolagem.
+function avisar(tipo, texto, segundos) {
+  const el = document.getElementById('aviso');
+  if (!el) return;
+  el.className = 'aviso ' + tipo;
+  el.textContent = texto;
+  clearTimeout(avisar._t);
+  if (segundos) avisar._t = setTimeout(() => { el.className = 'aviso'; }, segundos * 1000);
+}
+
+/* ---------------- MODAIS ---------------- */
+function abrir(id) { document.getElementById(id).classList.add('open'); }
+function fechar(id) { document.getElementById(id).classList.remove('open'); }
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const abertos = [...document.querySelectorAll('.modal-bg.open')];
+  if (!abertos.length) return;
+  // fecha apenas o modal do topo (o de maior z-index)
+  abertos.sort((a, b) => parseInt(getComputedStyle(a).zIndex || 0, 10) - parseInt(getComputedStyle(b).zIndex || 0, 10));
+  abertos[abertos.length - 1].classList.remove('open');
+});
+
+/* ---------------- MOTOR DE RANKING ----------------
+   Por prova, dentro de cada categoria:
+     1) quem completou (ordenado pelo tipo da prova)
+     2) quem bateu o time cap (ordenado por reps, decrescente)
+     3) quem não pontuou (últimos, todos empatados)
+   Empates recebem a mesma colocação e a mesma pontuação (inteira, nunca 8.5).
+--------------------------------------------------- */
+function pontosDaPosicao(pos) {
+  if (D.sistema === 'posicao') return pos;
+  return Math.max(1, num(D.p1, 100) - (pos - 1) * num(D.dec, 5));
+}
+
+function chaveResultado(wod, res) {
+  // devolve [grupo, valor] — grupo 0 = completou, 1 = estourou o cap, 2 = sem nota
+  if (!res) return [2, 0];
+  if (res.v != null) return [0, wod.tipo === 'tempo' ? res.v : -res.v]; // sempre "menor é melhor"
+  // quem estourou o cap entra depois de quem finalizou, e entre eles ganha quem
+  // ficou mais perto do fim: menos repeticoes faltando
+  if (wod.tipo === 'tempo' && res.faltou != null) return [1, res.faltou];
+  return [2, 0];
+}
+
+/* Resultado represado: gravado, visivel para o organizador, invisivel para o
+   publico ate ele apertar PUBLICAR.
+
+   Resultado SEM a marca `pub` conta como publicado. Isso e o que garante que
+   nada do que ja foi lancado antes desta mudanca suma do ar: so fica escondido
+   quem tem pub === false, escrito de proposito. */
+function represado(res) { return !!res && res.pub === false; }
+
+function resultadoDe(atletaId, itemId) {
+  const res = (D.resultados[atletaId] || {})[itemId] || null;
+  if (!res) return null;
+  if (!isAdmin && represado(res)) return null;   // o publico ainda nao ve
+  return res;
+}
+
+function contarRepresados() {
+  let n = 0;
+  Object.keys(D.resultados || {}).forEach(at => {
+    Object.keys(D.resultados[at] || {}).forEach(w => {
+      if (represado(D.resultados[at][w])) n++;
+    });
+  });
+  return n;
+}
+
+function rankearProva(wod, atletas) {
+  const linhas = atletas.map(a => {
+    const res = resultadoDe(a.id, wod.id);
+    const k = chaveResultado(wod, res);
+    return { id: a.id, res, grupo: k[0], val: k[1] };
+  });
+  linhas.sort((x, y) => x.grupo - y.grupo || x.val - y.val);
+
+  const out = {};
+  let i = 0;
+  while (i < linhas.length) {
+    let j = i;
+    while (j + 1 < linhas.length &&
+           linhas[j + 1].grupo === linhas[i].grupo &&
+           linhas[j + 1].val === linhas[i].val) j++;
+    // Empate e empate: todos os empatados ficam com a MESMA colocacao e com a
+    // MESMA pontuacao inteira (a da melhor posicao do bloco). O proximo atleta
+    // pula as posicoes ocupadas pelo empate. Nunca sai 8.5 / 11.5 daqui.
+    const pos = i + 1;
+    const pts = pontosDaPosicao(pos);
+    for (let k2 = i; k2 <= j; k2++) {
+      const semNota = linhas[k2].grupo === 2;
+      // sem resultado na prova: fica em ultimo e nao soma pontos (no sistema de
+      // colocacoes ja carrega a penalidade da ultima posicao).
+      const p = (semNota && D.sistema !== 'posicao') ? 0 : pts;
+      out[linhas[k2].id] = { pos, pts: p, res: linhas[k2].res, semNota };
+    }
+    i = j + 1;
+  }
+  return out;
+}
+
+function wodsValidos() {
+  return (D.wods || []).filter(w => isAdmin || w.pub !== false)
+                       .sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+}
+
+const LETRAS = 'ABCDEFGH';
+
+function abrevWod(w) {
+  const m = String(w.nome).match(/^\s*(WOD|PROVA)\s*(\d+)/i);
+  if (m) return 'W' + m[2];
+  return String(w.nome).slice(0, 10);
+}
+
+// Cada prova pontua uma vez; se tiver partes (ex: buy-in de 1k de remo e depois
+// o for time), cada parte vira um item pontuado proprio dentro da mesma prova.
+// A quem a prova pertence. A lista guarda categorias inteiras ("Elite Masculino"),
+// mas o cadastro pergunta nivel + genero, que e como a prova e pensada: masculino
+// e feminino fazem a mesma coisa mudando a carga, e a carga vai no texto.
+// Vazia ou ausente = a prova vale para todo mundo, que e como as provas antigas
+// (cadastradas antes disto existir) continuam funcionando.
+function categoriasDaProva(w) {
+  const c = w && w.categorias;
+  return (Array.isArray(c) && c.length) ? c : null;
+}
+function provaValePara(w, categoria) {
+  const c = categoriasDaProva(w);
+  return !c || !categoria || c.indexOf(categoria) !== -1;
+}
+
+// "Elite Masculino" -> "Elite". Masculino e feminino compartilham a programacao.
+function nivelDe(categoria) {
+  return String(categoria || '').replace(/\s+(Masculino|Feminino)$/i, '').trim();
+}
+function niveis() {
+  const fora = [];
+  (D.categorias || []).forEach(c => {
+    const n = nivelDe(c);
+    if (n && fora.indexOf(n) === -1) fora.push(n);
+  });
+  return fora;
+}
+// nivel + genero -> as categorias de verdade. Genero vazio = os dois.
+function categoriasDe(nivel, genero) {
+  return (D.categorias || []).filter(c =>
+    (!nivel || nivelDe(c) === nivel) &&
+    (!genero || new RegExp('\\s' + genero + '$', 'i').test(c)));
+}
+// o caminho de volta, para a lista mostrar "Elite · masculino e feminino"
+function escopoDaProva(w) {
+  const c = categoriasDaProva(w);
+  if (!c) return 'todas as categorias';
+  const ns = [];
+  c.forEach(x => { const n = nivelDe(x); if (ns.indexOf(n) === -1) ns.push(n); });
+  const temM = c.some(x => /Masculino$/i.test(x));
+  const temF = c.some(x => /Feminino$/i.test(x));
+  const g = (temM && temF) ? 'masculino e feminino' : temM ? 'masculino' : temF ? 'feminino' : '';
+  return ns.join(', ') + (g ? ' · ' + g : '');
+}
+
+function itensDe(w) {
+  if (!w.partes || !w.partes.length) {
+    return [{ id: w.id, nome: w.nome, curto: abrevWod(w), tipo: w.tipo, cap: w.cap, wod: w }];
+  }
+  return w.partes.map((p, i) => ({
+    id: w.id + '::' + p.id,
+    nome: w.nome + ' · ' + LETRAS[i] + ') ' + p.nome,
+    curto: abrevWod(w) + LETRAS[i],
+    tipo: p.tipo,
+    // a parte pode ter cap proprio; sem isso, vale o da prova
+    cap: p.cap != null ? p.cap : w.cap,
+    wod: w,
+    parte: p
+  }));
+}
+
+// Sem categoria: todas as provas (o painel usa assim para listar tudo).
+// Com categoria: so as provas daquela categoria.
+function itensPontuados(categoria) {
+  return wodsValidos()
+    .filter(w => provaValePara(w, categoria))
+    .reduce((acc, w) => acc.concat(itensDe(w)), []);
+}
+
+function calcularRanking(categoria) {
+  const atletas = (D.atletas || []).filter(a => a.categoria === categoria);
+  const itens = itensPontuados(categoria);
+  const porProva = {};
+  itens.forEach(w => { porProva[w.id] = rankearProva(w, atletas); });
+
+  // Uma prova que ninguem da categoria fez ainda NAO entra no total. Se entrasse,
+  // todo mundo ficaria empatado em ultimo nela e levaria a mesma media — com 4
+  // atletas, 2,5 pontos cada. Seis provas por lancar viravam 15 pontos fixos no
+  // total de todo mundo, e o primeiro colocado aparecia com 16 em vez de 1.
+  // A ordem ate ficava certa, mas o numero nao queria dizer nada.
+  const valendo = {};
+  itens.forEach(w => {
+    valendo[w.id] = atletas.some(a => resultadoDe(a.id, w.id));
+  });
+
+  const linhas = atletas.map(a => {
+    const provas = {};
+    let total = 0, algum = false;
+    const posicoes = [];
+    itens.forEach(w => {
+      const r = porProva[w.id][a.id];
+      r.valendo = valendo[w.id];
+      provas[w.id] = r;
+      if (!valendo[w.id]) return;
+      total += r.pts;
+      posicoes.push(r.pos);
+      if (!r.semNota) algum = true;
+    });
+    posicoes.sort((x, y) => x - y);
+    return { atleta: a, provas, total, posicoes, pontuou: algum };
+  });
+
+  const dir = D.sistema === 'posicao' ? 1 : -1; // posicao: menor vence
+  linhas.sort((x, y) => {
+    if (x.pontuou !== y.pontuou) return x.pontuou ? -1 : 1;
+    return (x.total - y.total) * dir;
+  });
+
+  // Desempate por CONFRONTO DIRETO. Mesma pontuacao: os dois continuam com o
+  // mesmo total (o numero na tabela nao muda), mas fica na frente quem venceu o
+  // outro mais vezes. Conta um duelo por prova ja lancada contra cada empatado —
+  // quem terminou melhor NELA leva; empate na prova nao da duelo a ninguem.
+  const contadas = itens.filter(w => valendo[w.id]);
+  let ini = 0;
+  while (ini < linhas.length) {
+    let fim = ini;
+    while (fim + 1 < linhas.length &&
+           linhas[fim + 1].total === linhas[ini].total &&
+           linhas[fim + 1].pontuou === linhas[ini].pontuou) fim++;
+    const bloco = linhas.slice(ini, fim + 1);
+    if (bloco.length > 1) {
+      bloco.forEach(l => {
+        let ganhos = 0;
+        bloco.forEach(o => {
+          if (o === l) return;
+          contadas.forEach(w => { if (l.provas[w.id].pos < o.provas[w.id].pos) ganhos++; });
+        });
+        l.duelos = ganhos;
+        l.confrontos = (bloco.length - 1) * contadas.length;
+        l.empatadoCom = bloco.length - 1;
+      });
+      bloco.sort((x, y) => {
+        if (x.duelos !== y.duelos) return y.duelos - x.duelos;
+        // O confronto direto pode empatar tambem — o caso classico e o circular
+        // com 3 ou mais (A ganha de B, B de C, C de A). Ai decide quem teve as
+        // melhores colocacoes individuais.
+        for (let i = 0; i < Math.max(x.posicoes.length, y.posicoes.length); i++) {
+          const a = x.posicoes[i] == null ? 999 : x.posicoes[i];
+          const b = y.posicoes[i] == null ? 999 : y.posicoes[i];
+          if (a !== b) return a - b;
+        }
+        return x.atleta.nome.localeCompare(y.atleta.nome, 'pt-BR');
+      });
+      for (let k = 0; k < bloco.length; k++) linhas[ini + k] = bloco[k];
+    }
+    ini = fim + 1;
+  }
+
+  // colocação geral com empate — so dividem a colocacao quem empatou em tudo,
+  // inclusive no confronto direto.
+  let pos = 0;
+  linhas.forEach((l, i) => {
+    const ant = linhas[i - 1];
+    const igual = ant && ant.total === l.total && ant.pontuou === l.pontuou &&
+                  (ant.duelos || 0) === (l.duelos || 0) &&
+                  JSON.stringify(ant.posicoes) === JSON.stringify(l.posicoes);
+    pos = igual ? pos : i + 1;
+    l.pos = pos;
+  });
+  return { linhas, itens, valendo };
+}
+
+/* ---------------- CARREGAMENTO ---------------- */
+function normalizar(raw) {
+  const d = Object.assign({}, PADRAO, raw || {});
+  d.categorias = (d.categorias && d.categorias.length) ? d.categorias : PADRAO.categorias.slice();
+  d.unidades = (d.unidades && d.unidades.length) ? d.unidades : PADRAO.unidades.slice();
+  d.wods = d.wods || [];
+  d.atletas = d.atletas || [];
+  d.resultados = d.resultados || {};
+  return d;
+}
+
+function setLive(ok, txt) {
+  document.getElementById('liveDot').classList.toggle('off', !ok);
+  document.getElementById('liveTxt').textContent = txt;
+}
+
+// Se o Firestore travar sem devolver erro, o loader giraria para sempre.
+// Passados 12s sem resposta, a pagina oferece uma saida — e continua esperando,
+// porque a resposta ainda pode chegar.
+let respondeu = false;
+const semResposta = setTimeout(() => {
+  if (respondeu) return;
+  const l = document.getElementById('loader');
+  if (l) l.innerHTML = 'O leaderboard está demorando para responder.' + botaoTentarDeNovo();
+}, 12000);
+
+function botaoTentarDeNovo() {
+  return '<br><button class="btn-solid" style="margin-top:1rem" onclick="location.reload()">' +
+         'TENTAR DE NOVO</button>';
+}
+
+DOC.onSnapshot(snap => {
+  respondeu = true;
+  clearTimeout(semResposta);
+  D = normalizar(snap.exists ? snap.data() : null);
+  setLive(true, snap.exists ? 'Ao vivo' : 'Sem dados');
+  document.getElementById('loader').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  render();
+}, err => {
+  console.error(err);
+  respondeu = true;
+  clearTimeout(semResposta);
+  setLive(false, 'Offline');
+  avisar('err', 'Não foi possível ler o campeonato (' + (err.code || 'sem código') + '). ' +
+                'Verifique as regras da coleção campeonatos no Firestore.');
+  const l = document.getElementById('loader');
+  if (l) l.innerHTML = 'Não foi possível carregar o leaderboard.' + botaoTentarDeNovo();
+});
+
+/* ---------------- RENDER ---------------- */
+function render() {
+  if (!D) return;
+
+  // cabeçalho
+  document.getElementById('hTitulo').innerHTML = destacar(D.nome || PADRAO.nome);
+  document.getElementById('logo').innerHTML = logoDoNome(D.nome || PADRAO.nome);
+  // data e local ficam logo abaixo do nome; sem valor salvo, usa o padrao do evento
+  const quando = [D.data || PADRAO.data, D.local || PADRAO.local].filter(Boolean).join(' · ');
+  document.getElementById('hQuando').textContent = quando;
+  document.getElementById('hAtletas').innerHTML = (D.atletas.length ? '<b>' + D.atletas.length + '</b> atletas' : '');
+  document.title = (D.nome || 'CT Storm Championship') + ' — Leaderboard';
+
+  const fechado = D.publicado === false && !isAdmin;
+  document.getElementById('fechado').style.display = fechado ? 'block' : 'none';
+  document.getElementById('app').style.display = fechado ? 'none' : 'block';
+  if (fechado) return;
+
+  // categorias com atletas
+  const cats = D.categorias.filter(c => D.atletas.some(a => a.categoria === c));
+  if (!cats.length) {
+    document.getElementById('seletorCat').innerHTML = '';
+    document.getElementById('thead').innerHTML = '';
+    document.getElementById('tbody').innerHTML =
+      '<tr><td class="empty-state">Nenhum atleta inscrito ainda.</td></tr>';
+    document.getElementById('legend').innerHTML = '';
+    renderWods();
+    return;
+  }
+  if (!cats.includes(catAtiva)) catAtiva = cats[0];
+  const selC = document.getElementById('seletorCat');
+  selC.innerHTML = cats.map(c =>
+    '<option value="' + esc(c) + '"' + (c === catAtiva ? ' selected' : '') + '>' + esc(c) + '</option>').join('');
+
+  const { linhas, itens, valendo } = calcularRanking(catAtiva);
+  rankCache[catAtiva] = { linhas, itens, valendo };
+
+  const busca = document.getElementById('busca').value.trim().toLowerCase();
+  const vis = linhas.filter(l => !busca || l.atleta.nome.toLowerCase().includes(busca));
+
+  renderTabela(vis, itens);
+  renderLegenda(itens, linhas.length, valendo);
+  renderWods();
+}
+
+// no header a primeira palavra fica em destaque; no hero, a ultima
+function logoDoNome(txt) {
+  const p = String(txt).trim().split(' ');
+  const primeira = p.shift();
+  return '<span class="gold">' + esc(primeira) + ' </span><span class="wht">' + esc(p.join(' ')) + '</span>';
+}
+
+function destacar(txt) {
+  const p = String(txt).trim().split(' ');
+  if (p.length < 2) return esc(txt);
+  const ult = p.pop();
+  return esc(p.join(' ')) + ' <em>' + esc(ult) + '</em>';
+}
+
+function trocarCat(c) { catAtiva = c; render(); }
+
+
+function renderTabela(linhas, itens) {
+  const thead = document.getElementById('thead');
+  const tbody = document.getElementById('tbody');
+
+  thead.innerHTML = '<tr>' +
+    '<th class="sticky-col col-pos">#</th>' +
+    '<th class="sticky-col col-atleta">Atleta</th>' +
+    itens.map(w => '<th class="wodcol" title="' + esc(w.nome) + '">' + esc(w.curto) + '</th>').join('') +
+    '<th class="num">Total</th></tr>';
+
+  if (!linhas.length) {
+    tbody.innerHTML = '<tr><td colspan="' + (itens.length + 3) + '"><div class="empty-state">Nenhum atleta encontrado.</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = linhas.map(l => {
+    const cls = l.pos <= 3 && l.pontuou ? ' class="top' + l.pos + '"' : '';
+    const cels = itens.map(w => {
+      const r = l.provas[w.id];
+      const v = fmtValor(w, r && r.res);
+      // data-col e o rotulo da coluna; no celular a tabela vira cartao e o
+      // cabecalho some, entao cada celula precisa dizer de que prova ela e
+      if (!v) return '<td class="wod vazio" data-col="' + esc(w.curto) + '">—</td>';
+      return '<td class="wod" data-col="' + esc(w.curto) + '"><b>' + esc(v) +
+             '</b><span class="pl">' + ordinal(r.pos) + '</span></td>';
+    }).join('');
+    return '<tr' + cls + ' onclick="verAtleta(' + JSON.stringify(l.atleta.id).replace(/"/g, '&quot;') + ')">' +
+      '<td class="pos sticky-col">' + (l.pontuou ? l.pos : '—') + '</td>' +
+      '<td class="atleta sticky-col col-atleta">' + esc(l.atleta.nome) +
+        '<span class="unit">' + esc(l.atleta.unidade || '') + '</span></td>' +
+      cels +
+      '<td class="total">' + fmtPts(l.total) + '</td></tr>';
+  }).join('');
+}
+
+function renderLegenda(itens, totalAtletas, valendo) {
+  const sis = D.sistema === 'posicao'
+    ? 'Cada prova vale a colocação do atleta: <b>1º = 1 pt</b>, 2º = 2 pts, 3º = 3 pts e assim por diante. <b>Menor total vence.</b>'
+    : '1º lugar vale <b>' + num(D.p1, 100) + ' pts</b>, com <b>-' + num(D.dec, 5) +
+      '</b> por posição (mínimo 1). <b>Maior total vence.</b>';
+  const contando = valendo ? itens.filter(w => valendo[w.id]).length : itens.length;
+  document.getElementById('legend').innerHTML =
+    sis + ' Empatou numa prova, empatou: mesma colocação e mesmos pontos, e o próximo pula as posições do empate. ' +
+    (D.sistema === 'posicao'
+      ? 'Quem não tem resultado na prova recebe a última colocação dela. '
+      : 'Quem não pontua na prova fica em último e soma 0. ') +
+    'Quem estoura o time cap fica com o tempo do cap mais as repetições que faltaram (ex: <b>15:10</b>) e entra depois de quem finalizou, na ordem de quem faltou menos. ' +
+    'Empate no total: os dois mantêm a mesma pontuação, mas fica na frente quem <b>venceu o outro em mais provas</b> (confronto direto). Se o confronto direto também empatar, decide quem teve as melhores colocações individuais. ' +
+    'Prova dividida em partes pontua cada parte separadamente. ' +
+    '<br>' + contando + ' de ' + itens.length + ' pontuação(ões) já lançada(s) · ' +
+    totalAtletas + ' atleta(s) na categoria · toque em um atleta para ver o detalhamento.' +
+    // sem isso, uma prova por lancar daria a mesma media para todo mundo e
+    // inflaria o total sem mudar a ordem
+    (contando < itens.length
+      ? '<br>Provas ainda não lançadas não entram no total.'
+      : '');
+}
+
+function renderWods() {
+  const wods = wodsValidos().filter(w => provaValePara(w, catAtiva));
+  const grid = document.getElementById('wodGrid');
+  const bloco = document.getElementById('wodBloco');
+  bloco.style.display = wods.length ? 'block' : 'none';
+  // dizer quantas provas tem: "PROVAS" sozinho nao promete conteudo nenhum, e no
+  // celular o bloco comeca fechado
+  document.getElementById('wodRot').textContent =
+    wods.length ? 'PROVAS · ' + wods.length : 'PROVAS';
+  // no celular a classificacao e o que importa; a descricao das provas comeca
+  // recolhida para nao empurrar a tabela para fora da tela
+  if (!bloco.dataset.ajustado) {
+    bloco.open = window.innerWidth > 700;
+    bloco.dataset.ajustado = '1';
+  }
+  const TIPOS = { tempo: 'Menor tempo', reps: 'Mais repetições', carga: 'Maior carga', pontos: 'Mais pontos' };
+  grid.innerHTML = wods.map(w =>
+    '<div class="wod-card">' +
+      '<h3>' + esc(w.nome) + '</h3>' +
+      (w.partes && w.partes.length
+        ? w.partes.map((p, i) => '<div class="wod-parte"><b>' + LETRAS[i] + '</b> ' + esc(p.nome) +
+            ' <span>' + esc(TIPOS[p.tipo] || p.tipo) + '</span></div>').join('')
+        : '<span class="wod-tag">' + esc(TIPOS[w.tipo] || w.tipo) + '</span>') +
+      (w.pub === false ? '<span class="wod-tag" style="margin-left:0.3rem;color:var(--gray);border-color:var(--border-soft)">Oculta</span>' : '') +
+      (w.desc ? '<div class="wod-desc">' + esc(w.desc) + '</div>' : '') +
+    '</div>').join('');
+}
+
+/* ---------------- DETALHE DO ATLETA ---------------- */
+function verAtleta(id) {
+  const cache = rankCache[catAtiva];
+  if (!cache) return;
+  const l = cache.linhas.find(x => x.atleta.id === id);
+  if (!l) return;
+  document.getElementById('aNome').textContent = l.atleta.nome;
+  document.getElementById('aSub').textContent =
+    [l.atleta.categoria, l.atleta.unidade].filter(Boolean).join(' · ') +
+    ' · ' + (l.pontuou ? ordinal(l.pos) + ' geral' : 'sem pontuação');
+  document.getElementById('aBody').innerHTML = cache.itens.map(w => {
+    const r = l.provas[w.id];
+    const v = fmtValor(w, r && r.res);
+    if (!r.valendo) {
+      return '<div class="brk">' +
+        '<div class="brk-name">' + esc(w.nome) + '<small>ainda não lançada</small></div>' +
+        '<div class="brk-val" style="color:var(--gray)">—</div>' +
+      '</div>';
+    }
+    return '<div class="brk">' +
+      '<div class="brk-name">' + esc(w.nome) + '<small>' + esc(v || 'sem resultado') + '</small></div>' +
+      '<div class="brk-val">' + fmtPts(r.pts) + ' pts<span class="pl"> ' + ordinal(r.pos) + '</span></div>' +
+    '</div>';
+  }).join('') +
+  '<div class="brk" style="border-bottom:none;margin-top:0.4rem">' +
+    '<div class="brk-name" style="font-weight:600">TOTAL</div>' +
+    '<div class="brk-val" style="color:var(--gold);font-size:1rem">' + fmtPts(l.total) + '</div>' +
+  '</div>' +
+  // Empatou em pontos com alguem? Mostra o confronto direto, senao a ordem entre
+  // os dois fica sem explicacao para quem olha a tabela.
+  (l.empatadoCom
+    ? '<div class="brk" style="border-bottom:none;padding-top:0">' +
+        '<div class="brk-name" style="color:var(--gray)">Confronto direto' +
+          '<small>empatou em pontos com ' + l.empatadoCom + ' atleta' +
+          (l.empatadoCom > 1 ? 's' : '') + '</small></div>' +
+        '<div class="brk-val">' + l.duelos + ' de ' + l.confrontos + '</div>' +
+      '</div>'
+    : '');
+  abrir('mAtleta');
+}
+
+/* ---------------- CSV ---------------- */
+// Classificacao de TODAS as categorias num arquivo so, na ordem do leaderboard.
+// E o que serve para montar as baterias: quem esta em que posicao, por categoria.
+// O CSV por categoria traz os resultados prova a prova; este traz o essencial de
+// todas de uma vez, para nao precisar exportar dez arquivos.
+function exportarClassificacaoGeral() {
+  if (!D) return;
+  const sep = ';';
+  const linhas = [['Categoria', 'Pos', 'Atleta', 'Unidade', 'Total',
+                   'Provas valendo', 'Com resultado', 'Completo', 'Faltando']];
+  (D.categorias || []).forEach(cat => {
+    const r = calcularRanking(cat);
+    // "valendo" sao as provas que ja tem ao menos um resultado lancado na
+    // categoria — na pratica, as provas do dia. Quem nao fechou todas elas nao
+    // entra nas baterias.
+    const valendo = r.itens.filter(w => r.valendo[w.id]);
+    r.linhas.forEach(l => {
+      const faltando = valendo.filter(w => l.provas[w.id].semNota);
+      linhas.push([cat, l.pontuou ? l.pos : '', l.atleta.nome, l.atleta.unidade || '',
+                   fmtPts(l.total), valendo.length, valendo.length - faltando.length,
+                   faltando.length ? 'nao' : 'sim',
+                   faltando.map(w => w.nome).join(' | ')]);
+    });
+  });
+  const csv = linhas.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(sep)).join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'classificacao_todas_categorias.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  avisar('ok', linhas.length - 1 + ' atleta(s) exportado(s) de ' + (D.categorias || []).length + ' categoria(s).', 5);
+}
+
+function exportarCSV() {
+  const cache = rankCache[catAtiva];
+  if (!cache) return;
+  const sep = ';';
+  const cab = ['Pos', 'Atleta', 'Unidade'].concat(cache.itens.map(w => w.nome + ' (result)'))
+    .concat(cache.itens.map(w => w.nome + ' (pts)')).concat(['Total']);
+  const linhas = cache.linhas.map(l => {
+    const res = cache.itens.map(w => fmtValor(w, l.provas[w.id].res) || '');
+    // Prova ainda nao lancada nao entra no total — entao a coluna de pontos dela
+    // sai vazia. Antes saia "1" para todo mundo (ninguem tem resultado, logo
+    // todos empatam em primeiro), e quem lia o CSV achava que ja valia ponto.
+    const pts = cache.itens.map(w => l.provas[w.id].valendo ? fmtPts(l.provas[w.id].pts) : '');
+    return [l.pontuou ? l.pos : '', l.atleta.nome, l.atleta.unidade || ''].concat(res).concat(pts).concat([fmtPts(l.total)]);
+  });
+  const csv = [cab].concat(linhas).map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(sep)).join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'leaderboard_' + catAtiva.replace(/\s+/g, '_').toLowerCase() + '.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+
+/* Pagina publica: nao existe area de organizador aqui. O painel fica em
+   organizador.html, no mesmo endereco, atras do login. */
+</script>
+</body>
+</html>

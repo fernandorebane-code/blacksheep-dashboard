@@ -1,0 +1,2283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- favicon da marca, embutido: as paginas viajam como arquivo unico (assets/gerar-favicon.py) -->
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADJ0lEQVR42u2XXYhVVRTHf3vtc+9NnRknKCxTnEbDtCFEw2KCZFQsJLlqhKgFKkYQlCLYCL71YiHhYNHDgD1EDSjzUASDL+WDPShaiB/hkx+gU9IIEyN659yz9+ph34+5d+6MUznXB2e/HPZhn/X/r//aa62zDFXroqJM4mozmJF7qSd4LQypJ3gtLKk3eDUJ8zDAx7wDUwQeSQLRyM1bL07j5jWDelCFxmalsyumYSZcOitYG96rQkOTsumDBGPg6FcRQ38bjAFjwDl44SXP0CAc+DDD3TsQpcA7mDNf6T13r4RZkQU/f2/ZtzVDy0JPR9bR1xPxV7/BCLhkNPuXVznSGTjZZ0d7lgrP55d4Xlnt+OZQijgHB74dZtUGVzsEK9c7tn+cp/+acOOKMO85T5QK4FI4mUqDjcL+9E+Wk30WkQBoC3raCJI8ND2uzJqr/P6rEOfgvf35CvBRCngHYoMSvd0Rt24IQ4MweNuQzgSDA3+WS7kIYMJ3xfXkbGXgj3CmsVmZ0QRzWz1vv5+wYp3D+7IzNQtR9YHe7oiDe9KIhQ07EuYv9hz5NMXtW6ayySz3bP0oz3eHU1w6I6hCZ1fMxp3JmLZrZoFI8CgeLn+kGi5Xb3fEgjZPZ1eMapC6+PzyxxznT1kunBaiVHjvCsrEwwV1ZYJpKJaSkfY1jsZmxftAYtf6DL8ct6WQAUxvUD7fm6bniwgbQT4O8revcagGW2Jrp+G4vaB4J078YOnckkFsZbxLRkwgO/JOfNYzTEfWlWz8p0IkNmRAR9axdnOCd0FuUxn+ErgphG/tloSOrAvZY8cvRPfthkXpb141bFo2jSRfBq1WoZj/x367x+wWLavyf0qxCKiHOa1K++shpkbKoEVgKVTJV99wPPOsov7+4P+qF6jC9r35Cm+LZdlGgSSEM6oPuBmJDQCLl3my2xJU4ZOvY56ep7z5TsK7u/N4Dxt3Jixa6oP3dmIEJvxH5F2Q/uplYdtrj9Gy0DM4YHjiKaX/uiF313DkRI7WRZNEYOqHZIrApBGontXqudpMoaY9DBJFTBlraq3XhCzjjc71GM//AdVTVAwSuoq5AAAAAElFTkSuQmCC">
+<link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,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">
+<title>CT Storm Championship — Organização</title>
+<meta name="description" content="Painel de organização do CT Storm Championship.">
+<meta name="robots" content="noindex">
+
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#000000;
+  --gold:#EE0F14;
+  --gold-light:#FF3B40;
+  --gold-dim:rgba(238,15,20,0.14);
+  --white:#FFFFFF;
+  --gray:#8A8A8A;
+  --surface:#0C0C0C;
+  --surface2:#141414;
+  --surface3:#1C1C1C;
+  --border:rgba(238,15,20,0.22);
+  --border-soft:rgba(255,255,255,0.07);
+  --green:#52C07A;
+  --red:#FFA726;
+  --bronze:#C08A52;
+  --silver:#C9C9C2;
+  /* Derivadas. Existiam espalhadas pelo CSS como cor fixa, e por isso um tema
+     novo nascia com resquicio do anterior — a primeira prova do tema CT STORM
+     saiu vermelha com o brilho verde da Blacksheep atras do titulo. */
+  --brilho:rgba(238,15,20,0.12);
+  --destaque-linha:rgba(238,15,20,0.08);
+  --perigo-borda:rgba(255,167,38,0.5);
+  --perigo-fundo:rgba(255,167,38,0.12);
+  --sobre-verde:#062a13;
+  --sobre-vermelho:#2a1a06;
+  --vazio:#3a3a38;
+  --rodape:#4a4a46;
+  --represado-fundo:rgba(238,15,20,0.12);
+  --represado-linha:rgba(238,15,20,0.07);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  background:var(--black);
+  color:var(--white);
+  font-family:'DM Sans',sans-serif;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font-family:'DM Sans',sans-serif;}
+::selection{background:var(--gold);color:var(--black);}
+
+/* ---------- HEADER ---------- */
+header{
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:0 1.5rem;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  height:60px;
+  position:sticky;
+  top:0;
+  z-index:60;
+}
+.logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.25rem;
+  letter-spacing:0.12em;
+  white-space:nowrap;
+}
+.logo .gold{color:var(--gold);}
+.logo .wht{color:var(--white);}
+.header-right{display:flex;align-items:center;gap:0.7rem;}
+.live-badge{
+  display:flex;align-items:center;gap:0.4rem;
+  font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--gray);
+}
+.live-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--green);
+  animation:pulse 2s infinite;
+}
+.live-dot.off{background:var(--gray);animation:none;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.25;}}
+.btn-ghost{
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--gray);
+  padding:0.45rem 0.8rem;
+  font-size:0.75rem;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold);}
+.btn-ghost:disabled{opacity:0.3;cursor:not-allowed;}
+.btn-ghost:disabled:hover{border-color:var(--border);color:var(--gray);}
+.btn-solid{
+  background:var(--gold);
+  border:1px solid var(--gold);
+  color:var(--black);
+  padding:0.5rem 0.9rem;
+  font-size:0.78rem;
+  font-weight:600;
+  letter-spacing:0.09em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:background 0.2s;
+}
+.btn-solid:hover{background:var(--gold-light);}
+.btn-solid:disabled{opacity:0.45;cursor:not-allowed;}
+.btn-danger{
+  background:transparent;border:1px solid var(--perigo-borda);color:var(--red);
+  padding:0.4rem 0.7rem;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;
+}
+.btn-danger:hover{background:var(--perigo-fundo);}
+
+/* ---------- HERO ---------- */
+.hero{
+  padding:2.6rem 1.5rem 1.8rem;
+  text-align:center;
+  border-bottom:1px solid var(--border-soft);
+  background:
+    radial-gradient(circle at 50% -20%, var(--brilho), transparent 60%),
+    var(--black);
+}
+.hero h1{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(2.2rem,8vw,4rem);
+  letter-spacing:0.05em;
+  line-height:0.95;
+  color:var(--white);
+}
+.hero h1 em{font-style:normal;color:var(--gold);}
+.hero-quando{
+  margin-top:0.8rem;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(1rem,3.6vw,1.5rem);
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color:var(--gold);
+}
+.hero-meta{
+  margin-top:1.1rem;
+  display:flex;justify-content:center;gap:1.6rem;flex-wrap:wrap;
+  font-family:'DM Mono',monospace;
+  font-size:0.78rem;
+  letter-spacing:0.08em;
+  color:var(--gray);
+}
+.hero-meta span b{color:var(--white);font-weight:500;}
+
+/* ---------- LAYOUT ---------- */
+.container{max-width:1400px;margin:0 auto;padding:1.5rem;}
+.toolbar{
+  display:flex;flex-wrap:wrap;gap:0.6rem;align-items:center;
+  margin-bottom:1.2rem;
+}
+.seletor-cat{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.15rem;
+  letter-spacing:0.08em;
+  color:var(--gold);
+  border-color:var(--border);
+  padding:0.45rem 0.7rem;
+  min-width:230px;
+}
+.cat{
+  background:transparent;
+  border:1px solid var(--border-soft);
+  color:var(--gray);
+  padding:0.5rem 0.9rem;
+  font-size:0.78rem;
+  font-weight:500;
+  letter-spacing:0.09em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all 0.18s;
+  white-space:nowrap;
+}
+.cat:hover{color:var(--white);border-color:var(--border);}
+.cat.active{background:var(--gold);border-color:var(--gold);color:var(--black);font-weight:600;}
+.field{
+  background:var(--surface2);
+  border:1px solid var(--border-soft);
+  color:var(--white);
+  padding:0.5rem 0.7rem;
+  font-size:0.84rem;
+  outline:none;
+  transition:border-color 0.2s;
+}
+.field:focus{border-color:var(--gold);}
+.field::placeholder{color:var(--gray);}
+select.field{cursor:pointer;}
+
+/* ---------- TABLE ---------- */
+.table-wrap{
+  border:1px solid var(--border-soft);
+  background:var(--surface);
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+table{border-collapse:collapse;width:100%;min-width:640px;}
+thead th{
+  background:var(--surface2);
+  font-size:0.7rem;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--gray);
+  font-weight:500;
+  text-align:left;
+  padding:0.7rem 0.8rem;
+  border-bottom:1px solid var(--border-soft);
+  white-space:nowrap;
+  position:sticky;top:0;z-index:2;
+}
+thead th.wodcol{text-align:center;cursor:help;}
+thead th.num{text-align:right;}
+tbody td{
+  padding:0.7rem 0.8rem;
+  font-size:0.9rem;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  white-space:nowrap;
+}
+tbody tr{cursor:pointer;transition:background 0.15s;}
+tbody tr:hover{background:var(--surface2);}
+tbody tr.me{background:var(--destaque-linha);}
+/* Largura da coluna de posicao e o deslocamento da coluna de nome ficam aqui,
+   e nao no markup: no celular elas encolhem, e um style inline venceria a regra
+   do @media e desalinharia o cabecalho das linhas. */
+.col-pos,td.pos{width:52px;}
+.col-atleta{left:52px;}
+td.pos{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.15rem;
+  color:var(--gray);
+  width:52px;
+}
+tr.top1 td.pos{color:var(--gold);}
+tr.top2 td.pos{color:var(--silver);}
+tr.top3 td.pos{color:var(--bronze);}
+td.atleta{font-weight:500;}
+td.atleta .unit{display:block;font-size:0.76rem;color:var(--gray);font-weight:400;}
+td.wod{text-align:center;font-family:'DM Mono',monospace;font-size:0.82rem;color:var(--gray);}
+td.wod b{display:block;color:var(--white);font-size:0.88rem;font-weight:500;}
+td.wod .pl{font-size:0.72rem;color:var(--gold);}
+td.wod.vazio{color:var(--vazio);}
+td.total{
+  text-align:right;
+  font-family:'DM Mono',monospace;
+  font-size:0.95rem;
+  color:var(--gold);
+  font-weight:500;
+  position:sticky;right:0;
+  background:var(--surface);
+  border-left:1px solid var(--border-soft);
+}
+tbody tr:hover td.total{background:var(--surface2);}
+thead th.num{position:sticky;right:0;background:var(--surface2);z-index:3;border-left:1px solid var(--border-soft);}
+#rGrid thead th.num,#rGrid td.num{position:static;background:transparent;border-left:none;}
+.sticky-col{position:sticky;left:0;background:var(--surface);z-index:1;}
+tbody tr:hover .sticky-col{background:var(--surface2);}
+thead th.sticky-col{background:var(--surface2);z-index:3;}
+.empty-state{
+  padding:3rem 1.5rem;text-align:center;color:var(--gray);font-size:0.9rem;
+}
+.legend{
+  margin-top:0.8rem;font-size:0.75rem;color:var(--gray);line-height:1.7;
+}
+.legend b{color:var(--white);font-weight:500;}
+
+/* ---------- WOD CARDS ---------- */
+.section-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.1rem;letter-spacing:0.14em;color:var(--gold);
+  margin:2.2rem 0 0.9rem;
+  padding-bottom:0.4rem;
+  border-bottom:1px solid var(--border-soft);
+}
+.wod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:0.8rem;}
+/* so aparece no celular, onde o bloco comeca fechado */
+.dica-toque{display:none;}
+.wod-card{background:var(--surface);border:1px solid var(--border-soft);padding:1rem;}
+.wod-card h3{
+  font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:0.06em;color:var(--white);
+}
+.wod-tag{
+  display:inline-block;margin-top:0.3rem;
+  font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--gold);border:1px solid var(--border);padding:0.15rem 0.45rem;
+}
+.wod-parte{
+  margin-top:0.45rem;font-size:0.82rem;color:var(--white);
+  display:flex;align-items:baseline;gap:0.45rem;
+}
+.wod-parte b{
+  font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--black);
+  background:var(--gold);padding:0.05rem 0.3rem;font-weight:500;
+}
+.wod-parte span{color:var(--gray);font-size:0.76rem;text-transform:lowercase;}
+.wod-desc{
+  margin-top:0.7rem;font-size:0.85rem;color:var(--gray);line-height:1.6;white-space:pre-wrap;
+}
+
+/* ---------- MODAL ---------- */
+.aviso{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  padding:0.9rem 1.2rem;text-align:center;
+  font-size:0.9rem;font-weight:500;
+  display:none;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);
+}
+.aviso.ok{display:block;background:var(--green);color:var(--sobre-verde);}
+.aviso.err{display:block;background:var(--red);color:var(--sobre-vermelho);}
+.aviso.info{display:block;background:var(--gold);color:var(--black);}
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,0.82);
+  display:none;align-items:center;justify-content:center;padding:1rem;z-index:100;
+  overflow-y:auto;
+}
+.modal-bg.open{display:flex;}
+#mPartes{z-index:120;} /* abre por cima do painel do organizador */
+.modal{
+  background:var(--surface);
+  border:1px solid var(--border);
+  width:100%;max-width:560px;
+  max-height:90vh;overflow-y:auto;
+}
+.modal.wide{max-width:1100px;}
+.modal-head{
+  padding:1.1rem 1.3rem;border-bottom:1px solid var(--border-soft);
+  display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;
+  position:sticky;top:0;background:var(--surface);z-index:2;
+}
+.modal-head h2{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:0.05em;}
+.modal-head .sub{font-size:0.78rem;color:var(--gray);margin-top:0.15rem;}
+.modal-x{background:none;border:none;color:var(--gray);font-size:1.4rem;cursor:pointer;line-height:1;}
+.modal-x:hover{color:var(--gold);}
+.modal-body{padding:1.2rem 1.3rem;}
+.modal-foot{
+  padding:1rem 1.3rem;border-top:1px solid var(--border-soft);
+  display:flex;justify-content:flex-end;gap:0.6rem;
+  position:sticky;bottom:0;background:var(--surface);
+}
+.brk{display:flex;justify-content:space-between;align-items:center;padding:0.65rem 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.brk-name{font-size:0.9rem;}
+.brk-name small{display:block;color:var(--gray);font-size:0.76rem;}
+.brk-val{font-family:'DM Mono',monospace;font-size:0.9rem;text-align:right;}
+.brk-val .pl{color:var(--gold);font-size:0.78rem;}
+
+/* ---------- FORMS / ADMIN ---------- */
+.form-row{display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.6rem;}
+.form-row > *{flex:1;min-width:130px;}
+label.lbl{
+  display:block;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--gray);margin-bottom:0.3rem;
+}
+textarea.field{min-height:80px;resize:vertical;line-height:1.5;}
+.admin-tabs{display:flex;gap:0.3rem;flex-wrap:wrap;margin-bottom:1.2rem;}
+.admin-tab{
+  background:transparent;border:1px solid var(--border-soft);color:var(--gray);
+  padding:0.45rem 0.8rem;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;
+}
+.admin-tab.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+.apane{display:none;}
+.apane.active{display:block;}
+.carga{
+  background:var(--gold-dim);
+  border:1px solid var(--border);
+  padding:0.9rem 1rem;
+  margin-bottom:1.2rem;
+  font-size:0.85rem;
+  line-height:1.6;
+}
+.list-item{
+  display:flex;align-items:center;gap:0.6rem;
+  padding:0.55rem 0.7rem;border:1px solid var(--border-soft);margin-bottom:0.4rem;background:var(--surface2);
+}
+.list-item .grow{flex:1;min-width:0;}
+.list-item .nm{font-size:0.9rem;}
+.list-item .mt{font-size:0.75rem;color:var(--gray);}
+.msg{font-size:0.84rem;margin-top:0.6rem;min-height:1.1rem;}
+.msg.ok{color:var(--green);}
+.msg.err{color:var(--red);}
+.hint{font-size:0.78rem;color:var(--gray);line-height:1.6;margin-top:0.5rem;}
+.score-grid{overflow-x:auto;border:1px solid var(--border-soft);}
+.score-grid table{min-width:520px;}
+.score-grid input{
+  width:100px;background:var(--surface2);border:1px solid var(--border-soft);color:var(--white);
+  padding:0.35rem 0.45rem;font-family:'DM Mono',monospace;font-size:0.86rem;outline:none;text-align:center;
+}
+.score-grid input:focus{border-color:var(--gold);}
+.score-grid td.atl{font-size:0.9rem;}
+.score-grid td.atl .unit{display:block;font-size:0.78rem;color:var(--gray);}
+/* quem ja tem resultado desce para baixo do separador e fica apagado — o que
+   falta lancar tem de estar sempre no topo. */
+.score-grid tr.feito td{opacity:0.45;}
+.score-grid tr.feito:hover td{opacity:1;}
+.score-grid tr.sep td{
+  background:var(--surface2);font-size:0.7rem;letter-spacing:0.09em;
+  color:var(--gray);text-transform:uppercase;padding:0.3rem 0.6rem;font-weight:600;
+}
+.score-grid td.atl .ok{color:var(--gold);font-weight:700;margin-right:0.3rem;}
+/* Resultado gravado mas ainda nao publicado. Tem de saltar aos olhos: esquecer
+   de publicar deixa o leaderboard parado sem ninguem perceber. */
+.represados{
+  display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap;
+  margin-top:0.6rem;padding:0.6rem 0.8rem;
+  border:1px solid var(--gold);border-radius:6px;
+  background:var(--represado-fundo);font-size:0.9rem;
+}
+.represados b{color:var(--gold);font-size:1.05rem;}
+.score-grid td.atl .hold{
+  color:var(--gold);font-weight:700;margin-right:0.3rem;
+}
+.score-grid tr.represada td{background:var(--represado-linha);}
+.score-grid select{
+  background:var(--surface2);border:1px solid var(--border-soft);color:var(--white);
+  padding:0.35rem;font-size:0.78rem;outline:none;
+}
+.toggle{display:flex;align-items:center;gap:0.5rem;font-size:0.84rem;color:var(--gray);cursor:pointer;}
+.toggle input{accent-color:var(--gold);width:16px;height:16px;cursor:pointer;}
+
+footer{
+  padding:2.5rem 1.5rem;text-align:center;
+  font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--rodape);
+  border-top:1px solid var(--border-soft);margin-top:3rem;
+}
+
+/* ---------- LOADER ---------- */
+#loader{padding:4rem 1.5rem;text-align:center;color:var(--gray);font-size:0.88rem;letter-spacing:0.1em;text-transform:uppercase;}
+
+@media (max-width:700px){
+  /* O cabecalho tem altura fixa de 60px e nao quebra linha: no organizador, o
+     link VER LEADERBOARD mais o usuario mais o SAIR empurravam a pagina para
+     600px de largura numa tela de 390px. Aqui ele cresce em vez de vazar. */
+  header{padding:0.5rem 0.8rem;height:auto;flex-wrap:wrap;gap:0.4rem 0.5rem;}
+  .header-right{flex-wrap:wrap;gap:0.4rem;min-width:0;}
+  /* o cabecalho do organizador comia 250px dos 844px da tela antes de qualquer
+     conteudo; aqui ele fica numa faixa so */
+  .header-right .btn-ghost{padding:0.4rem 0.55rem;font-size:0.76rem;min-height:36px;}
+  .live-badge{font-size:0.7rem;}
+  .logo{font-size:1.05rem;}
+  .container{padding:1rem;}
+  .hero{padding:2rem 1rem 1.4rem;}
+  .hero-meta{gap:1rem;}
+
+  /* Alvo de toque: o minimo confortavel com o dedo e ~40px de altura. Os
+     controles vinham entre 27px e 34px. */
+  .field,.btn-ghost,.btn-solid,.btn-danger,.admin-tab,select.field{
+    min-height:40px;
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+  textarea.field{min-height:76px;display:block;}
+  .toolbar .field,.toolbar .btn-ghost{flex:1 1 auto;}
+  .seletor-cat{flex:1 1 100%;font-size:1.25rem;}
+  summary.section-title{min-height:44px;display:flex;align-items:center;}
+
+  /* Piso de tamanho de fonte: havia dezenas de trechos abaixo de 10px, que num
+     telefone viram borrao. */
+  .live-badge,.resumo-rot,label.lbl,.hint,.unit,footer,
+  td.wod .pl,.brk-name small,.wod-tag{font-size:0.78rem;}
+  #tabela td.wod::before{font-size:0.72rem;}
+  .btn-ghost,.btn-solid,.btn-danger,.admin-tab{font-size:0.82rem;}
+
+  /* Formularios empilham em vez de espremer tres campos na mesma linha. */
+  .form-row{gap:0.5rem;}
+  .form-row > *{flex:1 1 100%;min-width:0;}
+
+  /* Modais ocupam a tela inteira: com 1rem de margem sobrava pouco. */
+  .modal-bg{padding:0;align-items:flex-start;}
+  .modal{max-width:none;max-height:100vh;min-height:100vh;border:none;}
+  .modal-head,.modal-body,.modal-foot{padding-left:1rem;padding-right:1rem;}
+  /* O rodape da tela de resultados tem quatro botoes; em 390px eles nao cabem
+     numa linha e vazavam para fora da tela. */
+  .modal-foot{flex-wrap:wrap;justify-content:stretch;}
+  .modal-foot .btn-ghost,.modal-foot .btn-solid{flex:1 1 auto;min-width:0;}
+  .modal-foot .msg{flex:1 1 100%;}
+  .modal-x{min-width:44px;min-height:44px;font-size:1.8rem;}
+
+  /* Linha de lista (atletas e provas): sao ate seis controles na mesma linha e
+     eles empurravam a pagina para 472px. Agora o nome ocupa a primeira linha e
+     os controles quebram embaixo. */
+  .list-item{flex-wrap:wrap;gap:0.4rem;}
+  .list-item .grow{flex:1 1 100%;}
+  .list-item > select,.list-item > button,.list-item > label{flex:1 1 auto;min-height:40px;}
+  .list-item .btn-danger{flex:0 0 3rem;}
+  .list-item .toggle{justify-content:center;}
+
+  /* Lancamento de resultados: o campo de digitar a nota era o menor alvo da
+     tela, justo o que mais se toca durante o evento. */
+  .score-grid input{min-height:40px;width:68px;font-size:0.9rem;}
+  .score-grid select{min-height:40px;}
+  /* sem min-width a grade cabe na tela; o nome corta com reticencias em vez de
+     quebrar em varias linhas e esticar a linha inteira */
+  .score-grid{overflow-x:visible;}
+  /* table-layout:fixed e o que faz a coluna do nome ficar com a sobra; sem isso
+     o max-width do corte colapsa a coluna e so aparece a primeira letra */
+  .score-grid table{min-width:0;width:100%;table-layout:fixed;}
+  .score-grid th.num,.score-grid td.num{width:78px;}
+  .score-grid td.atl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .score-grid td.atl .unit{overflow:hidden;text-overflow:ellipsis;}
+  .score-grid td,.score-grid th{padding:0.5rem 0.4rem;}
+  /* os rotulos das colunas cabem em duas linhas em vez de se sobreporem */
+  .score-grid th{font-size:0.74rem;white-space:normal;line-height:1.2;}
+
+  /* O nome do atleta e editavel na propria linha; com 22px de altura era dificil
+     acertar. O checkbox tambem cresce, embora o rotulo inteiro ja seja clicavel. */
+  .list-item .nm-edit{min-height:40px;font-size:0.9rem;}
+  .toggle input{width:22px;height:22px;}
+
+  /* A tabela tem min-width 640px e as bordas sao sticky: num telefone de 380px
+     as colunas das provas ficavam escondidas ATRAS da coluna do total, e o
+     espectador via so nome e total, sem nada indicando que dava para arrastar.
+     Aqui cada linha vira um cartao: posicao, nome e total em cima, e as provas
+     como fichas embaixo. Sem rolagem lateral. */
+  /* No celular a tabela mostra so posicao, nome e total — nada de rolar para o
+     lado. O resultado prova a prova sai no toque sobre o atleta, no mesmo
+     pop-up que ja existe no computador. */
+  #tabela{min-width:0;}
+  #tabela td.wod,#tabela th.wodcol{display:none;}
+  #tabela thead th{padding:0.6rem 0.5rem;}
+  #tabela tbody td{padding:0.7rem 0.5rem;}
+  #tabela .sticky-col,#tabela td.total{position:static;}
+  #tabela td.atleta{white-space:normal;}
+  /* deixa claro que a linha abre alguma coisa */
+  #tabela tbody td.atleta::after{
+    content:'ver as provas \203A';
+    display:block;margin-top:0.15rem;
+    font-size:0.72rem;letter-spacing:0.06em;
+    /* cinza, nao dourado: com 25 linhas o dourado competiria com os totais */
+    color:var(--gray);
+  }
+
+  #wodBloco summary{cursor:pointer;gap:0.6rem;}
+  .dica-toque{
+    display:inline;font-family:'DM Sans',sans-serif;font-size:0.78rem;
+    letter-spacing:0.08em;text-transform:none;color:var(--gray);margin-left:0.6rem;
+  }
+  #wodBloco[open] .dica-toque{display:none;}
+  .wod-grid{grid-template-columns:1fr;}
+}
+
+/* O nome do atleta e um campo, nao um rotulo: corrigir a grafia nao pode exigir
+   apagar e recadastrar, porque isso levaria junto os resultados ja lancados.
+   Parece texto ate o cursor chegar perto. So o organizador precisa disso. */
+.list-item .nm-edit{
+  font:inherit;font-size:0.82rem;color:var(--white);
+  background:transparent;border:1px solid transparent;
+  padding:0.15rem 0.3rem;width:100%;border-radius:2px;
+}
+.list-item .nm-edit:hover{border-color:var(--border-soft);}
+.list-item .nm-edit:focus{border-color:var(--gold);background:var(--surface);outline:none;}
+.list-item .mini{font-size:0.68rem;padding:0.3rem;}
+.painel-box{background:var(--surface);border:1px solid var(--border);padding:2rem 1.6rem;margin-top:3rem;}
+.painel-titulo{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:0.06em;}
+.painel-sub{font-size:0.72rem;color:var(--gray);margin:0.2rem 0 1.4rem;}
+.user-email{font-size:0.7rem;color:var(--gray);}
+.resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0.7rem;margin-bottom:1.6rem;}
+.resumo-item{background:var(--surface);border:1px solid var(--border-soft);padding:0.8rem 1rem;}
+.resumo-rot{font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--gray);}
+.resumo-val{font-family:'DM Mono',monospace;font-size:1rem;margin-top:0.3rem;
+  overflow-wrap:anywhere;line-height:1.3;}
+
+@media (max-width:700px){
+  /* O painel e operado no celular durante o evento, entao vale o mesmo cuidado
+     da pagina publica: nada vazando para fora da tela e alvo de toque grande. */
+  .painel-box{padding:1.3rem 1rem;margin-top:1.5rem;}
+  .resumo{grid-template-columns:repeat(2,1fr);gap:0.5rem;}
+  .resumo-item{padding:0.7rem 0.8rem;}
+  .resumo-rot{font-size:0.66rem;}
+  /* o nome do campeonato vazava do card */
+  .resumo-val{font-size:0.86rem;}
+  .user-email{font-size:0.72rem;max-width:11rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  /* o link para o leaderboard vira so o essencial */
+  .header-right .btn-ghost{padding:0.45rem 0.6rem;}
+  #telaLogin{max-width:none;}
+  /* o campo de nome do atleta no celular */
+  .list-item .nm-edit{min-height:40px;}
+}
+</style>
+</head>
+<body>
+
+<div id="aviso" class="aviso"></div>
+
+<header>
+  <div class="logo"><span class="wht">CT </span><span class="gold">STORM</span></div>
+  <div class="header-right">
+    <div class="live-badge"><span class="live-dot off" id="liveDot"></span><span id="liveTxt">Conectando</span></div>
+    <a class="btn-ghost" href="https://invitational.bjjblacksheepfit.com/" target="_blank"
+       style="text-decoration:none">VER LEADERBOARD</a>
+    <span class="user-email" id="pSub"></span>
+    <button class="btn-ghost" id="btnSair" onclick="doLogout()" style="display:none">SAIR</button>
+  </div>
+</header>
+
+<div class="container" id="telaLogin" style="max-width:420px">
+  <div class="painel-box">
+    <h2 class="painel-titulo">ÁREA DO ORGANIZADOR</h2>
+    <div class="painel-sub">Usuário do evento, ou o e-mail do dashboard de gestão.</div>
+    <label class="lbl">Usuário</label>
+    <input class="field" id="logEmail" style="width:100%;margin-bottom:0.7rem" type="text"
+           autocomplete="username" autocapitalize="none" spellcheck="false">
+    <label class="lbl">Senha</label>
+    <input class="field" id="logSenha" style="width:100%" type="password" autocomplete="current-password">
+    <div class="msg err" id="logMsg"></div>
+    <button class="btn-solid" style="width:100%;margin-top:0.4rem" id="logBtn" onclick="doLogin()">ENTRAR</button>
+  </div>
+</div>
+
+<div class="container" id="telaPainel" style="display:none">
+  <div class="resumo" id="resumo"></div>
+
+  <div class="admin-tabs">
+    <button class="admin-tab active" data-ap="apResultados" onclick="apTab('apResultados')">RESULTADOS</button>
+        <button class="admin-tab" data-ap="apAtletas" onclick="apTab('apAtletas')">ATLETAS</button>
+        <button class="admin-tab" data-ap="apWods" onclick="apTab('apWods')">PROVAS</button>
+        <button class="admin-tab" data-ap="apConfig" onclick="apTab('apConfig')">CONFIG</button>
+      </div>
+
+      <!-- RESULTADOS -->
+      <div class="apane active" id="apResultados">
+        <div class="form-row">
+          <div>
+            <label class="lbl">Prova</label>
+            <select class="field" id="rWod" style="width:100%" onchange="renderGradeResultados()"></select>
+          </div>
+          <div>
+            <label class="lbl">Categoria</label>
+            <select class="field" id="rCat" style="width:100%" onchange="trocarCatResultados()"></select>
+          </div>
+        </div>
+        <!-- O time cap fica aqui, e nao no cadastro da prova: quem lanca o
+             resultado e quem sabe qual foi o cap, e e olhando para esta tela
+             que ele precisa dele. -->
+        <div class="form-row" id="rCapLinha" style="display:none">
+          <div style="flex:0 0 12rem">
+            <label class="lbl">Time cap desta prova</label>
+            <input class="field" id="rCap" style="width:100%" placeholder="15:00"
+                   onchange="salvarCapDaProva()">
+          </div>
+        </div>
+        <div class="hint" id="rHint"></div>
+        <div class="hint" id="rContagem" style="margin-top:0.4rem"></div>
+        <div id="rRepresados" class="represados" style="display:none">
+          <div><b id="rRepresadosN"></b> <span id="rRepresadosTxt"></span></div>
+          <button class="btn-solid" onclick="publicarResultados()">PUBLICAR</button>
+        </div>
+        <div class="score-grid" id="rGrid" style="margin-top:0.8rem"></div>
+        <div class="modal-foot" style="padding-left:0;padding-right:0">
+          <span class="msg" id="rMsg" style="flex:1;text-align:left"></span>
+          <button class="btn-ghost" onclick="salvarResultados()">SALVAR A GRADE TODA</button>
+          <button class="btn-ghost" onclick="abrirPrevia()">VER CLASSIFICAÇÃO</button>
+          <button class="btn-ghost" onclick="segurarProva()">SEGURAR ESTA PROVA</button>
+          <button class="btn-solid" onclick="publicarResultados()">PUBLICAR</button>
+        </div>
+      </div>
+
+      <!-- ATLETAS -->
+      <div class="apane" id="apAtletas">
+        <div class="carga">
+          <div><b>Carga inicial</b> — importa de uma vez os dados do evento (nome, data e local),
+          as categorias, as unidades, a lista oficial de atletas e, quando o arquivo trouxer,
+          as provas. Pode rodar mais de uma vez: atletas e provas têm identificador fixo,
+          então nada duplica e os resultados já lançados ficam.</div>
+          <button class="btn-solid" style="margin-top:0.6rem" onclick="cargaInicial()">IMPORTAR LISTA OFICIAL</button>
+          <div class="msg" id="cargaMsg"></div>
+        </div>
+        <div class="form-row">
+          <input class="field" id="atNome" placeholder="Nome do atleta">
+          <select class="field" id="atCat"></select>
+          <select class="field" id="atUni"></select>
+          <button class="btn-solid" onclick="addAtleta()">ADICIONAR</button>
+        </div>
+        <div class="msg" id="atMsg"></div>
+        <div class="hint">Cole vários de uma vez (um por linha, formato <b>Nome; Categoria; Unidade</b>) no campo abaixo.</div>
+        <textarea class="field" id="atBulk" style="width:100%;margin-top:0.5rem" placeholder="João Silva; Elite Masculino; Moema&#10;Maria Souza; Scaled Feminino; Pinheiros"></textarea>
+        <button class="btn-ghost" style="margin-top:0.4rem" onclick="importarAtletas()">IMPORTAR LISTA</button>
+
+        <!-- Achar uma pessoa entre 121 para corrigir o nome ou a unidade dela.
+             Fica fora do #atLista de proposito: renderListaAtletas() reescreve
+             so a lista, entao o filtro sobrevive a cada gravacao. -->
+        <div class="form-row" style="margin-top:1.4rem">
+          <input class="field" id="fltNome" placeholder="Buscar por nome" oninput="renderListaAtletas()">
+          <select class="field" id="fltCat" onchange="renderListaAtletas()"></select>
+          <select class="field" id="fltUni" onchange="renderListaAtletas()"></select>
+          <button class="btn-ghost" onclick="limparFiltroAtletas()">LIMPAR</button>
+        </div>
+        <div class="hint" id="atConta"></div>
+        <div style="margin-top:0.6rem" id="atLista"></div>
+      </div>
+
+      <!-- PROVAS -->
+      <div class="apane" id="apWods">
+        <div class="form-row">
+          <input class="field" id="wNome" placeholder="Nome da prova (ex: WOD 1 — Fran)">
+          <select class="field" id="wNivel" title="Quem faz esta prova"></select>
+          <select class="field" id="wGenero" title="Masculino, feminino ou os dois">
+            <option value="">Masc e fem</option>
+            <option value="Masculino">Só masculino</option>
+            <option value="Feminino">Só feminino</option>
+          </select>
+          <select class="field" id="wTipo">
+            <option value="tempo">Tempo (menor vence)</option>
+            <option value="reps">Repetições (maior vence)</option>
+            <option value="carga">Carga em kg (maior vence)</option>
+            <option value="pontos">Pontos (maior vence)</option>
+          </select>
+          <button class="btn-solid" onclick="addWod()">ADICIONAR</button>
+        </div>
+        <textarea class="field" id="wDesc" style="width:100%" placeholder="Descrição da prova (opcional)"></textarea>
+        <div class="msg" id="wMsg"></div>
+        <div style="margin-top:1rem" id="wLista"></div>
+      </div>
+
+      <!-- CONFIG -->
+      <div class="apane" id="apConfig">
+        <div class="form-row">
+          <div><label class="lbl">Nome do campeonato</label><input class="field" id="cNome" style="width:100%"></div>
+        </div>
+        <div class="form-row">
+          <div><label class="lbl">Data</label><input class="field" id="cData" style="width:100%" placeholder="14 e 15 de março"></div>
+          <div><label class="lbl">Local</label><input class="field" id="cLocal" style="width:100%" placeholder="CT Storm"></div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label class="lbl">Sistema de pontuação</label>
+            <select class="field" id="cSistema" style="width:100%">
+              <option value="posicao">Colocação por prova — 1º = 1 pt (menor total vence)</option>
+              <option value="tabela">Tabela de pontos (maior total vence)</option>
+            </select>
+          </div>
+          <div class="soTabela"><label class="lbl">Pontos do 1º lugar</label><input class="field" id="cP1" type="number" style="width:100%"></div>
+          <div class="soTabela"><label class="lbl">Decréscimo por posição</label><input class="field" id="cDec" type="number" style="width:100%"></div>
+        </div>
+        <div class="form-row">
+          <div style="flex:2">
+            <label class="lbl">Categorias (uma por linha)</label>
+            <textarea class="field" id="cCats" style="width:100%"></textarea>
+          </div>
+          <div style="flex:2">
+            <label class="lbl">Unidades (uma por linha)</label>
+            <textarea class="field" id="cUnis" style="width:100%"></textarea>
+          </div>
+        </div>
+        <label class="toggle" style="margin-top:0.5rem">
+          <input type="checkbox" id="cPublicado"> Leaderboard visível para o público
+        </label>
+        <div class="modal-foot" style="padding-left:0;padding-right:0">
+          <span class="msg" id="cMsg" style="flex:1;text-align:left"></span>
+          <button class="btn-solid" onclick="salvarConfig()">SALVAR CONFIG</button>
+        </div>
+      </div>
+
+</div>
+
+<!-- MODAL: partes da prova -->
+<div class="modal-bg" id="mPartes" onclick="if(event.target===this)fechar('mPartes')">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head">
+      <div><h2>PARTES DA PROVA</h2><div class="sub" id="ptTitulo"></div></div>
+      <button class="modal-x" onclick="fechar('mPartes')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <label class="lbl">Uma parte por linha — Nome; tipo</label>
+      <textarea class="field" id="ptTexto" style="width:100%;min-height:110px"
+        placeholder="Buy-in 1k remo; tempo&#10;For time; tempo"></textarea>
+      <div class="hint">
+        Tipos aceitos: <b>tempo</b> (for time), <b>reps</b> (amrap), <b>carga</b> (kg) e <b>pontos</b>.
+        Cada parte é rankeada e pontuada separadamente — no leaderboard elas aparecem
+        como <b>A</b>, <b>B</b>… dentro da mesma prova.
+        Deixe o campo vazio para a prova voltar a ter pontuação única.
+      </div>
+      <div class="msg" id="ptMsg"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-solid" onclick="salvarPartes()">SALVAR PARTES</button>
+    </div>
+  </div>
+</div>
+
+<!-- A classificacao como ELA ESTA, contando o que ainda nao foi publicado. O
+     organizador precisa saber quem ganhou antes de revelar. -->
+<div class="modal-bg" id="mPrevia" onclick="if(event.target===this)fechar('mPrevia')">
+  <div class="modal" style="max-width:900px">
+    <div class="modal-head">
+      <div><h2>PRÉVIA DA CLASSIFICAÇÃO</h2><div class="sub" id="pvTitulo"></div></div>
+      <button class="modal-x" onclick="fechar('mPrevia')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="hint" id="pvAviso"></div>
+      <div class="score-grid" id="pvCorpo" style="margin-top:0.6rem"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+/* ============================================================
+   LEADERBOARD DE CAMPEONATO
+   Leitura pública + painel de organização (Firebase).
+   Um documento por campeonato em campeonatos/ — qual deles é decidido pelo
+   arquivo do evento em eventos/, na hora do build.
+   ============================================================ */
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAcyQMnedG-XcRzMPv8_hyLcnF_VIAF7AQ",
+  authDomain: "bjj-blacksheep.firebaseapp.com",
+  projectId: "bjj-blacksheep",
+  storageBucket: "bjj-blacksheep.firebasestorage.app",
+  messagingSenderId: "1005609332876",
+  appId: "1:1005609332876:web:a11586795be7f886454ba9"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+const db = firebase.firestore();
+const DOC = db.collection('campeonatos').doc('ctstorm');
+
+const PADRAO = {
+  nome: 'CT Storm Championship',
+  data: 'Setembro 2026',
+  local: 'São Paulo',
+  sistema: 'posicao',
+  p1: 100,
+  dec: 5,
+  publicado: true,
+  categorias: ['Elite Masculino', 'Elite Feminino', 'RX Masculino', 'RX Feminino', 'Scaled Masculino', 'Scaled Feminino'],
+  unidades: ['Moema', 'Pinheiros', 'Berrini', 'Itaim', 'Vila Olímpia', 'Alphaville'],
+  wods: [],
+  atletas: [],
+  resultados: {}
+};
+
+let D = null;            // dados do campeonato
+let catAtiva = null;     // categoria selecionada
+let isAdmin = false;     // usuário autorizado logado
+let rankCache = {};      // ranking por categoria (cache do último render)
+
+/* ---------------- UTILS ---------------- */
+function uid(p) { return p + '_' + Math.random().toString(36).slice(2, 9); }
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function num(v, def) { const n = Number(v); return isFinite(n) ? n : def; }
+
+// Aceita "15:10" e tambem so os digitos, "1510" — na mesa de resultados nao da
+// para parar e procurar os dois pontos no teclado do celular a cada atleta.
+// A regra e uniforme: os DOIS ultimos digitos sao sempre os segundos, e o que
+// vier antes sao os minutos. 1510 = 15:10, 2301 = 23:01, 942 = 9:42, 45 = 0:45.
+function parseTempo(txt) {
+  const t = String(txt).trim().replace(',', '.');
+  if (!t) return null;
+  if (t.includes(':')) {
+    const p = t.split(':');
+    const m = parseFloat(p[0]), s = parseFloat(p[1]);
+    if (!isFinite(m) || !isFinite(s)) return null;
+    return m * 60 + s;
+  }
+  // so digitos, com decimo de segundo opcional
+  const puro = t.match(/^(\d+)(\.\d+)?$/);
+  if (!puro) return null;
+  const inteiro = puro[1], frac = puro[2] || '';
+  if (inteiro.length < 3) return parseFloat(t);        // 1 ou 2 digitos: segundos
+  const seg = parseFloat(inteiro.slice(-2) + frac);
+  // 1575 seria 15:75, que nao existe. Melhor recusar do que virar 16:15 calado.
+  if (seg >= 60) return null;
+  return parseInt(inteiro.slice(0, -2), 10) * 60 + seg;
+}
+function fmtTempo(seg) {
+  if (seg == null) return '--';
+  const m = Math.floor(seg / 60);
+  const s = seg - m * 60;
+  const ss = (s < 10 ? '0' : '') + (Math.round(s * 10) % 10 === 0 ? String(Math.round(s)) : s.toFixed(1));
+  return m + ':' + ss;
+}
+// Quem estoura o time cap fica com o tempo do cap mais as repeticoes que
+// faltaram: cap de 15 min e 10 reps faltando vira "15:10". Quando o cap tem
+// segundos quebrados, mostra o tempo inteiro e as reps separadas, para nao
+// confundir os segundos com a contagem.
+function fmtCapEstourado(item, faltou) {
+  const cap = num(item.cap, null);
+  if (cap == null) return '+' + faltou + ' reps';
+  if (cap % 60 === 0) return (cap / 60) + ':' + faltou;
+  return fmtTempo(cap) + ' +' + faltou;
+}
+
+function fmtValor(wod, res) {
+  if (!res) return null;
+  if (res.v == null) {
+    if (wod.tipo === 'tempo' && res.faltou != null) return fmtCapEstourado(wod, res.faltou);
+    return null;
+  }
+  if (wod.tipo === 'tempo') return fmtTempo(res.v);
+  if (wod.tipo === 'carga') return res.v + ' kg';
+  if (wod.tipo === 'reps') return res.v + ' reps';
+  return String(res.v);
+}
+function fmtPts(n) {
+  if (n == null) return '--';
+  return Math.round(n * 10) % 10 === 0 ? String(Math.round(n)) : n.toFixed(1);
+}
+function ordinal(n) { return n + 'º'; }
+
+// Aviso fixo no topo da tela: o retorno de um salvamento nao pode depender de
+// onde a pessoa esta com a rolagem.
+function avisar(tipo, texto, segundos) {
+  const el = document.getElementById('aviso');
+  if (!el) return;
+  el.className = 'aviso ' + tipo;
+  el.textContent = texto;
+  clearTimeout(avisar._t);
+  if (segundos) avisar._t = setTimeout(() => { el.className = 'aviso'; }, segundos * 1000);
+}
+
+/* ---------------- MODAIS ---------------- */
+function abrir(id) { document.getElementById(id).classList.add('open'); }
+function fechar(id) { document.getElementById(id).classList.remove('open'); }
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const abertos = [...document.querySelectorAll('.modal-bg.open')];
+  if (!abertos.length) return;
+  // fecha apenas o modal do topo (o de maior z-index)
+  abertos.sort((a, b) => parseInt(getComputedStyle(a).zIndex || 0, 10) - parseInt(getComputedStyle(b).zIndex || 0, 10));
+  abertos[abertos.length - 1].classList.remove('open');
+});
+
+/* ---------------- MOTOR DE RANKING ----------------
+   Por prova, dentro de cada categoria:
+     1) quem completou (ordenado pelo tipo da prova)
+     2) quem bateu o time cap (ordenado por reps, decrescente)
+     3) quem não pontuou (últimos, todos empatados)
+   Empates recebem a mesma colocação e a mesma pontuação (inteira, nunca 8.5).
+--------------------------------------------------- */
+function pontosDaPosicao(pos) {
+  if (D.sistema === 'posicao') return pos;
+  return Math.max(1, num(D.p1, 100) - (pos - 1) * num(D.dec, 5));
+}
+
+function chaveResultado(wod, res) {
+  // devolve [grupo, valor] — grupo 0 = completou, 1 = estourou o cap, 2 = sem nota
+  if (!res) return [2, 0];
+  if (res.v != null) return [0, wod.tipo === 'tempo' ? res.v : -res.v]; // sempre "menor é melhor"
+  // quem estourou o cap entra depois de quem finalizou, e entre eles ganha quem
+  // ficou mais perto do fim: menos repeticoes faltando
+  if (wod.tipo === 'tempo' && res.faltou != null) return [1, res.faltou];
+  return [2, 0];
+}
+
+/* Resultado represado: gravado, visivel para o organizador, invisivel para o
+   publico ate ele apertar PUBLICAR.
+
+   Resultado SEM a marca `pub` conta como publicado. Isso e o que garante que
+   nada do que ja foi lancado antes desta mudanca suma do ar: so fica escondido
+   quem tem pub === false, escrito de proposito. */
+function represado(res) { return !!res && res.pub === false; }
+
+function resultadoDe(atletaId, itemId) {
+  const res = (D.resultados[atletaId] || {})[itemId] || null;
+  if (!res) return null;
+  if (!isAdmin && represado(res)) return null;   // o publico ainda nao ve
+  return res;
+}
+
+function contarRepresados() {
+  let n = 0;
+  Object.keys(D.resultados || {}).forEach(at => {
+    Object.keys(D.resultados[at] || {}).forEach(w => {
+      if (represado(D.resultados[at][w])) n++;
+    });
+  });
+  return n;
+}
+
+function rankearProva(wod, atletas) {
+  const linhas = atletas.map(a => {
+    const res = resultadoDe(a.id, wod.id);
+    const k = chaveResultado(wod, res);
+    return { id: a.id, res, grupo: k[0], val: k[1] };
+  });
+  linhas.sort((x, y) => x.grupo - y.grupo || x.val - y.val);
+
+  const out = {};
+  let i = 0;
+  while (i < linhas.length) {
+    let j = i;
+    while (j + 1 < linhas.length &&
+           linhas[j + 1].grupo === linhas[i].grupo &&
+           linhas[j + 1].val === linhas[i].val) j++;
+    // Empate e empate: todos os empatados ficam com a MESMA colocacao e com a
+    // MESMA pontuacao inteira (a da melhor posicao do bloco). O proximo atleta
+    // pula as posicoes ocupadas pelo empate. Nunca sai 8.5 / 11.5 daqui.
+    const pos = i + 1;
+    const pts = pontosDaPosicao(pos);
+    for (let k2 = i; k2 <= j; k2++) {
+      const semNota = linhas[k2].grupo === 2;
+      // sem resultado na prova: fica em ultimo e nao soma pontos (no sistema de
+      // colocacoes ja carrega a penalidade da ultima posicao).
+      const p = (semNota && D.sistema !== 'posicao') ? 0 : pts;
+      out[linhas[k2].id] = { pos, pts: p, res: linhas[k2].res, semNota };
+    }
+    i = j + 1;
+  }
+  return out;
+}
+
+function wodsValidos() {
+  return (D.wods || []).filter(w => isAdmin || w.pub !== false)
+                       .sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+}
+
+const LETRAS = 'ABCDEFGH';
+
+function abrevWod(w) {
+  const m = String(w.nome).match(/^\s*(WOD|PROVA)\s*(\d+)/i);
+  if (m) return 'W' + m[2];
+  return String(w.nome).slice(0, 10);
+}
+
+// Cada prova pontua uma vez; se tiver partes (ex: buy-in de 1k de remo e depois
+// o for time), cada parte vira um item pontuado proprio dentro da mesma prova.
+// A quem a prova pertence. A lista guarda categorias inteiras ("Elite Masculino"),
+// mas o cadastro pergunta nivel + genero, que e como a prova e pensada: masculino
+// e feminino fazem a mesma coisa mudando a carga, e a carga vai no texto.
+// Vazia ou ausente = a prova vale para todo mundo, que e como as provas antigas
+// (cadastradas antes disto existir) continuam funcionando.
+function categoriasDaProva(w) {
+  const c = w && w.categorias;
+  return (Array.isArray(c) && c.length) ? c : null;
+}
+function provaValePara(w, categoria) {
+  const c = categoriasDaProva(w);
+  return !c || !categoria || c.indexOf(categoria) !== -1;
+}
+
+// "Elite Masculino" -> "Elite". Masculino e feminino compartilham a programacao.
+function nivelDe(categoria) {
+  return String(categoria || '').replace(/\s+(Masculino|Feminino)$/i, '').trim();
+}
+function niveis() {
+  const fora = [];
+  (D.categorias || []).forEach(c => {
+    const n = nivelDe(c);
+    if (n && fora.indexOf(n) === -1) fora.push(n);
+  });
+  return fora;
+}
+// nivel + genero -> as categorias de verdade. Genero vazio = os dois.
+function categoriasDe(nivel, genero) {
+  return (D.categorias || []).filter(c =>
+    (!nivel || nivelDe(c) === nivel) &&
+    (!genero || new RegExp('\\s' + genero + '$', 'i').test(c)));
+}
+// o caminho de volta, para a lista mostrar "Elite · masculino e feminino"
+function escopoDaProva(w) {
+  const c = categoriasDaProva(w);
+  if (!c) return 'todas as categorias';
+  const ns = [];
+  c.forEach(x => { const n = nivelDe(x); if (ns.indexOf(n) === -1) ns.push(n); });
+  const temM = c.some(x => /Masculino$/i.test(x));
+  const temF = c.some(x => /Feminino$/i.test(x));
+  const g = (temM && temF) ? 'masculino e feminino' : temM ? 'masculino' : temF ? 'feminino' : '';
+  return ns.join(', ') + (g ? ' · ' + g : '');
+}
+
+function itensDe(w) {
+  if (!w.partes || !w.partes.length) {
+    return [{ id: w.id, nome: w.nome, curto: abrevWod(w), tipo: w.tipo, cap: w.cap, wod: w }];
+  }
+  return w.partes.map((p, i) => ({
+    id: w.id + '::' + p.id,
+    nome: w.nome + ' · ' + LETRAS[i] + ') ' + p.nome,
+    curto: abrevWod(w) + LETRAS[i],
+    tipo: p.tipo,
+    // a parte pode ter cap proprio; sem isso, vale o da prova
+    cap: p.cap != null ? p.cap : w.cap,
+    wod: w,
+    parte: p
+  }));
+}
+
+// Sem categoria: todas as provas (o painel usa assim para listar tudo).
+// Com categoria: so as provas daquela categoria.
+function itensPontuados(categoria) {
+  return wodsValidos()
+    .filter(w => provaValePara(w, categoria))
+    .reduce((acc, w) => acc.concat(itensDe(w)), []);
+}
+
+function calcularRanking(categoria) {
+  const atletas = (D.atletas || []).filter(a => a.categoria === categoria);
+  const itens = itensPontuados(categoria);
+  const porProva = {};
+  itens.forEach(w => { porProva[w.id] = rankearProva(w, atletas); });
+
+  // Uma prova que ninguem da categoria fez ainda NAO entra no total. Se entrasse,
+  // todo mundo ficaria empatado em ultimo nela e levaria a mesma media — com 4
+  // atletas, 2,5 pontos cada. Seis provas por lancar viravam 15 pontos fixos no
+  // total de todo mundo, e o primeiro colocado aparecia com 16 em vez de 1.
+  // A ordem ate ficava certa, mas o numero nao queria dizer nada.
+  const valendo = {};
+  itens.forEach(w => {
+    valendo[w.id] = atletas.some(a => resultadoDe(a.id, w.id));
+  });
+
+  const linhas = atletas.map(a => {
+    const provas = {};
+    let total = 0, algum = false;
+    const posicoes = [];
+    itens.forEach(w => {
+      const r = porProva[w.id][a.id];
+      r.valendo = valendo[w.id];
+      provas[w.id] = r;
+      if (!valendo[w.id]) return;
+      total += r.pts;
+      posicoes.push(r.pos);
+      if (!r.semNota) algum = true;
+    });
+    posicoes.sort((x, y) => x - y);
+    return { atleta: a, provas, total, posicoes, pontuou: algum };
+  });
+
+  const dir = D.sistema === 'posicao' ? 1 : -1; // posicao: menor vence
+  linhas.sort((x, y) => {
+    if (x.pontuou !== y.pontuou) return x.pontuou ? -1 : 1;
+    return (x.total - y.total) * dir;
+  });
+
+  // Desempate por CONFRONTO DIRETO. Mesma pontuacao: os dois continuam com o
+  // mesmo total (o numero na tabela nao muda), mas fica na frente quem venceu o
+  // outro mais vezes. Conta um duelo por prova ja lancada contra cada empatado —
+  // quem terminou melhor NELA leva; empate na prova nao da duelo a ninguem.
+  const contadas = itens.filter(w => valendo[w.id]);
+  let ini = 0;
+  while (ini < linhas.length) {
+    let fim = ini;
+    while (fim + 1 < linhas.length &&
+           linhas[fim + 1].total === linhas[ini].total &&
+           linhas[fim + 1].pontuou === linhas[ini].pontuou) fim++;
+    const bloco = linhas.slice(ini, fim + 1);
+    if (bloco.length > 1) {
+      bloco.forEach(l => {
+        let ganhos = 0;
+        bloco.forEach(o => {
+          if (o === l) return;
+          contadas.forEach(w => { if (l.provas[w.id].pos < o.provas[w.id].pos) ganhos++; });
+        });
+        l.duelos = ganhos;
+        l.confrontos = (bloco.length - 1) * contadas.length;
+        l.empatadoCom = bloco.length - 1;
+      });
+      bloco.sort((x, y) => {
+        if (x.duelos !== y.duelos) return y.duelos - x.duelos;
+        // O confronto direto pode empatar tambem — o caso classico e o circular
+        // com 3 ou mais (A ganha de B, B de C, C de A). Ai decide quem teve as
+        // melhores colocacoes individuais.
+        for (let i = 0; i < Math.max(x.posicoes.length, y.posicoes.length); i++) {
+          const a = x.posicoes[i] == null ? 999 : x.posicoes[i];
+          const b = y.posicoes[i] == null ? 999 : y.posicoes[i];
+          if (a !== b) return a - b;
+        }
+        return x.atleta.nome.localeCompare(y.atleta.nome, 'pt-BR');
+      });
+      for (let k = 0; k < bloco.length; k++) linhas[ini + k] = bloco[k];
+    }
+    ini = fim + 1;
+  }
+
+  // colocação geral com empate — so dividem a colocacao quem empatou em tudo,
+  // inclusive no confronto direto.
+  let pos = 0;
+  linhas.forEach((l, i) => {
+    const ant = linhas[i - 1];
+    const igual = ant && ant.total === l.total && ant.pontuou === l.pontuou &&
+                  (ant.duelos || 0) === (l.duelos || 0) &&
+                  JSON.stringify(ant.posicoes) === JSON.stringify(l.posicoes);
+    pos = igual ? pos : i + 1;
+    l.pos = pos;
+  });
+  return { linhas, itens, valendo };
+}
+
+/* ---------------- CARREGAMENTO ---------------- */
+function normalizar(raw) {
+  const d = Object.assign({}, PADRAO, raw || {});
+  d.categorias = (d.categorias && d.categorias.length) ? d.categorias : PADRAO.categorias.slice();
+  d.unidades = (d.unidades && d.unidades.length) ? d.unidades : PADRAO.unidades.slice();
+  d.wods = d.wods || [];
+  d.atletas = d.atletas || [];
+  d.resultados = d.resultados || {};
+  return d;
+}
+
+function setLive(ok, txt) {
+  document.getElementById('liveDot').classList.toggle('off', !ok);
+  document.getElementById('liveTxt').textContent = txt;
+}
+
+// Se o Firestore travar sem devolver erro, o loader giraria para sempre.
+// Passados 12s sem resposta, a pagina oferece uma saida — e continua esperando,
+// porque a resposta ainda pode chegar.
+let respondeu = false;
+const semResposta = setTimeout(() => {
+  if (respondeu) return;
+  const l = document.getElementById('loader');
+  if (l) l.innerHTML = 'O leaderboard está demorando para responder.' + botaoTentarDeNovo();
+}, 12000);
+
+function botaoTentarDeNovo() {
+  return '<br><button class="btn-solid" style="margin-top:1rem" onclick="location.reload()">' +
+         'TENTAR DE NOVO</button>';
+}
+
+DOC.onSnapshot(snap => {
+  respondeu = true;
+  clearTimeout(semResposta);
+  D = normalizar(snap.exists ? snap.data() : null);
+  setLive(true, snap.exists ? 'Ao vivo' : 'Sem dados');
+  if (isAdmin) preencherAdmin();
+  render();
+}, err => {
+  console.error(err);
+  respondeu = true;
+  clearTimeout(semResposta);
+  setLive(false, 'Offline');
+  avisar('err', 'Não foi possível ler o campeonato (' + (err.code || 'sem código') + '). ' +
+                'Verifique as regras da coleção campeonatos no Firestore.');
+  const l = document.getElementById('loader');
+  if (l) l.innerHTML = 'Não foi possível carregar o leaderboard.' + botaoTentarDeNovo();
+});
+
+
+/* ---------------- RESUMO (no lugar do leaderboard publico) ---------------- */
+function render() {
+  const el = document.getElementById('resumo');
+  if (!el || !D) return;
+  const itens = (D.wods || []).reduce((n, w) => n + ((w.partes && w.partes.length) || 1), 0);
+  const publicado = D.publicado !== false;
+  el.innerHTML =
+    item('Campeonato', esc(D.nome || '—')) +
+    item('Atletas', (D.atletas || []).length) +
+    item('Provas', (D.wods || []).length + ' (' + itens + ' pontuações)') +
+    item('Leaderboard público', publicado
+      ? '<span style="color:var(--green)">liberado</span>'
+      : '<span style="color:var(--red)">oculto</span>');
+  function item(rot, val) {
+    return '<div class="resumo-item"><div class="resumo-rot">' + rot + '</div>' +
+           '<div class="resumo-val">' + val + '</div></div>';
+  }
+}
+/* ============================================================
+   PAINEL DO ORGANIZADOR
+   ============================================================ */
+function mostrarPainel(logado) {
+  document.getElementById('telaLogin').style.display = logado ? 'none' : 'block';
+  document.getElementById('telaPainel').style.display = logado ? 'block' : 'none';
+  document.getElementById('btnSair').style.display = logado ? '' : 'none';
+}
+
+auth.onAuthStateChanged(async user => {
+  if (user && await autorizado(user.email)) {
+    isAdmin = true;
+    document.getElementById('pSub').textContent = nomeDeExibicao(user.email);
+    mostrarPainel(true);
+    if (D) { preencherAdmin(); render(); }
+  } else {
+    if (user) { auth.signOut(); }
+    isAdmin = false;
+    document.getElementById('pSub').textContent = '';
+    mostrarPainel(false);
+  }
+});
+
+// O acesso do organizador e por usuario, nao por e-mail: quem lanca os
+// resultados esta de plantao na mesa e nao deve precisar da conta pessoal de
+// ninguem. O Firebase Auth so trabalha com e-mail, entao um usuario digitado
+// sem "@" vira usuario@DOMINIO_ORGANIZADOR. Quem tem conta no dashboard de
+// gestao continua entrando com o e-mail inteiro.
+const DOMINIO_ORGANIZADOR = 'ctstorm-leaderboard.github.io';
+
+function emailDoLogin(valor) {
+  const v = String(valor || '').trim().toLowerCase();
+  if (!v) return '';
+  return v.includes('@') ? v : v + '@' + DOMINIO_ORGANIZADOR;
+}
+
+// Como mostrar no cabecalho quem esta logado: o usuario do evento aparece so
+// pelo nome, sem o dominio inventado que o Firebase exige.
+function nomeDeExibicao(email) {
+  const e = String(email || '');
+  return e.endsWith('@' + DOMINIO_ORGANIZADOR) ? e.slice(0, -(DOMINIO_ORGANIZADOR.length + 1)) : e;
+}
+
+async function autorizado(email) {
+  try {
+    const d = await db.collection('dashboard_users').doc(String(email).toLowerCase()).get();
+    return d.exists && d.data().ativo !== false;
+  } catch (e) { console.error(e); return false; }
+}
+
+async function doLogin() {
+  const email = emailDoLogin(document.getElementById('logEmail').value);
+  const senha = document.getElementById('logSenha').value;
+  const msg = document.getElementById('logMsg');
+  const btn = document.getElementById('logBtn');
+  if (!email || !senha) { msg.textContent = 'Preencha usuário e senha.'; return; }
+  btn.disabled = true; btn.textContent = 'ENTRANDO...'; msg.textContent = '';
+  try {
+    const cred = await auth.signInWithEmailAndPassword(email, senha);
+    if (!(await autorizado(cred.user.email))) {
+      await auth.signOut();
+      msg.textContent = 'Este usuário não tem acesso de organizador.';
+    } else {
+      document.getElementById('logSenha').value = '';
+    }
+  } catch (e) {
+    msg.textContent = (e.code === 'auth/too-many-requests')
+      ? 'Muitas tentativas. Tente mais tarde.'
+      : 'Usuário ou senha incorretos.';
+  }
+  btn.disabled = false; btn.textContent = 'ENTRAR';
+}
+document.getElementById('logSenha').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+function doLogout() { auth.signOut(); }
+
+function apTab(id) {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.toggle('active', t.dataset.ap === id));
+  document.querySelectorAll('.apane').forEach(p => p.classList.toggle('active', p.id === id));
+}
+
+async function salvar(patch, msgId, texto) {
+  const el = msgId ? document.getElementById(msgId) : null;
+  if (el) { el.className = 'msg'; el.textContent = 'Salvando…'; }
+  avisar('info', 'Salvando…');
+  try {
+    // mergeFields substitui os campos informados por inteiro:
+    // sem isso, remover um atleta/prova/resultado nao apaga a chave no Firestore.
+    await DOC.set(patch, { mergeFields: Object.keys(patch) });
+    if (el) {
+      // So apaga se a mensagem ainda for esta. Sem isso, o temporizador de um
+      // salvamento antigo apagava o erro que acabou de aparecer na tela.
+      const meu = texto || 'Salvo.';
+      el.className = 'msg ok';
+      el.textContent = meu;
+      setTimeout(() => { if (el.textContent === meu) el.textContent = ''; }, 3000);
+    }
+    avisar('ok', texto || 'Salvo.', 4);
+    return true;
+  } catch (e) {
+    console.error(e);
+    const msg = e.code === 'permission-denied'
+      ? 'Sem permissão para salvar. Este usuário não está autorizado a escrever no ' +
+        'campeonato — o UID dele precisa estar na lista das regras do Firestore ' +
+        '(ver LEADERBOARD.md). Confira e entre de novo.'
+      : 'Erro ao salvar (' + (e.code || 'sem código') + '): ' + (e.message || '');
+    if (el) { el.className = 'msg err'; el.textContent = msg; }
+    avisar('err', msg);
+    return false;
+  }
+}
+
+function preencherAdmin() {
+  // config
+  document.getElementById('cNome').value = D.nome || '';
+  document.getElementById('cData').value = D.data || '';
+  document.getElementById('cLocal').value = D.local || '';
+  document.getElementById('cSistema').value = D.sistema || 'tabela';
+  document.getElementById('cP1').value = num(D.p1, 100);
+  document.getElementById('cDec').value = num(D.dec, 5);
+  document.getElementById('cCats').value = (D.categorias || []).join('\n');
+  document.getElementById('cUnis').value = (D.unidades || []).join('\n');
+  document.getElementById('cPublicado').checked = D.publicado !== false;
+  alternarCamposPontuacao();
+
+  // selects de atleta
+  opcoes('atCat', D.categorias);
+  opcoes('atUni', D.unidades);
+  // nos filtros a primeira opcao e "todas/todos": nao filtra nada
+  opcoesComTodos('wNivel', niveis(), 'Todas as categorias');
+  opcoesComTodos('fltCat', D.categorias, 'Todas as categorias');
+  opcoesComTodos('fltUni', (D.unidades || []).concat(['— sem unidade —']), 'Todas as unidades');
+  opcoes('rCat', D.categorias);
+  // o select de provas segue a categoria: quem lanca resultado do Scaled nao deve
+  // ver as provas que so o Elite faz
+  preencherProvasDaCategoria();
+
+  renderListaAtletas();
+  renderListaWods();
+  renderGradeResultados();
+}
+
+function opcoesComTodos(id, arr, rotuloTodos) {
+  const s = document.getElementById(id);
+  const ant = s.value;
+  s.innerHTML = '<option value="">' + esc(rotuloTodos) + '</option>' +
+    (arr || []).map(v => '<option value="' + esc(v) + '">' + esc(v) + '</option>').join('');
+  if (ant && (arr || []).includes(ant)) s.value = ant;
+}
+
+function opcoes(id, arr) {
+  const s = document.getElementById(id);
+  const ant = s.value;
+  s.innerHTML = (arr || []).map(v => '<option>' + esc(v) + '</option>').join('');
+  if ((arr || []).includes(ant)) s.value = ant;
+}
+
+/* ---------------- CONFIG ---------------- */
+function alternarCamposPontuacao() {
+  const tabela = document.getElementById('cSistema').value === 'tabela';
+  document.querySelectorAll('.soTabela').forEach(el => { el.style.display = tabela ? '' : 'none'; });
+}
+document.getElementById('cSistema').addEventListener('change', alternarCamposPontuacao);
+
+function salvarConfig() {
+  const linhas = t => t.split('\n').map(s => s.trim()).filter(Boolean);
+  const patch = {
+    nome: document.getElementById('cNome').value.trim() || PADRAO.nome,
+    data: document.getElementById('cData').value.trim(),
+    local: document.getElementById('cLocal').value.trim(),
+    sistema: document.getElementById('cSistema').value,
+    p1: num(document.getElementById('cP1').value, 100),
+    dec: num(document.getElementById('cDec').value, 5),
+    categorias: linhas(document.getElementById('cCats').value),
+    unidades: linhas(document.getElementById('cUnis').value),
+    publicado: document.getElementById('cPublicado').checked
+  };
+  if (!patch.categorias.length) patch.categorias = PADRAO.categorias.slice();
+  salvar(patch, 'cMsg', 'Configuração salva.');
+}
+
+/* ---------------- ATLETAS ---------------- */
+// Carga inicial: le o arquivo oficial e grava categorias, unidades, atletas e —
+// quando o arquivo trouxer — as provas, de uma vez so. Roda com o login do
+// organizador. E por aqui que uma lista de provas montada fora do painel entra
+// no campeonato sem ninguem digitar prova por prova.
+async function cargaInicial() {
+  const msg = document.getElementById('cargaMsg');
+  msg.className = 'msg'; msg.textContent = 'Carregando a lista…';
+  let d;
+  try {
+    const r = await fetch('dados/campeonato-inicial.json', { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    d = await r.json();
+  } catch (e) {
+    msg.className = 'msg err';
+    msg.textContent = 'Não foi possível ler a lista oficial (' + (e.message || e) + ').';
+    return;
+  }
+  if (!d.atletas || !d.atletas.length) {
+    msg.className = 'msg err'; msg.textContent = 'A lista oficial está vazia.'; return;
+  }
+
+  // As provas sao opcionais no arquivo: quem so quer atualizar a lista de atletas
+  // nao precisa mexer nelas, e o que ja estiver cadastrado fica como esta.
+  const temProvas = Array.isArray(d.wods) && d.wods.length;
+
+  const atuais = (D.atletas || []).length;
+  const provasAtuais = (D.wods || []).length;
+  const avisos = [];
+  if (atuais) avisos.push('os ' + atuais + ' atleta(s) já cadastrados');
+  if (temProvas && provasAtuais) avisos.push('as ' + provasAtuais + ' prova(s) já cadastradas');
+  if (avisos.length && !confirm('Isso substitui ' + avisos.join(' e ') + '. ' +
+      'Resultados de atletas ou provas que saírem da lista serão descartados. Continuar?')) {
+    msg.textContent = ''; return;
+  }
+
+  // Preserva os resultados de quem continua na lista — por atleta e por prova.
+  // Sem a poda por prova, trocar as provas deixaria no Firestore resultados
+  // apontando para ids que nao existem mais.
+  const temAtleta = {};
+  d.atletas.forEach(a => { temAtleta[a.id] = true; });
+  let temItem = null;
+  if (temProvas) {
+    temItem = {};
+    d.wods.forEach(w => {
+      if (w.partes && w.partes.length) w.partes.forEach(pt => { temItem[w.id + '::' + pt.id] = true; });
+      else temItem[w.id] = true;
+    });
+  }
+  const resultados = {};
+  Object.keys(D.resultados || {}).forEach(aid => {
+    if (!temAtleta[aid]) return;
+    if (!temItem) { resultados[aid] = D.resultados[aid]; return; }
+    const guardar = {};
+    Object.keys(D.resultados[aid] || {}).forEach(iid => {
+      if (temItem[iid]) guardar[iid] = D.resultados[aid][iid];
+    });
+    resultados[aid] = guardar;
+  });
+
+  const patch = {
+    categorias: d.categorias,
+    unidades: d.unidades,
+    atletas: d.atletas,
+    resultados
+  };
+  if (temProvas) patch.wods = d.wods;
+  // nome, subtitulo, data e local do evento
+  Object.keys(d.config || {}).forEach(k => { patch[k] = d.config[k]; });
+
+  await salvar(patch, 'cargaMsg', d.atletas.length + ' atletas, ' + d.categorias.length +
+     ' categorias, ' + d.unidades.length + ' unidades' +
+     (temProvas ? ' e ' + d.wods.length + ' provas' : '') + ' importados.');
+}
+
+function addAtleta() {
+  const nome = document.getElementById('atNome').value.trim();
+  const msg = document.getElementById('atMsg');
+  if (!nome) { msg.className = 'msg err'; msg.textContent = 'Informe o nome.'; return; }
+  const novo = {
+    id: uid('at'),
+    nome,
+    categoria: document.getElementById('atCat').value,
+    unidade: document.getElementById('atUni').value
+  };
+  salvar({ atletas: (D.atletas || []).concat([novo]) }, 'atMsg', 'Atleta adicionado.');
+  document.getElementById('atNome').value = '';
+  document.getElementById('atNome').focus();
+}
+
+function importarAtletas() {
+  const txt = document.getElementById('atBulk').value;
+  const msg = document.getElementById('atMsg');
+  const novos = [];
+  txt.split('\n').map(l => l.trim()).filter(Boolean).forEach(l => {
+    const p = l.split(/[;\t]|,(?=\s*\S)/).map(s => s.trim());
+    if (!p[0]) return;
+    novos.push({
+      id: uid('at'),
+      nome: p[0],
+      categoria: (D.categorias || []).find(c => c.toLowerCase() === String(p[1] || '').toLowerCase()) || p[1] || D.categorias[0],
+      unidade: (D.unidades || []).find(u => u.toLowerCase() === String(p[2] || '').toLowerCase()) || p[2] || ''
+    });
+  });
+  if (!novos.length) { msg.className = 'msg err'; msg.textContent = 'Nada para importar.'; return; }
+  salvar({ atletas: (D.atletas || []).concat(novos) }, 'atMsg', novos.length + ' atleta(s) importado(s).');
+  document.getElementById('atBulk').value = '';
+}
+
+function removerAtleta(id) {
+  const a = (D.atletas || []).find(x => x.id === id);
+  if (!a || !confirm('Remover ' + a.nome + ' e todos os resultados dele?')) return;
+  const res = Object.assign({}, D.resultados);
+  delete res[id];
+  salvar({ atletas: D.atletas.filter(x => x.id !== id), resultados: res }, 'atMsg', 'Atleta removido.');
+}
+
+function editarAtleta(id, campo, valor) {
+  const v = campo === 'nome' ? String(valor).trim().replace(/\s+/g, ' ') : valor;
+  if (campo === 'nome' && !v) {
+    // um nome em branco sumiria da lista sem sumir do campeonato
+    avisar('err', 'O nome não pode ficar em branco.');
+    renderListaAtletas();
+    return;
+  }
+  const atual = (D.atletas || []).find(a => a.id === id);
+  if (atual && atual[campo] === v) return;   // nada mudou, nao grava a toa
+  const atletas = (D.atletas || []).map(a => a.id === id ? Object.assign({}, a, { [campo]: v }) : a);
+  salvar({ atletas }, 'atMsg', 'Atualizado.');
+}
+
+const SEM_UNIDADE = '— sem unidade —';
+
+function valorFiltro(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : '';
+}
+
+function limparFiltroAtletas() {
+  ['fltNome', 'fltCat', 'fltUni'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  renderListaAtletas();
+}
+
+// Sem acento e em minusculas, para "Joao" achar "João".
+function simples(t) {
+  return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+function atletasFiltrados() {
+  const nome = simples(valorFiltro('fltNome')).trim();
+  const cat = valorFiltro('fltCat');
+  const uni = valorFiltro('fltUni');
+  return (D.atletas || []).filter(a => {
+    if (cat && a.categoria !== cat) return false;
+    if (uni === SEM_UNIDADE) { if (a.unidade) return false; }
+    else if (uni && a.unidade !== uni) return false;
+    return !nome || simples(a.nome).includes(nome);
+  });
+}
+
+function renderListaAtletas() {
+  const el = document.getElementById('atLista');
+  const conta = document.getElementById('atConta');
+  const total = (D.atletas || []).length;
+  const ordenados = atletasFiltrados().sort((a, b) =>
+    (a.categoria || '').localeCompare(b.categoria || '', 'pt-BR') || a.nome.localeCompare(b.nome, 'pt-BR'));
+  if (conta) {
+    conta.textContent = !total ? ''
+      : ordenados.length === total ? total + ' atletas'
+      : 'mostrando ' + ordenados.length + ' de ' + total;
+  }
+  if (!total) { el.innerHTML = '<div class="hint">Nenhum atleta cadastrado.</div>'; return; }
+  if (!ordenados.length) { el.innerHTML = '<div class="hint">Nenhum atleta com esse filtro.</div>'; return; }
+  const opcao = (v, atual) => '<option value="' + esc(v) + '"' +
+    (v === atual ? ' selected' : '') + '>' + esc(v || 'sem unidade') + '</option>';
+  el.innerHTML = ordenados.map(a =>
+    '<div class="list-item">' +
+      '<div class="grow">' +
+        '<input class="nm-edit" value="' + esc(a.nome) + '" aria-label="Nome do atleta"' +
+          ' onchange="editarAtleta(' + jq(a.id) + ',\'nome\',this.value)">' +
+      '</div>' +
+      '<select class="field mini" aria-label="Categoria"' +
+        ' onchange="editarAtleta(' + jq(a.id) + ',\'categoria\',this.value)">' +
+        (D.categorias || []).map(c => opcao(c, a.categoria)).join('') +
+      '</select>' +
+      '<select class="field mini" aria-label="Unidade"' +
+        ' onchange="editarAtleta(' + jq(a.id) + ',\'unidade\',this.value)">' +
+        [''].concat(D.unidades || []).map(u => opcao(u, a.unidade || '')).join('') +
+      '</select>' +
+      '<button class="btn-danger" onclick="removerAtleta(' + jq(a.id) + ')">×</button>' +
+    '</div>').join('');
+}
+
+function jq(s) { return JSON.stringify(String(s)).replace(/"/g, '&quot;'); }
+
+/* ---------------- PROVAS ---------------- */
+function addWod() {
+  const nome = document.getElementById('wNome').value.trim();
+  const msg = document.getElementById('wMsg');
+  if (!nome) { msg.className = 'msg err'; msg.textContent = 'Informe o nome da prova.'; return; }
+  const nivel = document.getElementById('wNivel').value;
+  const genero = document.getElementById('wGenero').value;
+  const cats = categoriasDe(nivel, genero);
+  if (nivel && !cats.length) {
+    msg.className = 'msg err';
+    msg.textContent = 'Nenhuma categoria bate com essa combinação.';
+    return;
+  }
+  const tipo = document.getElementById('wTipo').value;
+  const novo = {
+    id: uid('w'),
+    nome,
+    tipo,
+    // o time cap se define na tela de lancamento, junto com a pontuacao
+    cap: null,
+    desc: document.getElementById('wDesc').value.trim(),
+    // sem nivel escolhido a prova vale para todo mundo, e a lista fica vazia
+    categorias: nivel ? cats : [],
+    ordem: (D.wods || []).length + 1,
+    pub: true
+  };
+  salvar({ wods: (D.wods || []).concat([novo]) }, 'wMsg', 'Prova adicionada.');
+  document.getElementById('wNome').value = '';
+  document.getElementById('wDesc').value = '';
+}
+
+function removerWod(id) {
+  const w = (D.wods || []).find(x => x.id === id);
+  if (!w || !confirm('Remover "' + w.nome + '" e todos os resultados dela?')) return;
+  const res = {};
+  Object.keys(D.resultados || {}).forEach(aid => {
+    const copia = {};
+    Object.keys(D.resultados[aid] || {}).forEach(k => {
+      if (k !== id && k.indexOf(id + '::') !== 0) copia[k] = D.resultados[aid][k];
+    });
+    res[aid] = copia;
+  });
+  salvar({ wods: D.wods.filter(x => x.id !== id), resultados: res }, 'wMsg', 'Prova removida.');
+}
+
+function togglePubWod(id, val) {
+  salvar({ wods: (D.wods || []).map(w => w.id === id ? Object.assign({}, w, { pub: val }) : w) },
+    'wMsg', val ? 'Prova publicada.' : 'Prova oculta.');
+}
+
+function moverWod(id, delta) {
+  const wods = (D.wods || []).slice().sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+  const i = wods.findIndex(w => w.id === id);
+  const j = i + delta;
+  if (i < 0 || j < 0 || j >= wods.length) return;
+  const tmp = wods[i]; wods[i] = wods[j]; wods[j] = tmp;
+  salvar({ wods: wods.map((w, k) => Object.assign({}, w, { ordem: k + 1 })) }, 'wMsg', 'Ordem atualizada.');
+}
+
+// Cada opcao carrega "nivel|genero"; vazio = todas as categorias.
+function opcoesEscopo(w) {
+  const atual = categoriasDaProva(w);
+  const ns = [];
+  (atual || []).forEach(c => { const n = nivelDe(c); if (ns.indexOf(n) === -1) ns.push(n); });
+
+  // Uma prova pode valer para mais de um nivel — Intermediario e Master fazem a
+  // mesma. Nenhuma opcao nivel+genero representa isso, e deixar o seletor
+  // marcando so o primeiro nivel esconderia o resto: quem encostasse nele
+  // tiraria o Master da prova sem perceber. Entao esse caso ganha uma opcao
+  // propria, que descreve o que esta valendo.
+  const varios = ns.length > 1;
+  const alvo = !atual ? '' : varios ? '__varios__' : (function () {
+    const temM = atual.some(x => /Masculino$/i.test(x));
+    const temF = atual.some(x => /Feminino$/i.test(x));
+    return ns[0] + '|' + (temM && temF ? '' : temM ? 'Masculino' : 'Feminino');
+  })();
+
+  let fora = '';
+  if (varios) fora += '<option value="__varios__" selected>' + esc(escopoDaProva(w)) + '</option>';
+  fora += '<option value=""' + (alvo === '' ? ' selected' : '') + '>Todas as categorias</option>';
+  niveis().forEach(n => {
+    [['', 'masc e fem'], ['Masculino', 'só masc'], ['Feminino', 'só fem']].forEach(g => {
+      const v = n + '|' + g[0];
+      fora += '<option value="' + esc(v) + '"' + (v === alvo ? ' selected' : '') + '>' +
+              esc(n + ' · ' + g[1]) + '</option>';
+    });
+  });
+  return fora;
+}
+
+function mudarEscopoWod(id, valor) {
+  if (valor === '__varios__') return;   // e o rotulo do escopo atual, nao uma escolha
+  const partes = String(valor).split('|');
+  const cats = valor ? categoriasDe(partes[0], partes[1] || '') : [];
+  if (valor && !cats.length) { avisar('err', 'Nenhuma categoria bate com essa combinação.'); return; }
+  const wods = (D.wods || []).map(w => w.id === id ? Object.assign({}, w, { categorias: cats }) : w);
+  salvar({ wods }, 'wMsg', 'Prova atualizada.');
+}
+
+function renderListaWods() {
+  const el = document.getElementById('wLista');
+  const wods = (D.wods || []).slice().sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+  if (!wods.length) { el.innerHTML = '<div class="hint">Nenhuma prova cadastrada.</div>'; return; }
+  const TIPOS = { tempo: 'menor tempo', reps: 'mais reps', carga: 'maior carga', pontos: 'mais pontos' };
+  el.innerHTML = wods.map((w, i) =>
+    '<div class="list-item">' +
+      '<div class="grow"><div class="nm">' + esc(w.nome) + '</div>' +
+      '<div class="mt">' +
+        (w.partes && w.partes.length
+          ? w.partes.map((pt, k) => LETRAS[k] + ' ' + esc(pt.nome) + ' (' + esc(TIPOS[pt.tipo] || pt.tipo) + ')').join(' · ')
+          : esc(TIPOS[w.tipo] || w.tipo)) +
+        (w.tipo === 'tempo' ? ' · cap ' + (w.cap != null ? fmtTempo(w.cap) : 'a definir') : '') +
+        ' · ' + esc(escopoDaProva(w)) +
+        (w.pub === false ? ' · oculta' : '') + '</div></div>' +
+      '<select class="field mini" aria-label="Quem faz esta prova"' +
+        ' onchange="mudarEscopoWod(' + jq(w.id) + ',this.value)">' +
+        opcoesEscopo(w) +
+      '</select>' +
+      '<button class="btn-ghost" onclick="abrirPartes(' + jq(w.id) + ')">PARTES</button>' +
+      '<label class="toggle"><input type="checkbox"' + (w.pub !== false ? ' checked' : '') +
+        ' onchange="togglePubWod(' + jq(w.id) + ',this.checked)"> pub</label>' +
+      '<button class="btn-ghost" onclick="moverWod(' + jq(w.id) + ',-1)"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
+      '<button class="btn-ghost" onclick="moverWod(' + jq(w.id) + ',1)"' + (i === wods.length - 1 ? ' disabled' : '') + '>↓</button>' +
+      '<button class="btn-danger" onclick="removerWod(' + jq(w.id) + ')">×</button>' +
+    '</div>').join('');
+}
+
+/* ---------------- PARTES DA PROVA ----------------
+   Uma prova pode ter mais de uma pontuacao: ex. buy-in de 1k de remo
+   cronometrado e, na sequencia, o for time. Cada parte e rankeada e
+   pontuada separadamente, mas as duas continuam na mesma prova.
+-------------------------------------------------- */
+let partesWodId = null;
+
+function abrirPartes(id) {
+  const w = (D.wods || []).find(x => x.id === id);
+  if (!w) return;
+  partesWodId = id;
+  document.getElementById('ptTitulo').textContent = w.nome;
+  document.getElementById('ptTexto').value =
+    (w.partes || []).map(p => p.nome + '; ' + p.tipo).join('\n');
+  document.getElementById('ptMsg').textContent = '';
+  abrir('mPartes');
+}
+
+const APELIDOS_TIPO = {
+  tempo: 'tempo', 'for time': 'tempo', fortime: 'tempo', cronometrado: 'tempo',
+  reps: 'reps', amrap: 'reps', 'repeticoes': 'reps', 'repetições': 'reps',
+  carga: 'carga', kg: 'carga', peso: 'carga', forca: 'carga', 'força': 'carga',
+  pontos: 'pontos', pts: 'pontos'
+};
+
+function salvarPartes() {
+  const w = (D.wods || []).find(x => x.id === partesWodId);
+  if (!w) return;
+  const antigas = w.partes || [];
+  const novas = document.getElementById('ptTexto').value.split('\n')
+    .map(l => l.trim()).filter(Boolean)
+    .map((l, i) => {
+      const p = l.split(';').map(x => x.trim());
+      const tipo = APELIDOS_TIPO[String(p[1] || '').toLowerCase()] || 'tempo';
+      return { id: antigas[i] ? antigas[i].id : uid('p'), nome: p[0], tipo };
+    });
+
+  if (novas.length === 1) {
+    document.getElementById('ptMsg').className = 'msg err';
+    document.getElementById('ptMsg').textContent =
+      'Uma parte só não faz sentido: deixe vazio para a prova ter pontuação única, ou informe duas ou mais.';
+    return;
+  }
+
+  // partes removidas levam junto os resultados delas
+  const removidas = antigas.slice(novas.length).map(p => partesWodId + '::' + p.id);
+  const resultados = {};
+  Object.keys(D.resultados || {}).forEach(aid => {
+    const copia = {};
+    Object.keys(D.resultados[aid] || {}).forEach(k => {
+      if (!removidas.includes(k)) copia[k] = D.resultados[aid][k];
+    });
+    resultados[aid] = copia;
+  });
+
+  const wods = (D.wods || []).map(x => x.id === partesWodId ? Object.assign({}, x, { partes: novas }) : x);
+  salvar({ wods, resultados }, 'ptMsg', novas.length ? novas.length + ' partes salvas.' : 'Prova com pontuação única.')
+    .then(ok => { if (ok) setTimeout(() => fechar('mPartes'), 900); });
+}
+
+/* ---------------- LANÇAMENTO DE RESULTADOS ---------------- */
+function preencherProvasDaCategoria() {
+  const selW = document.getElementById('rWod');
+  if (!selW) return;
+  const antW = selW.value;
+  const itens = itensPontuados(document.getElementById('rCat').value);
+  selW.innerHTML = itens.length
+    ? itens.map(w => '<option value="' + esc(w.id) + '">' + esc(w.nome) + '</option>').join('')
+    : '<option value="">— nenhuma prova para esta categoria —</option>';
+  if (itens.some(w => w.id === antW)) selW.value = antW;
+}
+
+// trocar de categoria refaz a lista de provas antes de montar a grade
+function trocarCatResultados() {
+  preencherProvasDaCategoria();
+  renderGradeResultados();
+}
+
+function renderGradeResultados() {
+  const grid = document.getElementById('rGrid');
+  const hint = document.getElementById('rHint');
+  const wid = document.getElementById('rWod').value;
+  const cat = document.getElementById('rCat').value;
+  const wod = itensPontuados(cat).find(w => w.id === wid);
+  if (!wod) {
+    grid.innerHTML = '<div class="empty-state">' +
+      (itensPontuados().length ? 'Nenhuma prova cadastrada para esta categoria.'
+                               : 'Cadastre uma prova primeiro.') + '</div>';
+    hint.textContent = '';
+    return;
+  }
+
+  const dicas = {
+    tempo: 'Digite o tempo <b>só com os números</b>, sem os dois pontos: <b>1510</b> = 15:10, ' +
+           '<b>2301</b> = 23:01, <b>942</b> = 9:42. Os dois últimos dígitos são sempre os segundos ' +
+           '(e digitar <b>15:10</b> continua valendo). Quem <b>não finalizou</b> no cap: deixe o tempo ' +
+           'vazio e informe quantas <b>repetições faltaram</b> — o resultado vira o tempo do cap mais ' +
+           'as reps (ex: cap 15′ e 10 faltando = <b>15:10</b>).',
+    reps: 'Digite o total de <b>repetições</b>.',
+    carga: 'Digite a <b>carga em kg</b>.',
+    pontos: 'Digite os <b>pontos</b> da prova.'
+  };
+  hint.innerHTML = dicas[wod.tipo] || '';
+
+  // o campo de cap so aparece em prova por tempo, e escreve na prova de verdade.
+  // (ehTempo so e declarado mais abaixo, entao aqui vai a condicao direta)
+  const linhaCap = document.getElementById('rCapLinha');
+  const campoCap = document.getElementById('rCap');
+  if (linhaCap) {
+    const porTempo = wod.tipo === 'tempo';
+    linhaCap.style.display = porTempo ? '' : 'none';
+    if (porTempo && document.activeElement !== campoCap) {
+      // NAO sobrescrever o cap que acabou de ser salvo e ainda nao voltou do
+      // servidor. A grade remonta a cada resultado lancado, e sem isto o campo
+      // pulava de volta para o cap antigo no meio do lancamento — parecia que a
+      // correcao nao tinha pegado.
+      const esperando = capPendente && capPendente.id === wid && wod.cap !== capPendente.seg;
+      if (esperando) {
+        campoCap.value = capPendente.seg == null ? '' : fmtTempo(capPendente.seg);
+      } else {
+        if (capPendente && capPendente.id === wid) capPendente = null;   // confirmado
+        campoCap.value = wod.cap != null ? fmtTempo(wod.cap) : '';
+      }
+    }
+  }
+
+  const atletas = (D.atletas || []).filter(a => a.categoria === cat)
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+  const contagem = document.getElementById('rContagem');
+  if (!atletas.length) {
+    grid.innerHTML = '<div class="empty-state">Nenhum atleta nesta categoria.</div>';
+    if (contagem) contagem.textContent = '';
+    return;
+  }
+
+  const ehTempo = wod.tipo === 'tempo';
+  const temResultado = a => {
+    const r = (D.resultados[a.id] || {})[wod.id];
+    return !!r && (r.v != null || r.faltou != null);
+  };
+  // Quem ainda nao tem resultado fica SEMPRE em cima. Assim o proximo a lancar
+  // e a primeira linha da tela, e a lista vai encurtando conforme o dia anda.
+  const pendentes = atletas.filter(a => !temResultado(a));
+  const feitos = atletas.filter(temResultado);
+
+  // quantos DESTA prova o publico ja esta vendo
+  let publicadosAqui = 0;
+  Object.keys(D.resultados || {}).forEach(at => {
+    const r = (D.resultados[at] || {})[wod.id];
+    if (r && !represado(r)) publicadosAqui++;
+  });
+
+  const faixa = document.getElementById('rRepresados');
+  if (faixa) {
+    const n = contarRepresados();
+    faixa.style.display = (n || publicadosAqui) ? 'flex' : 'none';
+    if (n || publicadosAqui) {
+      // Dois avisos diferentes: o que esta segurado, e o que ja vazou para o
+      // publico nesta prova. Com zero represados o segundo aviso vira o titulo.
+      const aviso = publicadosAqui
+        ? ' <b style="color:var(--red)">Nesta prova o público JÁ VÊ ' + publicadosAqui +
+          '</b> — use SEGURAR ESTA PROVA para recolher.'
+        : '';
+      document.getElementById('rRepresadosN').textContent = n || publicadosAqui;
+      document.getElementById('rRepresadosTxt').innerHTML = n
+        ? (n === 1 ? 'resultado gravado e ainda NÃO publicado — o público não vê.'
+                   : 'resultados gravados e ainda NÃO publicados — o público não vê.') + aviso
+        : 'resultado(s) desta prova <b style="color:var(--red)">o público JÁ VÊ</b>' +
+          ' — use SEGURAR ESTA PROVA para recolher.';
+    }
+  }
+
+  if (contagem) {
+    contagem.innerHTML = pendentes.length
+      ? '<b>' + pendentes.length + '</b> atleta(s) ainda sem resultado nesta prova · ' +
+        feitos.length + ' de ' + atletas.length + ' lançado(s). ' +
+        'Salva sozinho a cada resultado — <b>Enter</b> pula para o próximo que falta.'
+      : '<b>Categoria completa</b> — os ' + atletas.length + ' atletas têm resultado nesta prova.';
+  }
+
+  // A unidade vai embaixo do nome, e nao numa coluna propria: numa tela estreita
+  // as duas colunas de texto espremiam o nome ate ele quebrar em cinco linhas.
+  const colunas = ehTempo ? 3 : 2;
+  const linha = (a, feito) => {
+    const r = (D.resultados[a.id] || {})[wod.id] || {};
+    const valor = r.v == null ? '' : (ehTempo ? fmtTempo(r.v) : r.v);
+    const espera = represado(r);
+    const classes = (feito ? 'feito' : '') + (espera ? ' represada' : '');
+    return '<tr' + (classes.trim() ? ' class="' + classes.trim() + '"' : '') + '>' +
+      '<td class="atl" title="' + esc(a.nome) + (espera ? ' — aguardando publicação' : '') + '">' +
+      (espera ? '<span class="hold" title="aguardando publicação">&#9679;</span>'
+              : (feito ? '<span class="ok">&#10003;</span>' : '')) + esc(a.nome) +
+      (a.unidade ? '<span class="unit">' + esc(a.unidade) + '</span>' : '') + '</td>' +
+      '<td class="num"><input data-at="' + esc(a.id) + '" data-f="v" value="' + esc(valor) + '" placeholder="' + (ehTempo ? '8:42' : '--') + '"></td>' +
+      (ehTempo ? '<td class="num"><input data-at="' + esc(a.id) + '" data-f="faltou" value="' + (r.faltou == null ? '' : r.faltou) + '" placeholder="--"></td>' : '') +
+      '</tr>';
+  };
+
+  const foco = focoDaGrade();
+  grid.innerHTML = '<table><thead><tr><th>Atleta</th>' +
+    '<th class="num">' + (ehTempo ? 'Tempo (mm:ss)' : 'Resultado') + '</th>' +
+    (ehTempo ? '<th class="num">Reps faltando</th>' : '') +
+    '</tr></thead><tbody>' +
+    pendentes.map(a => linha(a, false)).join('') +
+    (feitos.length
+      ? '<tr class="sep"><td colspan="' + colunas + '">Já lançados · ' + feitos.length + '</td></tr>'
+      : '') +
+    feitos.map(a => linha(a, true)).join('') +
+    '</tbody></table>';
+  restaurarFocoDaGrade(foco);
+}
+
+/* Lancamento automatico.
+   A grade e reconstruida a cada snapshot e a cada resultado salvo, entao sem
+   isso o cursor saltava do campo no meio da digitacao. */
+function inputDaGrade(at, f) {
+  return Array.prototype.slice.call(document.querySelectorAll('#rGrid input'))
+    .find(i => i.dataset.at === at && i.dataset.f === f) || null;
+}
+
+function focoDaGrade() {
+  const el = document.activeElement;
+  const grid = document.getElementById('rGrid');
+  if (!el || !el.dataset || !el.dataset.at || !grid || !grid.contains(el)) return null;
+  return { at: el.dataset.at, f: el.dataset.f, ini: el.selectionStart, fim: el.selectionEnd };
+}
+
+function restaurarFocoDaGrade(foco) {
+  if (!foco) return;
+  const el = inputDaGrade(foco.at, foco.f);
+  if (!el) return;
+  el.focus();
+  try { el.setSelectionRange(foco.ini, foco.fim); } catch (e) { /* input sem selecao */ }
+}
+
+function irParaProximoPendente() {
+  const linha = document.querySelector('#rGrid tbody tr:not(.feito):not(.sep)');
+  const el = linha && linha.querySelector('input[data-f="v"]');
+  if (el) { el.focus(); el.select(); }
+}
+
+// As gravacoes vao numa fila: duas em paralelo poderiam mandar copias do mapa de
+// resultados montadas antes uma da outra e a mais lenta chegar por ultimo.
+let filaResultados = Promise.resolve();
+
+// Grava o resultado de UM atleta (a linha inteira: tempo e reps faltando juntos).
+// O patch leva o mapa resultados COMPLETO, montado a partir do D que veio do
+// snapshot — os resultados dos outros atletas vao junto, intactos.
+// Zero nao e um resultado valido em prova por tempo, nos dois campos, e cada um
+// errava para um lado: 0 no tempo virava 0:00 e GANHAVA a prova; 0 em "reps
+// faltando" mandava para o fim, atras de todo mundo que terminou — quando 0 reps
+// faltando quer dizer justamente que o atleta terminou.
+function motivoInvalido(campo, n, ehTempo) {
+  if (n == null || n < 0) {
+    return ehTempo
+      ? 'Valor inválido. Tempo como mm:ss (8:42) ou só os números (842), e reps faltando como número.'
+      : 'Valor inválido.';
+  }
+  if (n !== 0) return '';
+  if (campo === 'v' && ehTempo) {
+    return 'Tempo 0:00 não existe — do jeito que estava, ganhava a prova. ' +
+           'Lance o tempo real. Se o atleta não terminou, deixe o tempo vazio e ' +
+           'informe quantas repetições faltaram.';
+  }
+  if (campo === 'faltou') {
+    return '0 em “Reps faltando” quer dizer que o atleta TERMINOU — do jeito que ' +
+           'estava, ele ia para o fim. Lance o tempo dele; se terminou junto com o ' +
+           'cap, lance o tempo do cap.';
+  }
+  return '';
+}
+
+function lancarResultado(inp, pular) {
+  if (!D) return;                        // snapshot ainda nao chegou: nao grava nada
+  const at = inp.dataset.at;
+  const wid = document.getElementById('rWod').value;
+  const wod = itensPontuados(document.getElementById('rCat').value).find(w => w.id === wid);
+  if (!wod || !at) return;
+  const ehTempo = wod.tipo === 'tempo';
+
+  const campos = { v: inputDaGrade(at, 'v'), faltou: inputDaGrade(at, 'faltou') };
+  const novo = { v: null, faltou: null };
+  let invalido = null, motivo = '';
+  Object.keys(campos).forEach(f => {
+    const campo = campos[f];
+    if (!campo) return;
+    campo.style.borderColor = '';
+    const txt = campo.value.trim();
+    if (!txt) return;
+    const n = (f === 'v' && ehTempo) ? parseTempo(txt) : num(txt.replace(',', '.'), null);
+    const erro = motivoInvalido(f, n, ehTempo);
+    if (erro) { invalido = campo; motivo = erro; return; }
+    novo[f] = n;
+  });
+
+  if (invalido) {
+    invalido.style.borderColor = 'var(--red)';
+    const msg = document.getElementById('rMsg');
+    msg.className = 'msg err';
+    msg.textContent = motivo;
+    return;                              // nao grava e nao remonta: o foco fica onde esta
+  }
+
+  // Nada mudou? Nao grava. Isso tambem evita gravar duas vezes no Enter, que
+  // dispara o change do navegador alem do nosso atalho.
+  const atual = (D.resultados[at] || {})[wid] || null;
+  const antes = atual ? { v: atual.v == null ? null : atual.v, faltou: atual.faltou == null ? null : atual.faltou }
+                      : { v: null, faltou: null };
+  if (antes.v === novo.v && antes.faltou === novo.faltou) {
+    if (pular) irParaProximoPendente();
+    return;
+  }
+
+  // Atualiza o D na hora para a grade reordenar sem esperar a rede.
+  const resultados = Object.assign({}, D.resultados);
+  const doAtleta = Object.assign({}, resultados[at] || {});
+  // Nasce represado: so vai para o publico quando o organizador publicar.
+  if (novo.v == null && novo.faltou == null) delete doAtleta[wid];
+  else doAtleta[wid] = { v: novo.v, faltou: novo.faltou, pub: false };
+  resultados[at] = doAtleta;
+  D.resultados = resultados;
+
+  renderGradeResultados();
+  if (pular) irParaProximoPendente();
+  render();
+
+  const nome = (D.atletas.find(a => a.id === at) || {}).nome || 'Atleta';
+  const apagou = novo.v == null && novo.faltou == null;
+  filaResultados = filaResultados.then(() => salvar(
+    { resultados },
+    'rMsg',
+    apagou ? 'Resultado de ' + nome + ' removido.' : nome + ' salvo.'
+  ));
+}
+
+// Delegacao: a grade e remontada o tempo todo, entao os ouvintes moram no
+// container, que nunca e trocado.
+(function ligarGradeResultados() {
+  const grid = document.getElementById('rGrid');
+  if (!grid) return;                                  // pagina publica nao tem grade
+  grid.addEventListener('change', e => {
+    if (e.target.dataset && e.target.dataset.at) lancarResultado(e.target, false);
+  });
+  grid.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' || !e.target.dataset || !e.target.dataset.at) return;
+    e.preventDefault();                               // senao o form tenta enviar
+    lancarResultado(e.target, true);
+  });
+})();
+
+// A classificacao da categoria como ela esta AGORA, ja contando o resultado
+// segurado. O organizador nao tem leaderboard nenhum na tela dele, entao sem
+// isto ele so descobre quem ganhou depois de publicar — tarde demais.
+function abrirPrevia() {
+  if (!D) return;
+  const cat = document.getElementById('rCat').value;
+  const r = calcularRanking(cat);          // isAdmin: conta os represados
+  document.getElementById('pvTitulo').textContent = cat;
+
+  let segurados = 0;
+  r.linhas.forEach(l => r.itens.forEach(w => {
+    if (represado(l.provas[w.id] && l.provas[w.id].res)) segurados++;
+  }));
+  document.getElementById('pvAviso').innerHTML = segurados
+    ? '<b style="color:var(--gold)">Esta é a classificação real, contando ' + segurados +
+      ' resultado(s) que o público ainda NÃO vê</b> (marcados com •). ' +
+      'Só aparece para todo mundo quando você apertar PUBLICAR.'
+    : 'Nenhum resultado segurado nesta categoria — o público já vê esta mesma classificação.';
+
+  const cab = '<tr><th style="width:44px">#</th><th>Atleta</th>' +
+    r.itens.map(w => '<th class="num">' + esc(w.curto) + '</th>').join('') +
+    '<th class="num">Total</th></tr>';
+  const corpo = r.linhas.map(l => {
+    const cels = r.itens.map(w => {
+      const c = l.provas[w.id];
+      const v = fmtValor(w, c && c.res);
+      if (!v) return '<td class="num" style="color:var(--gray)">—</td>';
+      const oculto = represado(c && c.res);
+      return '<td class="num"' + (oculto ? ' style="color:var(--gold);font-weight:700"' +
+             ' title="ainda não publicado"' : '') + '>' + esc(v) +
+             (oculto ? ' •' : '') + '</td>';
+    }).join('');
+    return '<tr><td class="num">' + (l.pontuou ? l.pos : '—') + '</td>' +
+      '<td class="atl">' + esc(l.atleta.nome) +
+      (l.atleta.unidade ? '<span class="unit">' + esc(l.atleta.unidade) + '</span>' : '') +
+      '</td>' + cels + '<td class="num"><b>' + fmtPts(l.total) + '</b></td></tr>';
+  }).join('');
+  document.getElementById('pvCorpo').innerHTML =
+    '<table><thead>' + cab + '</thead><tbody>' + corpo + '</tbody></table>';
+  abrir('mPrevia');
+}
+
+// O contrario de publicar: recolhe do publico TODOS os resultados da prova
+// escolhida. Existe porque resultado lancado antes desta funcionalidade nao tem
+// a marca e portanto conta como publicado — sem isto nao havia como segurar uma
+// prova que ja estava saindo ao vivo.
+function segurarProva() {
+  if (!D) return;
+  const wid = document.getElementById('rWod').value;
+  const item = itensPontuados(document.getElementById('rCat').value).find(w => w.id === wid);
+  if (!item) return;
+
+  let quantos = 0;
+  Object.keys(D.resultados || {}).forEach(at => {
+    const r = (D.resultados[at] || {})[wid];
+    if (r && !represado(r)) quantos++;
+  });
+  if (!quantos) {
+    avisar('info', 'Nenhum resultado publicado nesta prova para segurar.', 4);
+    return;
+  }
+  if (!confirm('Segurar ' + quantos + ' resultado(s) de "' + item.nome + '"?\n\n' +
+               'Eles somem do leaderboard público agora e só voltam quando você ' +
+               'apertar PUBLICAR. Nenhum valor é apagado.')) return;
+
+  const resultados = {};
+  Object.keys(D.resultados || {}).forEach(at => {
+    const doAtleta = Object.assign({}, D.resultados[at] || {});
+    const r = doAtleta[wid];
+    if (r && !represado(r)) doAtleta[wid] = { v: r.v, faltou: r.faltou, pub: false };
+    resultados[at] = doAtleta;
+  });
+  D.resultados = resultados;
+  renderGradeResultados();
+  render();
+  salvar({ resultados }, 'rMsg', quantos + ' resultado(s) recolhido(s) do público.');
+}
+
+// Solta para o publico tudo que estava represado. Nao toca em valor nenhum:
+// so tira a marca que escondia o resultado.
+function publicarResultados() {
+  if (!D) return;
+  const n = contarRepresados();
+  if (!n) { avisar('info', 'Não há resultado represado para publicar.', 4); return; }
+  const resultados = {};
+  Object.keys(D.resultados || {}).forEach(at => {
+    const doAtleta = {};
+    Object.keys(D.resultados[at] || {}).forEach(w => {
+      const r = D.resultados[at][w];
+      doAtleta[w] = represado(r) ? { v: r.v, faltou: r.faltou } : r;
+    });
+    resultados[at] = doAtleta;
+  });
+  D.resultados = resultados;
+  renderGradeResultados();
+  render();
+  salvar({ resultados }, 'rMsg', n + ' resultado(s) publicado(s).');
+}
+
+// O cap pertence a prova (ou a parte dela), mas se define aqui. Gravar aqui e o
+// que faz o "15:10" aparecer para todo mundo no leaderboard.
+// Cap salvo e ainda nao confirmado pelo servidor. Existe so para a grade nao
+// reescrever o campo com o valor velho enquanto a gravacao esta a caminho.
+let capPendente = null;
+
+function salvarCapDaProva() {
+  const wid = document.getElementById('rWod').value;
+  const txt = document.getElementById('rCap').value.trim();
+  const cap = txt ? parseTempo(txt) : null;
+  if (txt && (cap == null || cap <= 0)) {
+    avisar('err', 'Time cap inválido. Use 12:00 ou só os números, 1200.');
+    return;
+  }
+  const [wodId, parteId] = String(wid).split('::');
+  const wods = (D.wods || []).map(w => {
+    if (w.id !== wodId) return w;
+    if (!parteId) return Object.assign({}, w, { cap });
+    return Object.assign({}, w, {
+      partes: (w.partes || []).map(pt => pt.id === parteId ? Object.assign({}, pt, { cap }) : pt)
+    });
+  });
+  capPendente = { id: wid, seg: cap };
+  salvar({ wods }, 'rMsg',
+    cap == null ? 'Time cap removido.' : 'Time cap salvo: ' + fmtTempo(cap) + '.')
+    .then(ok => { if (!ok && capPendente && capPendente.id === wid) capPendente = null; });
+}
+
+function salvarResultados() {
+  const wid = document.getElementById('rWod').value;
+  const wod = itensPontuados(document.getElementById('rCat').value).find(w => w.id === wid);
+  const msg = document.getElementById('rMsg');
+  if (!wod) return;
+  const ehTempo = wod.tipo === 'tempo';
+  const buffer = {};
+  let invalidos = 0;
+  document.querySelectorAll('#rGrid input').forEach(inp => {
+    const at = inp.dataset.at, f = inp.dataset.f, txt = inp.value.trim();
+    buffer[at] = buffer[at] || { v: null, faltou: null };
+    inp.style.borderColor = '';
+    if (!txt) return;
+    const n = (f === 'v' && ehTempo) ? parseTempo(txt) : num(txt.replace(',', '.'), null);
+    if (motivoInvalido(f, n, ehTempo)) { invalidos++; inp.style.borderColor = 'var(--red)'; return; }
+    buffer[at][f] = n;
+  });
+
+  if (invalidos) {
+    msg.className = 'msg err';
+    msg.textContent = invalidos + ' valor(es) inválido(s) — corrija os campos em vermelho.';
+    return;
+  }
+
+  const resultados = Object.assign({}, D.resultados);
+  let preenchidos = 0;
+  Object.keys(buffer).forEach(at => {
+    const b = buffer[at];
+    const anterior = Object.assign({}, resultados[at] || {});
+    if (b.v == null && b.faltou == null) delete anterior[wid];
+    else { anterior[wid] = { v: b.v, faltou: b.faltou, pub: false }; preenchidos++; }
+    resultados[at] = anterior;
+  });
+  salvar({ resultados }, 'rMsg', preenchidos + ' resultado(s) salvo(s).');
+}
+
+</script>
+</body>
+</html>

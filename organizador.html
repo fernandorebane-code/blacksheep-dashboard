@@ -28,6 +28,19 @@
   --red:#E05252;
   --bronze:#C08A52;
   --silver:#C9C9C2;
+  /* Derivadas. Existiam espalhadas pelo CSS como cor fixa, e por isso um tema
+     novo nascia com resquicio do anterior — a primeira prova do tema CT STORM
+     saiu vermelha com o brilho verde da Blacksheep atras do titulo. */
+  --brilho:rgba(212,255,0,0.10);
+  --destaque-linha:rgba(212,255,0,0.06);
+  --perigo-borda:rgba(224,82,82,0.5);
+  --perigo-fundo:rgba(224,82,82,0.12);
+  --sobre-verde:#062a13;
+  --sobre-vermelho:#2a0606;
+  --vazio:#3a3a38;
+  --rodape:#4a4a46;
+  --represado-fundo:rgba(197,164,90,0.10);
+  --represado-linha:rgba(197,164,90,0.07);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html{-webkit-text-size-adjust:100%;}
@@ -104,10 +117,10 @@ header{
 .btn-solid:hover{background:var(--gold-light);}
 .btn-solid:disabled{opacity:0.45;cursor:not-allowed;}
 .btn-danger{
-  background:transparent;border:1px solid rgba(224,82,82,0.5);color:var(--red);
+  background:transparent;border:1px solid var(--perigo-borda);color:var(--red);
   padding:0.4rem 0.7rem;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;
 }
-.btn-danger:hover{background:rgba(224,82,82,0.12);}
+.btn-danger:hover{background:var(--perigo-fundo);}
 
 /* ---------- HERO ---------- */
 .hero{
@@ -115,7 +128,7 @@ header{
   text-align:center;
   border-bottom:1px solid var(--border-soft);
   background:
-    radial-gradient(circle at 50% -20%, rgba(212,255,0,0.10), transparent 60%),
+    radial-gradient(circle at 50% -20%, var(--brilho), transparent 60%),
     var(--black);
 }
 .hero h1{
@@ -218,7 +231,7 @@ tbody td{
 }
 tbody tr{cursor:pointer;transition:background 0.15s;}
 tbody tr:hover{background:var(--surface2);}
-tbody tr.me{background:rgba(212,255,0,0.06);}
+tbody tr.me{background:var(--destaque-linha);}
 /* Largura da coluna de posicao e o deslocamento da coluna de nome ficam aqui,
    e nao no markup: no celular elas encolhem, e um style inline venceria a regra
    do @media e desalinharia o cabecalho das linhas. */
@@ -238,7 +251,7 @@ td.atleta .unit{display:block;font-size:0.76rem;color:var(--gray);font-weight:40
 td.wod{text-align:center;font-family:'DM Mono',monospace;font-size:0.82rem;color:var(--gray);}
 td.wod b{display:block;color:var(--white);font-size:0.88rem;font-weight:500;}
 td.wod .pl{font-size:0.72rem;color:var(--gold);}
-td.wod.vazio{color:#3a3a38;}
+td.wod.vazio{color:var(--vazio);}
 td.total{
   text-align:right;
   font-family:'DM Mono',monospace;
@@ -304,8 +317,8 @@ thead th.sticky-col{background:var(--surface2);z-index:3;}
   display:none;
   box-shadow:0 4px 20px rgba(0,0,0,0.5);
 }
-.aviso.ok{display:block;background:var(--green);color:#062a13;}
-.aviso.err{display:block;background:var(--red);color:#2a0606;}
+.aviso.ok{display:block;background:var(--green);color:var(--sobre-verde);}
+.aviso.err{display:block;background:var(--red);color:var(--sobre-vermelho);}
 .aviso.info{display:block;background:var(--gold);color:var(--black);}
 .modal-bg{
   position:fixed;inset:0;background:rgba(0,0,0,0.82);
@@ -401,13 +414,13 @@ textarea.field{min-height:80px;resize:vertical;line-height:1.5;}
   display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap;
   margin-top:0.6rem;padding:0.6rem 0.8rem;
   border:1px solid var(--gold);border-radius:6px;
-  background:rgba(197,164,90,0.10);font-size:0.9rem;
+  background:var(--represado-fundo);font-size:0.9rem;
 }
 .represados b{color:var(--gold);font-size:1.05rem;}
 .score-grid td.atl .hold{
   color:var(--gold);font-weight:700;margin-right:0.3rem;
 }
-.score-grid tr.represada td{background:rgba(197,164,90,0.07);}
+.score-grid tr.represada td{background:var(--represado-linha);}
 .score-grid select{
   background:var(--surface2);border:1px solid var(--border-soft);color:var(--white);
   padding:0.35rem;font-size:0.78rem;outline:none;
@@ -417,7 +430,7 @@ textarea.field{min-height:80px;resize:vertical;line-height:1.5;}
 
 footer{
   padding:2.5rem 1.5rem;text-align:center;
-  font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;color:#4a4a46;
+  font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--rodape);
   border-top:1px solid var(--border-soft);margin-top:3rem;
 }
 
@@ -794,9 +807,10 @@ footer{
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
 /* ============================================================
-   BLACKSHEEP GAMES — LEADERBOARD
+   LEADERBOARD DE CAMPEONATO
    Leitura pública + painel de organização (Firebase).
-   Documento único: campeonatos/atual
+   Um documento por campeonato em campeonatos/ — qual deles é decidido pelo
+   arquivo do evento em eventos/, na hora do build.
    ============================================================ */
 
 const firebaseConfig = {
