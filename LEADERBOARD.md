@@ -517,41 +517,40 @@ As duas páginas no mesmo endereço, diferente do Blacksheep: lá a separação 
 para o link dos atletas não revelar o host do dashboard de gestão, o que aqui não
 se aplica. O que protege o painel é o login, não o endereço.
 
-**Onde o site vai morar ainda não está decidido.** A primeira ideia — criar uma
-organização no GitHub chamada `ctstorm-leaderboard`, para ter o user site
-`ctstorm-leaderboard.github.io` — foi descartada: é conta, permissão e cobrança
-novas para resolver só o endereço, e o código nunca ia morar lá de qualquer forma
-(o repositório publicado é destino de build, como o `blacksheep-invitational`).
+Endereço: **https://ctstorm-leaderboard.web.app** — segundo site de Hosting no
+projeto `bjj-blacksheep`, que já tinha outros cinco. Nenhuma conta nova, nenhum
+repositório novo, mesmo projeto onde os dados moram.
 
-A alternativa é um segundo site de Hosting no projeto `bjj-blacksheep`, que já
-existe:
+A primeira ideia era uma organização no GitHub chamada `ctstorm-leaderboard`,
+para ter o user site do Pages. Foi descartada: conta, permissão e cobrança novas
+só para ter endereço, sendo que o código nunca ia morar lá de qualquer forma — o
+repositório publicado é destino de build, como o `blacksheep-invitational`.
+
+O site foi criado com `hosting:sites:create`; `firebase.json` e `.firebaserc`
+neste repositório já trazem o alvo apontado para ele, então publicar é:
 
 ```
-firebase hosting:sites:create ctstorm-leaderboard
-firebase target:apply hosting ctstorm ctstorm-leaderboard
+python3 build-paginas.py ctstorm -o sites/ctstorm
 firebase deploy --only hosting:ctstorm
 ```
 
-Sai em `ctstorm-leaderboard.web.app` — endereço neutro, nenhuma conta nova, mesmo
-projeto onde os dados já estão. Duas coisas a conferir no console antes: se o
-multi-site exige o plano Blaze (a documentação atual não diz que sim, material
-antigo diz que sim) e se o nome está livre — o `SITE_ID` é único no Firebase
-inteiro.
+Isso roda numa máquina logada no projeto — a sessão do Claude Code não tem
+credencial do Firebase. Para a publicação voltar a ser um `git push`, rodar uma
+vez `firebase init hosting:github`: ele cria a Action com um service account, e
+daí o fluxo fica igual ao do Blacksheep.
 
-O custo escondido dessa opção é a publicação: `firebase deploy` precisa de
-credencial do projeto, então ela deixa de ser um `git push`. `firebase init
-hosting:github`, rodado uma vez, gera uma Action com service account e devolve a
-publicação para o fluxo deste repositório.
-
-O `dominio_login` em `eventos/ctstorm.json` acompanha o endereço escolhido. Ele é
-só o formato que o Firebase Auth exige — não precisa receber e-mail.
+O `dominio_login` em `eventos/ctstorm.json` acompanha o endereço: quem lança
+digita `organizador` e vira `organizador@ctstorm-leaderboard.web.app`. Esse
+e-mail não recebe mensagem nenhuma — é só o formato que o Firebase Auth exige.
 
 Falta, e só o dono da conta do Firebase pode fazer:
 
-1. Criar a conta do organizador em Authentication → Users → **Add user**, e-mail
-   `organizador@<endereço escolhido>`, e copiar o **UID**.
-2. Criar a coleção `ctstorm_users` com **um documento vazio cujo id é esse UID**.
-3. Trocar a regra do Firestore pela versão abaixo.
+1. Firestore → coleção `ctstorm_users` → documento com id
+   `UMcuLn9zbBbibG8bxz7FA2sZueJ2` (o UID da conta da mesa, criada em
+   Authentication). Um campo qualquer serve; a regra só olha se o documento
+   existe.
+2. Firestore → Rules → trocar o bloco `match /campeonatos/{id}` pelo abaixo →
+   **Publicar**.
 
 ```
     match /campeonatos/{id} {
@@ -569,6 +568,17 @@ Falta, e só o dono da conta do Firebase pode fazer:
 O `id ==` é o ponto todo: quem lança o CT Storm escreve em `campeonatos/ctstorm`
 e em mais nada — não chega no Blacksheep, nem no `dashboard_users`, nem no
 financeiro da rede. A permissão do Blacksheep fica exatamente como estava.
+
+Mais de uma pessoa na mesa: um usuário por pessoa em Authentication
+(`mesa1@…`, `mesa2@…`) e um documento por UID em `ctstorm_users`. A regra não
+muda. Vale lembrar o que isso **não** dá: o resultado gravado não guarda autor
+(`{ v, faltou, pub }`), então separar logins dá revogação por pessoa, não um log
+de quem lançou o quê.
+
+Consequência da regra nova, registrada de propósito: `dashboard_users` passa a
+valer só para `campeonatos/atual`. Todo campeonato novo precisa da coleção dele e
+de uma linha na regra. Se um dia incomodar, a versão genérica
+(`campeonato_admins/{id}/uids/{uid}`) acaba com a edição de regra por evento.
 
 **Por que uma coleção e não o UID cravado na regra:** com o UID na regra, tirar o
 acesso de alguém é editar e publicar regra. Com a coleção, é apagar um documento
