@@ -509,44 +509,77 @@ Segundo campeonato, de outra academia.
 
 | Onde | Arquivo | Vai para |
 |---|---|---|
-| Leaderboard público | `sites/ctstorm/index.html` | `index.html` no repositório `ctstorm-leaderboard.github.io` |
-| Painel do organizador | `sites/ctstorm/organizador.html` | `organizador.html` no mesmo repositório |
-
-Endereço: `https://ctstorm-leaderboard.github.io`. É um **user site** do GitHub
-Pages — o nome do repositório tem que ser igual ao da conta, e por isso ele exige
-uma conta (ou organização) chamada `ctstorm-leaderboard`. Sem domínio próprio não
-há `CNAME` para manter.
+| Leaderboard público | `sites/ctstorm/index.html` | `index.html` no site do CT Storm |
+| Painel do organizador | `sites/ctstorm/organizador.html` | `organizador.html` ao lado |
+| Lista oficial | `dados/ctstorm-inicial.json` | mesma pasta (o gerador copia) |
 
 As duas páginas no mesmo endereço, diferente do Blacksheep: lá a separação existia
 para o link dos atletas não revelar o host do dashboard de gestão, o que aqui não
 se aplica. O que protege o painel é o login, não o endereço.
 
+**Onde o site vai morar ainda não está decidido.** A primeira ideia — criar uma
+organização no GitHub chamada `ctstorm-leaderboard`, para ter o user site
+`ctstorm-leaderboard.github.io` — foi descartada: é conta, permissão e cobrança
+novas para resolver só o endereço, e o código nunca ia morar lá de qualquer forma
+(o repositório publicado é destino de build, como o `blacksheep-invitational`).
+
+A alternativa é um segundo site de Hosting no projeto `bjj-blacksheep`, que já
+existe:
+
+```
+firebase hosting:sites:create ctstorm-leaderboard
+firebase target:apply hosting ctstorm ctstorm-leaderboard
+firebase deploy --only hosting:ctstorm
+```
+
+Sai em `ctstorm-leaderboard.web.app` — endereço neutro, nenhuma conta nova, mesmo
+projeto onde os dados já estão. Duas coisas a conferir no console antes: se o
+multi-site exige o plano Blaze (a documentação atual não diz que sim, material
+antigo diz que sim) e se o nome está livre — o `SITE_ID` é único no Firebase
+inteiro.
+
+O custo escondido dessa opção é a publicação: `firebase deploy` precisa de
+credencial do projeto, então ela deixa de ser um `git push`. `firebase init
+hosting:github`, rodado uma vez, gera uma Action com service account e devolve a
+publicação para o fluxo deste repositório.
+
+O `dominio_login` em `eventos/ctstorm.json` acompanha o endereço escolhido. Ele é
+só o formato que o Firebase Auth exige — não precisa receber e-mail.
+
 Falta, e só o dono da conta do Firebase pode fazer:
 
-1. Criar a conta do organizador do CT Storm em Authentication → Users → **Add user**,
-   e-mail `organizador@ctstorm-leaderboard.github.io`, e copiar o **UID**.
-2. Trocar a regra do Firestore pela versão abaixo, com esse UID no lugar do
-   `UID_DO_ORGANIZADOR_CT_STORM`.
+1. Criar a conta do organizador em Authentication → Users → **Add user**, e-mail
+   `organizador@<endereço escolhido>`, e copiar o **UID**.
+2. Criar a coleção `ctstorm_users` com **um documento vazio cujo id é esse UID**.
+3. Trocar a regra do Firestore pela versão abaixo.
 
 ```
     match /campeonatos/{id} {
       allow read: if true;
       allow write: if request.auth != null
-        && ((id == 'atual'
-             && (request.auth.uid in ['eOMZrPKQlHdEQif3EkmOMsM7Bwo2']
-                 || (request.auth.token.email_verified == true
-                     && exists(/databases/$(database)/documents/dashboard_users/$(request.auth.token.email.lower())))))
+        && (request.auth.uid in ['eOMZrPKQlHdEQif3EkmOMsM7Bwo2']
+            || (id == 'atual'
+                && request.auth.token.email_verified == true
+                && exists(/databases/$(database)/documents/dashboard_users/$(request.auth.token.email.lower())))
             || (id == 'ctstorm'
-                && request.auth.uid in [
-                     'eOMZrPKQlHdEQif3EkmOMsM7Bwo2',
-                     'UID_DO_ORGANIZADOR_CT_STORM'
-                   ]));
+                && exists(/databases/$(database)/documents/ctstorm_users/$(request.auth.uid))));
     }
 ```
 
 O `id ==` é o ponto todo: quem lança o CT Storm escreve em `campeonatos/ctstorm`
 e em mais nada — não chega no Blacksheep, nem no `dashboard_users`, nem no
 financeiro da rede. A permissão do Blacksheep fica exatamente como estava.
+
+**Por que uma coleção e não o UID cravado na regra:** com o UID na regra, tirar o
+acesso de alguém é editar e publicar regra. Com a coleção, é apagar um documento
+— o mesmo padrão que o `dashboard_users` já usa aqui há meses. A diferença é a
+chave: `dashboard_users` é por e-mail e exige `email_verified`, e a conta da mesa
+tem e-mail inventado, que nunca vai ser verificado. Por isso `ctstorm_users` é
+chaveado por **UID**, que não depende de verificação nenhuma.
+
+A primeira linha, o UID do dono, é escada de incêndio: apagar o documento errado
+não pode trancar o dono para fora do próprio campeonato. Quem preferir sem
+exceção, tira a linha e cria um `ctstorm_users/<uid do dono>` também.
 
 ## Campeonato de times
 
