@@ -1,0 +1,56 @@
+# Publica o leaderboard do CT Storm no Hosting (site ctstorm-leaderboard).
+#
+# Existe para a publicacao nao depender de alguem estar na frente do computador
+# com a CLI logada: um push que mexa em sites/ctstorm/ sobe o site.
+#
+# Precisa do segredo FIREBASE_SERVICE_ACCOUNT_CTSTORM — sem ele o job passa sem
+# fazer nada, de proposito: uma Action vermelha a cada push, por um segredo que
+# ninguem criou, treina todo mundo a ignorar Action vermelha.
+name: Publicar CT Storm
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'sites/ctstorm/**'
+      - '.github/workflows/publicar-ctstorm.yml'
+  workflow_dispatch:
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: O segredo existe?
+        id: segredo
+        env:
+          CONTA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CTSTORM }}
+        run: |
+          if [ -z "$CONTA" ]; then
+            echo "tem=nao" >> "$GITHUB_OUTPUT"
+            echo "Sem FIREBASE_SERVICE_ACCOUNT_CTSTORM: nada a publicar daqui."
+            echo "Publique a mao com: firebase deploy --only hosting:ctstorm"
+          else
+            echo "tem=sim" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: As paginas estao em dia com a fonte?
+        if: steps.segredo.outputs.tem == 'sim'
+        run: |
+          python3 build-paginas.py ctstorm -o sites/ctstorm
+          # Se o build muda alguma coisa, o que esta commitado nao e o que a
+          # fonte produz — publicar isso poria no ar uma pagina que ninguem viu.
+          git diff --exit-code -- sites/ctstorm || {
+            echo "::error::sites/ctstorm esta fora de dia com src/. Rode o build e commite."
+            exit 1
+          }
+
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        if: steps.segredo.outputs.tem == 'sim'
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CTSTORM }}
+          projectId: bjj-blacksheep
+          target: ctstorm
+          channelId: live
