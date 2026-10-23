@@ -539,6 +539,30 @@ credencial do Firebase. Para a publicação voltar a ser um `git push`, rodar um
 vez `firebase init hosting:github`: ele cria a Action com um service account, e
 daí o fluxo fica igual ao do Blacksheep.
 
+### A chave de publicação
+
+A Action `.github/workflows/publicar-ctstorm.yml` publica o site a cada push que
+mexa em `sites/ctstorm/`, e também sob demanda (Actions → Publicar CT Storm →
+**Run workflow**) — colar o segredo não dispara nada sozinho.
+
+Ela depende do segredo `FIREBASE_SERVICE_ACCOUNT_CTSTORM`: o JSON de uma conta
+de serviço do projeto, com o papel **Administrador do Firebase Hosting**. Sem o
+segredo o job passa sem fazer nada, de propósito.
+
+Se o deploy falhar com erro de permissão, falta `roles/firebase.viewer` para
+resolver o `projectId`. Acrescentar o papel **na mesma conta de serviço** — chave
+nova não resolve e ainda deixa a antiga solta.
+
+**O que essa chave é**, para quando ninguém mais lembrar: uma credencial sem
+prazo de validade, com admin de Hosting num projeto que também tem `stripeWebhook`,
+dados de assinantes e outras 25 functions. Hosting Admin **não** lê Firestore nem
+Authentication, então um vazamento se limita a publicar página — só que publicar
+página aqui inclui `bjj-blacksheep.web.app`, que é produto pago.
+
+**Revogar:** console do Google Cloud → IAM → Contas de serviço → `deploy-ctstorm`
+→ aba Chaves → apagar a chave. A Action volta a não fazer nada e a publicação
+volta a ser `firebase deploy --only hosting:ctstorm` na mão.
+
 O `dominio_login` em `eventos/ctstorm.json` acompanha o endereço: quem lança
 digita `organizador` e vira `organizador@ctstorm-leaderboard.web.app`. Esse
 e-mail não recebe mensagem nenhuma — é só o formato que o Firebase Auth exige.
