@@ -555,19 +555,30 @@ Falta, e só o dono da conta do Firebase pode fazer:
 ```
     match /campeonatos/{id} {
       allow read: if true;
-      allow write: if request.auth != null
+      allow create, update: if request.auth != null
         && (request.auth.uid in ['eOMZrPKQlHdEQif3EkmOMsM7Bwo2']
             || (id == 'atual'
                 && request.auth.token.email_verified == true
                 && exists(/databases/$(database)/documents/dashboard_users/$(request.auth.token.email.lower())))
             || (id == 'ctstorm'
                 && exists(/databases/$(database)/documents/ctstorm_users/$(request.auth.uid))));
+      allow delete: if request.auth != null
+        && request.auth.uid in ['eOMZrPKQlHdEQif3EkmOMsM7Bwo2'];
     }
 ```
 
 O `id ==` é o ponto todo: quem lança o CT Storm escreve em `campeonatos/ctstorm`
 e em mais nada — não chega no Blacksheep, nem no `dashboard_users`, nem no
 financeiro da rede. A permissão do Blacksheep fica exatamente como estava.
+
+`create, update` e `delete` separados, e não um `allow write`, porque **regras
+são aditivas**: a requisição passa se qualquer `allow` casar, então um
+`allow delete` restritivo ao lado de um `allow write` amplo não tranca nada —
+o `write` continua concedendo. Para restringir é preciso estreitar a concessão.
+
+`create` fica com a mesa porque `campeonatos/ctstorm` nasce no primeiro
+IMPORTAR LISTA OFICIAL. Quem quiser tirar até isso roda a importação com a conta
+do dono e deixa só `update`.
 
 Mais de uma pessoa na mesa: um usuário por pessoa em Authentication
 (`mesa1@…`, `mesa2@…`) e um documento por UID em `ctstorm_users`. A regra não
@@ -628,6 +639,38 @@ organizador. O arquivo já traz `competidor: time` e o leaderboard fechado
 **Aline aparece em dois times do RX** (48 do segundo tempo e 3x mais cansados).
 Se forem a mesma pessoa, é erro de inscrição; se forem duas, vale diferenciar os
 nomes para quem olha o leaderboard não se confundir.
+
+## Backup
+
+A trava de `delete` fecha a porta menor. A maior continua aberta por necessidade:
+**gravar por cima** é `update`, e `update` é o que a mesa usa o tempo todo. Pelo
+painel, os dois caminhos que apagam trabalho são o IMPORTAR LISTA OFICIAL no meio
+do evento (substitui atletas, e descarta resultado de quem sair da lista) e o
+botão de remover atleta — ambos atrás de um `confirm()`. Fora do painel, um
+`set()` sem merge zera o documento. Nenhuma regra fecha isso sem fechar o uso
+normal junto; o que fecha é backup.
+
+```
+python3 dados/backup-campeonato.py            # campeonatos/atual
+python3 dados/backup-campeonato.py ctstorm
+```
+
+Roda sem login: a leitura do Firestore é pública. Grava em
+`backups/<documento>-<data>.json` e imprime quantos inscritos e quantos
+resultados vieram — serve de conferência.
+
+**Restaurar**, se o pior acontecer no meio de um evento:
+
+1. abrir o organizador e entrar (quem restaura é a conta logada, não o arquivo);
+2. console do navegador (F12 → Console);
+3. digitar `DOC.set(`, colar o conteúdo do arquivo, fechar `)`, Enter.
+
+`DOC` é o documento do campeonato, já no escopo da página, e `set()` sem merge
+devolve tudo exatamente como estava. Leva um minuto — contra uma noite refazendo
+lançamento.
+
+Vale rodar o backup no fim de cada dia de evento, e antes de qualquer IMPORTAR
+LISTA OFICIAL com resultado já lançado.
 
 ## Acesso e regras
 
