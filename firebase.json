@@ -1,0 +1,9 @@
+{
+  "hosting": [
+    {
+      "target": "ctstorm",
+      "public": "sites/ctstorm",
+      "ignore": ["**/.*", "**/node_modules/**"]
+    }
+  ]
+}

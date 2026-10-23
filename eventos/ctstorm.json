@@ -1,7 +1,7 @@
 {
   "id": "ctstorm",
   "documento": "ctstorm",
-  "dominio_login": "ctstorm-leaderboard.github.io",
+  "dominio_login": "ctstorm-leaderboard.web.app",
   "arquivo_inicial": "dados/ctstorm-inicial.json",
   "titulo": "CT Storm Championship",
   "descricao": "Leaderboard oficial do CT Storm Championship.",
