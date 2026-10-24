@@ -1290,7 +1290,7 @@ function mostrarPainel(logado) {
 }
 
 auth.onAuthStateChanged(async user => {
-  if (user && await autorizado(user.email)) {
+  if (user && await autorizado(user)) {
     isAdmin = true;
     document.getElementById('pSub').textContent = nomeDeExibicao(user.email);
     mostrarPainel(true);
@@ -1323,11 +1323,31 @@ function nomeDeExibicao(email) {
   return e.endsWith('@' + DOMINIO_ORGANIZADOR) ? e.slice(0, -(DOMINIO_ORGANIZADOR.length + 1)) : e;
 }
 
-async function autorizado(email) {
+// Quem pode abrir o painel. Tem de bater com a regra do Firestore: se a pagina
+// deixar entrar quem a regra barra, a pessoa entra, lanca, e so descobre no
+// "sem permissao para salvar" — com o atleta na frente dela esperando.
+//
+// A whitelist do dashboard e por e-mail e vale para o campeonato da casa. Um
+// campeonato de outra academia tem a lista dele, por UID, porque a conta da mesa
+// de la tem e-mail inventado (nunca verificavel) e nao pode entrar na whitelist
+// do dashboard, que da acesso ao financeiro da rede.
+const ACESSO_COLECAO = 'ctstorm_users';
+const ACESSO_POR_UID = true;
+
+async function naLista(colecao, chave) {
   try {
-    const d = await db.collection('dashboard_users').doc(String(email).toLowerCase()).get();
+    const d = await db.collection(colecao).doc(String(chave)).get();
     return d.exists && d.data().ativo !== false;
   } catch (e) { console.error(e); return false; }
+}
+
+async function autorizado(user) {
+  const email = String((user && user.email) || '').toLowerCase();
+  if (await naLista(ACESSO_COLECAO, ACESSO_POR_UID ? (user && user.uid) : email)) return true;
+  // o dono entra em qualquer campeonato pela whitelist do dashboard, senao
+  // ficaria de fora do evento que ele mesmo hospeda
+  if (ACESSO_COLECAO !== 'dashboard_users') return await naLista('dashboard_users', email);
+  return false;
 }
 
 async function doLogin() {
@@ -1339,7 +1359,7 @@ async function doLogin() {
   btn.disabled = true; btn.textContent = 'ENTRANDO...'; msg.textContent = '';
   try {
     const cred = await auth.signInWithEmailAndPassword(email, senha);
-    if (!(await autorizado(cred.user.email))) {
+    if (!(await autorizado(cred.user))) {
       await auth.signOut();
       msg.textContent = 'Este usuário não tem acesso de organizador.';
     } else {

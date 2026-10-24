@@ -3,6 +3,10 @@
   "documento": "ctstorm",
   "dominio_login": "ctstorm-leaderboard.web.app",
   "arquivo_inicial": "dados/ctstorm-inicial.json",
+  "acesso": {
+    "colecao": "ctstorm_users",
+    "por_uid": true
+  },
   "titulo": "CT Storm Championship",
   "descricao": "Leaderboard oficial do CT Storm Championship.",
   "descricao_og": "Ranking ao vivo do CT Storm Championship.",
