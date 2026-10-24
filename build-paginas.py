@@ -101,6 +101,15 @@ def aplicar_evento(t):
     velho = "const DOMINIO_ORGANIZADOR = '%s';" % base_dom
     if EV.get('dominio_login') and EV['dominio_login'] != base_dom and velho in t:
         t = troca(t, velho, "const DOMINIO_ORGANIZADOR = '%s';" % EV['dominio_login'])
+    # a lista de quem pode abrir o painel: a do dashboard, por e-mail, ou a do
+    # proprio campeonato, por UID. Tem de ser a mesma que a regra do Firestore ve.
+    if EV.get('acesso'):
+        velho_col = "const ACESSO_COLECAO = '%s';" % base['acesso']['colecao']
+        velho_uid = "const ACESSO_POR_UID = %s;" % ('true' if base['acesso']['por_uid'] else 'false')
+        if velho_col in t:
+            t = troca(t, velho_col, "const ACESSO_COLECAO = '%s';" % EV['acesso']['colecao'])
+            t = troca(t, velho_uid, "const ACESSO_POR_UID = %s;"
+                      % ('true' if EV['acesso']['por_uid'] else 'false'))
     # o arquivo da lista oficial, que fica ao lado da pagina
     base_arq = base.get('arquivo_inicial')
     velho_arq = "const ARQUIVO_INICIAL = '%s';" % base_arq

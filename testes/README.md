@@ -16,6 +16,7 @@ node testes/pontuacao.js
 node testes/cap.js
 node testes/publicar.js
 node testes/times.js
+node testes/acesso.js
 node testes/celular.js
 ```
 
@@ -49,6 +50,13 @@ configuração — e falha se o JS estourar em qualquer ponto.
 primeiro caso dele é o da compatibilidade: resultado sem a marca `pub` continua
 visível e continua pontuando. Existe porque a mudança entrou com o campeonato
 rodando e resultado já lançado no ar.
+`acesso.js` cobre quem abre o painel, e existe por um bug que so apareceu no dia
+do evento: a pagina de um campeonato de outra academia conferia o acesso na
+whitelist do dashboard da casa, entao a conta da mesa logava e levava "nao tem
+acesso de organizador" — enquanto a regra do Firestore, por UID noutra colecao,
+teria deixado. Tela e regra tem de concordar; se a tela for mais frouxa, a pessoa
+so descobre no "sem permissao para salvar", com o atleta esperando na frente.
+Precisa das duas paginas lado a lado, entao roda da raiz do repositorio.
 `times.js` cobre o campeonato de times: o competidor é o time, os integrantes
 aparecem embaixo do nome e a tela inteira passa a falar em time em vez de atleta.
 Existe porque "atleta" estava escrito em quinze lugares — um leaderboard de times
