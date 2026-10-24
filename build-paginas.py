@@ -78,6 +78,21 @@ def aplicar_evento(t):
     if EV.get('documento', 'atual') != 'atual':
         t = troca(t, "db.collection('campeonatos').doc('atual')",
                      "db.collection('campeonatos').doc(%r)" % str(EV['documento']))
+    # o favicon: duas letras do evento, embutidas como data URI
+    if EV.get('favicon'):
+        import base64
+        for tamanho in (32, 180):
+            arq = '%s-%d.png' % (EV['favicon'], tamanho)
+            if not os.path.exists(arq):
+                raise SystemExit('build-paginas.py: falta %s (ver '
+                                 'assets/gerar-favicon-texto.py)' % arq)
+            dados = base64.b64encode(io.open(arq, 'rb').read()).decode('ascii')
+            # troca so o href da tag daquele tamanho; o resto da tag fica
+            padrao = r'(sizes="%dx%d" href="data:image/png;base64,)[^"]+' % (tamanho, tamanho)
+            t, n = re.subn(padrao, lambda m: m.group(1) + dados, t, count=1)
+            if n != 1:
+                raise SystemExit('build-paginas.py: nao achei a tag do favicon '
+                                 'de %dpx. A fonte mudou.' % tamanho)
     # o dominio dos usuarios do evento: 'organizador' vira
     # organizador@<dominio_login>. Cada campeonato tem os seus, entao o
     # organizador de um nao entra no painel do outro.

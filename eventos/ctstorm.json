@@ -6,6 +6,7 @@
   "titulo": "CT Storm Championship",
   "descricao": "Leaderboard oficial do CT Storm Championship.",
   "descricao_og": "Ranking ao vivo do CT Storm Championship.",
+  "favicon": "assets/ctstorm-favicon",
   "logo_html": "<span class=\"wht\">CT </span><span class=\"gold\">STORM</span>",
   "h1_html": "CT <em>STORM</em>",
   "rodape": "CT Storm — Leaderboard oficial",
