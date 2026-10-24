@@ -6,8 +6,10 @@ exclude:
   - src
   - publico
   # sites/ sao as paginas prontas de outros campeonatos (ver eventos/).
-  # Cada uma vai para o repositorio do seu evento; nenhuma e servida daqui.
-  - sites
+  # Elas TAMBEM sao servidas daqui, de proposito: o Pages deste repositorio ja
+  # esta no ar, entao e o caminho que poe um evento no ar sem depender de
+  # ninguem rodar deploy. O endereco proprio do evento (ctstorm-leaderboard.web.app)
+  # serve os mesmos arquivos; este aqui e a rede de seguranca.
   - eventos
   - build-paginas.py
   - LEADERBOARD.md
