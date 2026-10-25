@@ -110,6 +110,20 @@ def aplicar_evento(t):
             t = troca(t, velho_col, "const ACESSO_COLECAO = '%s';" % EV['acesso']['colecao'])
             t = troca(t, velho_uid, "const ACESSO_POR_UID = %s;"
                       % ('true' if EV['acesso']['por_uid'] else 'false'))
+    # Os valores de reserva. Sao o que a tela mostra quando o campo esta em
+    # branco no banco — e com os da Blacksheep, o leaderboard do CT Storm
+    # anunciava "SETEMBRO 2026" enquanto o campeonato era em novembro.
+    if EV.get('padrao'):
+        bp = base['padrao']; ep = EV['padrao']
+        for chave in ('data', 'local'):
+            if ep.get(chave) and ep[chave] != bp[chave]:
+                t = troca(t, "  %s: '%s'," % (chave, bp[chave]),
+                             "  %s: '%s'," % (chave, ep[chave]))
+        for chave in ('categorias', 'unidades'):
+            if ep.get(chave) is not None and ep[chave] != bp[chave]:
+                lista = lambda v: '[' + ', '.join("'%s'" % x for x in v) + ']'
+                t = troca(t, '  %s: %s,' % (chave, lista(bp[chave])),
+                             '  %s: %s,' % (chave, lista(ep[chave])))
     # o arquivo da lista oficial, que fica ao lado da pagina
     base_arq = base.get('arquivo_inicial')
     velho_arq = "const ARQUIVO_INICIAL = '%s';" % base_arq
@@ -187,7 +201,7 @@ org += '''<body>
   <div class="logo"><span class="gold">BLACKSHEEP </span><span class="wht">INVITATIONAL</span></div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot off" id="liveDot"></span><span id="liveTxt">Conectando</span></div>
-    <a class="btn-ghost" href="https://invitational.bjjblacksheepfit.com/" target="_blank"
+    <a class="btn-ghost" href="''' + EV.get('leaderboard_url', 'index.html') + '''" target="_blank"
        style="text-decoration:none">VER LEADERBOARD</a>
     <span class="user-email" id="pSub"></span>
     <button class="btn-ghost" id="btnSair" onclick="doLogout()" style="display:none">SAIR</button>

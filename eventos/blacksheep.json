@@ -15,5 +15,26 @@
   "rodape": "Blacksheep — Leaderboard oficial",
   "painel": "dashboard.bjjblacksheepfit.com/organizador.html",
   "local_exemplo": "Blacksheep Moema",
-  "cores": {}
+  "cores": {},
+  "leaderboard_url": "https://invitational.bjjblacksheepfit.com/",
+  "padrao": {
+    "data": "Setembro 2026",
+    "local": "São Paulo",
+    "categorias": [
+      "Elite Masculino",
+      "Elite Feminino",
+      "RX Masculino",
+      "RX Feminino",
+      "Scaled Masculino",
+      "Scaled Feminino"
+    ],
+    "unidades": [
+      "Moema",
+      "Pinheiros",
+      "Berrini",
+      "Itaim",
+      "Vila Olímpia",
+      "Alphaville"
+    ]
+  }
 }

@@ -35,5 +35,15 @@
     "--perigo-borda": "rgba(255,167,38,0.5)",
     "--perigo-fundo": "rgba(255,167,38,0.12)",
     "--sobre-vermelho": "#2a1a06"
+  },
+  "leaderboard_url": "index.html",
+  "padrao": {
+    "data": "7 de novembro de 2026",
+    "local": "CT Storm",
+    "categorias": [
+      "RX",
+      "Scale"
+    ],
+    "unidades": []
   }
 }
