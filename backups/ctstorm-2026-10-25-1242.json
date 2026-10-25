@@ -1,0 +1,93 @@
+{
+ "unidades": [],
+ "publicado": false,
+ "nome": "CT Storm Championship",
+ "competidor": "time",
+ "atletas": [
+  {
+   "id": "tm_xuris",
+   "nome": "XURIS",
+   "categoria": "RX",
+   "unidade": "",
+   "integrantes": "João Paulo, Karina, Vini Melo"
+  },
+  {
+   "id": "tm_team-turista",
+   "nome": "Team Turista",
+   "categoria": "RX",
+   "unidade": "",
+   "integrantes": "André, Janaína, Rafaela"
+  },
+  {
+   "id": "tm_as-mashas-e-o-urso",
+   "nome": "As Mashas e o Urso",
+   "categoria": "RX",
+   "unidade": "",
+   "integrantes": "Abdon, Cibele, Grazi"
+  },
+  {
+   "id": "tm_48-do-segundo-tempo",
+   "nome": "48 do segundo tempo",
+   "categoria": "RX",
+   "unidade": "",
+   "integrantes": "Angelica, Aline, Aldrin"
+  },
+  {
+   "id": "tm_3x-mais-cansados",
+   "nome": "3x mais cansados",
+   "categoria": "RX",
+   "unidade": "",
+   "integrantes": "Juliane, Jonathan, Aline"
+  },
+  {
+   "id": "tm_os-rxs",
+   "nome": "Os RXs",
+   "categoria": "Scale",
+   "unidade": "",
+   "integrantes": "Babi, Gui, Luna"
+  },
+  {
+   "id": "tm_anilhas-apocalipticas",
+   "nome": "Anilhas Apocalípticas",
+   "categoria": "Scale",
+   "unidade": "",
+   "integrantes": "Gisele Nascimento, Pedro Portes, Viviana"
+  },
+  {
+   "id": "tm_barba-careca-e-cabeluda",
+   "nome": "Barba, Careca e Cabeluda",
+   "categoria": "Scale",
+   "unidade": "",
+   "integrantes": "Fernando, Sidnei, Maini"
+  },
+  {
+   "id": "tm_eu-sofro-mas-vou",
+   "nome": "Eu Sofro, mas vou",
+   "categoria": "Scale",
+   "unidade": "",
+   "integrantes": "Elisabete, Mauricio, Sheila"
+  },
+  {
+   "id": "tm_mais-master",
+   "nome": "Mais Master",
+   "categoria": "Scale",
+   "unidade": "",
+   "integrantes": "Renan, Juliana, Silvio"
+  },
+  {
+   "id": "tm_tck-team",
+   "nome": "TCK TEAM",
+   "categoria": "Scale",
+   "unidade": "",
+   "integrantes": "Thiago, Carol, Keyti"
+  }
+ ],
+ "resultados": {},
+ "local": "CT Storm",
+ "categorias": [
+  "RX",
+  "Scale"
+ ],
+ "sistema": "posicao",
+ "data": ""
+}
