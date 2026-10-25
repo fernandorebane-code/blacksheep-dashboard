@@ -2,7 +2,7 @@
   "_comentario": "Lista oficial do CT Storm Championship. Campeonato de times: cada time e um competidor, e os tres nomes vao no campo integrantes. Importada pelo botao IMPORTAR LISTA OFICIAL no painel do organizador.",
   "config": {
     "nome": "CT Storm Championship",
-    "data": "",
+    "data": "7 de novembro de 2026",
     "local": "CT Storm",
     "sistema": "posicao",
     "competidor": "time",
