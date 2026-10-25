@@ -99,6 +99,27 @@ function dublê(pag, dados) {
   const sub = await pag.textContent('#aSub');
   ok('o detalhe do time mostra os integrantes', sub.includes('João Paulo'), sub);
 
+  // Campo vazio no banco cai no valor de reserva da pagina. Com o da casa, o
+  // leaderboard do CT Storm anunciava "Setembro 2026" num campeonato de
+  // novembro — e quem abriu o link viu evento velho.
+  const vazio = { ...BASE_DADOS, competidor: 'time', data: '', local: '' };
+  const p2 = await nav.newPage(JANELA);
+  vigiar(p2);
+  await dublê(p2, vazio);
+  await p2.goto('file://' + PUBLICO);
+  await p2.waitForTimeout(600);
+  const quando = (await p2.textContent('#hQuando')).trim();
+  // A regra: a reserva tem de ser do mesmo evento da pagina. Num evento novo,
+  // a marca era trocada no build mas a reserva nao — entao bastava o campo em
+  // branco para a pagina do CT Storm anunciar a data da Blacksheep.
+  const padrao = await p2.evaluate(() => ({ nome: PADRAO.nome, data: PADRAO.data, local: PADRAO.local }));
+  const daCasa = /blacksheep/i.test(padrao.nome);
+  const ok2 = quando === [padrao.data, padrao.local].filter(Boolean).join(' · ') &&
+              (daCasa || !/setembro 2026|s[aã]o paulo/i.test(quando));
+  ok('sem data no banco, a reserva e a do proprio evento', ok2,
+     quando + (daCasa ? '  (pagina da casa)' : ''));
+  await p2.close();
+
   // ---------- PUBLICO, MODO ATLETA (o de sempre, sem competidor) ----------
   await pag.close();
   pag = await nav.newPage(JANELA);
