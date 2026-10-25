@@ -1361,14 +1361,27 @@ async function doLogin() {
     const cred = await auth.signInWithEmailAndPassword(email, senha);
     if (!(await autorizado(cred.user))) {
       await auth.signOut();
-      msg.textContent = 'Este usuário não tem acesso de organizador.';
+      // Dizer QUAL lista e QUAL id faltou: sem isso, quem esta na mesa so sabe
+      // que nao entrou, e quem pode resolver precisa adivinhar o que criar.
+      msg.textContent = 'Entrou no Firebase, mas não está liberado: falta ' +
+        (ACESSO_POR_UID ? ('o UID ' + cred.user.uid) : ('o e-mail ' + cred.user.email)) +
+        ' na lista ' + ACESSO_COLECAO + '.';
     } else {
       document.getElementById('logSenha').value = '';
     }
   } catch (e) {
-    msg.textContent = (e.code === 'auth/too-many-requests')
-      ? 'Muitas tentativas. Tente mais tarde.'
-      : 'Usuário ou senha incorretos.';
+    // Cada causa tem conserto diferente, e "usuario ou senha incorretos" para
+    // todas custou meia hora de evento conferindo a senha certa. O e-mail
+    // tentado vai junto: e assim que se descobre dominio trocado.
+    const porCodigo = {
+      'auth/too-many-requests': 'Muitas tentativas seguidas. Espere alguns minutos.',
+      'auth/user-not-found':    'Não existe conta com este usuário.',
+      'auth/invalid-email':     'Usuário inválido.',
+      'auth/wrong-password':    'Senha incorreta.',
+      'auth/network-request-failed': 'Sem conexão com o Firebase. Veja a internet.',
+    };
+    msg.textContent = (porCodigo[e.code] || 'Usuário ou senha incorretos.') +
+      ' (tentei entrar como ' + email + ')';
   }
   btn.disabled = false; btn.textContent = 'ENTRAR';
 }
