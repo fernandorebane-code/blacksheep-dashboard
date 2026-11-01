@@ -6,7 +6,7 @@
     "local": "CT Storm",
     "sistema": "posicao",
     "competidor": "time",
-    "publicado": false
+    "publicado": true
   },
   "categorias": [
     "RX",
@@ -90,6 +90,58 @@
       "categoria": "Scale",
       "unidade": "",
       "integrantes": "Thiago, Carol, Keyti"
+    }
+  ],
+  "wods": [
+    {
+      "id": "w1",
+      "nome": "WOD 01",
+      "curto": "W1",
+      "tipo": "reps",
+      "desc": "AMRAP — por repetições",
+      "pub": true,
+      "ordem": 1,
+      "categorias": []
+    },
+    {
+      "id": "w2",
+      "nome": "WOD 02",
+      "curto": "W2",
+      "tipo": "tempo",
+      "desc": "For time — por tempo",
+      "pub": true,
+      "ordem": 2,
+      "categorias": []
+    },
+    {
+      "id": "w3",
+      "nome": "WOD 03",
+      "curto": "W3",
+      "tipo": "reps",
+      "desc": "AMRAP — por repetições",
+      "pub": true,
+      "ordem": 3,
+      "categorias": []
+    },
+    {
+      "id": "w4",
+      "nome": "WOD 04",
+      "curto": "W4",
+      "tipo": "tempo",
+      "desc": "For time — por tempo",
+      "pub": true,
+      "ordem": 4,
+      "categorias": []
+    },
+    {
+      "id": "w5",
+      "nome": "WOD 05",
+      "curto": "W5",
+      "tipo": "reps",
+      "desc": "AMRAP — por repetições",
+      "pub": true,
+      "ordem": 5,
+      "categorias": []
     }
   ]
 }
