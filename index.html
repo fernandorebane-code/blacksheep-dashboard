@@ -491,7 +491,7 @@ tr.total-row td { color: var(--gold); }
       <div class="kpi-card"><div class="kpi-label">Receita Gympass</div><div class="kpi-value" id="kpiGympass">--</div></div>
       <div class="kpi-card"><div class="kpi-label">Receita Totalpass</div><div class="kpi-value" id="kpiTotalpass">--</div></div>
       <div class="kpi-card"><div class="kpi-label">Check-ins Gympass</div><div class="kpi-value" id="kpiCheckins">--</div></div>
-      <div class="kpi-card"><div class="kpi-label">Planos Fechados</div><div class="kpi-value" id="kpiPlanos">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Receita Planos Fechados</div><div class="kpi-value" id="kpiPlanos">--</div></div>
     </div>
     <div class="unit-grid" id="unitGrid"></div>
   </div>
@@ -677,7 +677,7 @@ function showApp(user) {
   document.getElementById('userEmail').textContent = user.email;
   // Init dashboard
   initSelector();
-  carregarPeriodo(mesAtualStr());
+  abrirNoMesMaisRecenteComDados();
 }
 
 async function doLogin() {
@@ -780,6 +780,31 @@ function mesAtualStr() {
   const y = now.getFullYear();
   const m = String(now.getMonth() + 1).padStart(2, '0');
   return `${y}-${m}`;
+}
+
+// O mes corrente costuma estar vazio (as vezes so com os logs do scrape
+// automatico, que gravam um gympass zerado). Abrir o dashboard nele faz tudo
+// parecer que nao foi lancado. Entao procura para tras o mes mais recente que
+// tem receita de verdade e abre nele.
+function temReceita(data) {
+  if (!data) return false;
+  return ['gympass', 'totalpass', 'planos_receita']
+    .some(k => ((data[k] && data[k].total_receita) || 0) > 0);
+}
+
+async function abrirNoMesMaisRecenteComDados() {
+  const sel = document.getElementById('mesSelector');
+  const now = new Date();
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const p = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    if (!Array.from(sel.options).some(o => o.value === p)) continue;
+    try {
+      const resp = await fetchDashboardData(p);
+      if (temReceita(resp.data)) { sel.value = p; return carregarPeriodo(p); }
+    } catch (e) { /* mes indisponivel, tenta o anterior */ }
+  }
+  return carregarPeriodo(sel.value || mesAtualStr());
 }
 
 function isParcial(periodo) {
@@ -904,13 +929,17 @@ function renderMesAtual(resp) {
   const receitaTotalpass = totalpass.total_receita || 0;
   const faturamento = receitaGympass + receitaTotalpass;
   const checkins = gympass.total_checkins;
-  const totalPlanos = contarPlanos(planos, periodo);
+  // "Planos fechados" e a receita de plano direto lancada por unidade
+  // (planos_receita). A contagem nominal vinha do grupo do WhatsApp e nao e
+  // mais alimentada desde maio, o que deixava este KPI vazio mesmo com o mes
+  // lancado e conferido.
+  const receitaPlanos = (data.planos_receita && data.planos_receita.total_receita) || 0;
 
   document.getElementById('kpiFaturamento').textContent = fmtMoeda(faturamento);
   document.getElementById('kpiGympass').textContent = fmtMoeda(receitaGympass);
   document.getElementById('kpiTotalpass').textContent = fmtMoeda(receitaTotalpass);
   document.getElementById('kpiCheckins').textContent = fmtNum(checkins);
-  document.getElementById('kpiPlanos').textContent = totalPlanos != null ? fmtNum(totalPlanos) : '\u2014';
+  document.getElementById('kpiPlanos').textContent = receitaPlanos ? fmtMoeda(receitaPlanos) : '\u2014';
 
   // Unit cards
   const rateio = rateioTP(totalpass, periodo);
