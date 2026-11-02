@@ -633,12 +633,13 @@ tr.total-row td { color: var(--gold); }
     <div class="kpi-row">
       <div class="kpi-card"><div class="kpi-label">Vendido no mes</div><div class="kpi-value" id="vdTotal">--</div></div>
       <div class="kpi-card"><div class="kpi-label">Planos vendidos</div><div class="kpi-value" id="vdQtd">--</div></div>
-      <div class="kpi-card"><div class="kpi-label">Anual / Mensal / Mes teste</div><div class="kpi-value" id="vdTipos" style="font-size:1rem">--</div></div>
       <div class="kpi-card"><div class="kpi-label">Credito / Debito / Pix</div><div class="kpi-value" id="vdFormas" style="font-size:1rem">--</div></div>
       <div class="kpi-card"><div class="kpi-label">Para revisar</div><div class="kpi-value" id="vdRevisar">--</div></div>
     </div>
     <div class="section-title">POR UNIDADE</div>
     <div id="vdUnidadesWrap"><div class="empty-state">---</div></div>
+    <div class="section-title">POR PLANO</div>
+    <div id="vdPlanosWrap"><div class="empty-state">---</div></div>
     <div class="section-title">POR FUNCIONARIO</div>
     <div id="vdFuncResumoWrap"><div class="empty-state">---</div></div>
     <div class="section-title">LANCAMENTOS</div>
@@ -1719,7 +1720,6 @@ async function vendasApi(body) {
 }
 function vdEsc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function vdForma(v) { return v.forma === 'credito' ? 'Credito ' + v.parcelas + 'x' : v.forma === 'debito' ? 'Debito' : 'Pix'; }
-const VD_TIPO = { anual: 'Anual', mensal: 'Mensal', mes_teste: 'Mes teste' };
 const VD_STATUS = { confere: 'confere', divergente: 'revisar', sem_comprovante: 'sem comprov.' };
 
 async function carregarVendas() {
@@ -1745,32 +1745,39 @@ function renderVendas() {
   const soma = arr => arr.reduce((a, v) => a + (v.valor || 0), 0);
   document.getElementById('vdTotal').textContent = fmtMoeda(soma(vs));
   document.getElementById('vdQtd').textContent = fmtNum(vs.length);
-  const nt = (arr, t) => arr.filter(v => v.tipo === t).length;
-  document.getElementById('vdTipos').textContent = `${nt(vs, 'anual')} / ${nt(vs, 'mensal')} / ${nt(vs, 'mes_teste')}`;
+
+  // plano e texto livre: agrupa ignorando maiusculas, acentos e espacos sobrando
+  const chavePlano = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+  const porPlano = {};
+  vs.forEach(v => { const k = chavePlano(v.plano) || '(sem plano)'; (porPlano[k] = porPlano[k] || { nome: v.plano || '(sem plano)', lista: [] }).lista.push(v); });
+  const planos = Object.values(porPlano).sort((a, b) => b.lista.length - a.lista.length || soma(b.lista) - soma(a.lista));
+  document.getElementById('vdPlanosWrap').innerHTML = planos.length ? '<table><thead><tr><th>Plano</th><th>Vendidos</th><th>Total</th><th>Ticket medio</th></tr></thead><tbody>' +
+    planos.map(p => `<tr><td>${vdEsc(p.nome)}</td><td class="mono">${p.lista.length}</td><td class="mono">${fmtMoeda(soma(p.lista))}</td><td class="mono">${fmtMoeda(soma(p.lista) / p.lista.length)}</td></tr>`).join('') + '</tbody></table>'
+    : '<div class="empty-state">Nenhuma venda lancada neste mes</div>';
   const pf = f => soma(vs.filter(v => v.forma === f));
   document.getElementById('vdFormas').textContent = `${fmtMoeda(pf('credito'))} / ${fmtMoeda(pf('debito'))} / ${fmtMoeda(pf('pix'))}`;
   const rev = vs.filter(v => v.status === 'divergente').length;
   const elRev = document.getElementById('vdRevisar');
   elRev.textContent = rev; elRev.style.color = rev ? '#E0A852' : '';
 
-  let tab = '<table><thead><tr><th>Unidade</th><th>Planos</th><th>Anual</th><th>Mensal</th><th>Mes teste</th><th>Credito</th><th>Debito</th><th>Pix</th><th>Total</th></tr></thead><tbody>';
+  let tab = '<table><thead><tr><th>Unidade</th><th>Planos</th><th>Credito</th><th>Debito</th><th>Pix</th><th>Total</th></tr></thead><tbody>';
   UNIDADES.forEach(u => {
     const x = vs.filter(v => v.unidade === u);
     const t = f => soma(x.filter(v => v.forma === f));
-    tab += `<tr><td>${u}</td><td class="mono">${x.length}</td><td class="mono">${nt(x, 'anual')}</td><td class="mono">${nt(x, 'mensal')}</td><td class="mono">${nt(x, 'mes_teste')}</td><td class="mono">${fmtMoeda(t('credito'))}</td><td class="mono">${fmtMoeda(t('debito'))}</td><td class="mono">${fmtMoeda(t('pix'))}</td><td class="mono">${fmtMoeda(soma(x))}</td></tr>`;
+    tab += `<tr><td>${u}</td><td class="mono">${x.length}</td><td class="mono">${fmtMoeda(t('credito'))}</td><td class="mono">${fmtMoeda(t('debito'))}</td><td class="mono">${fmtMoeda(t('pix'))}</td><td class="mono">${fmtMoeda(soma(x))}</td></tr>`;
   });
-  tab += `<tr class="total-row"><td>TOTAL</td><td class="mono">${vs.length}</td><td class="mono">${nt(vs, 'anual')}</td><td class="mono">${nt(vs, 'mensal')}</td><td class="mono">${nt(vs, 'mes_teste')}</td><td class="mono">${fmtMoeda(pf('credito'))}</td><td class="mono">${fmtMoeda(pf('debito'))}</td><td class="mono">${fmtMoeda(pf('pix'))}</td><td class="mono">${fmtMoeda(soma(vs))}</td></tr></tbody></table>`;
+  tab += `<tr class="total-row"><td>TOTAL</td><td class="mono">${vs.length}</td><td class="mono">${fmtMoeda(pf('credito'))}</td><td class="mono">${fmtMoeda(pf('debito'))}</td><td class="mono">${fmtMoeda(pf('pix'))}</td><td class="mono">${fmtMoeda(soma(vs))}</td></tr></tbody></table>`;
   document.getElementById('vdUnidadesWrap').innerHTML = tab;
 
   // quem lancou: agrupa pelo email (o nome pode repetir)
   const porFunc = {};
   vs.forEach(v => { (porFunc[v.funcionario_email] = porFunc[v.funcionario_email] || { nome: v.funcionario_nome, lista: [] }).lista.push(v); });
   const funcs = Object.entries(porFunc).sort((a, b) => soma(b[1].lista) - soma(a[1].lista));
-  let tf = '<table><thead><tr><th>Funcionario</th><th>Unidades</th><th>Planos</th><th>Anual</th><th>Mensal</th><th>Mes teste</th><th>Para revisar</th><th>Total</th></tr></thead><tbody>';
+  let tf = '<table><thead><tr><th>Funcionario</th><th>Unidades</th><th>Planos</th><th>Para revisar</th><th>Total</th></tr></thead><tbody>';
   funcs.forEach(([email, f]) => {
     const x = f.lista, unids = [...new Set(x.map(v => v.unidade))].join(', ');
     const rv = x.filter(v => v.status === 'divergente').length;
-    tf += `<tr><td title="${vdEsc(email)}">${vdEsc(f.nome)}<div style="color:var(--gray);font-size:0.72rem">${vdEsc(email)}</div></td><td>${vdEsc(unids)}</td><td class="mono">${x.length}</td><td class="mono">${nt(x, 'anual')}</td><td class="mono">${nt(x, 'mensal')}</td><td class="mono">${nt(x, 'mes_teste')}</td><td class="mono"${rv ? ' style="color:#E0A852"' : ''}>${rv}</td><td class="mono">${fmtMoeda(soma(x))}</td></tr>`;
+    tf += `<tr><td title="${vdEsc(email)}">${vdEsc(f.nome)}<div style="color:var(--gray);font-size:0.72rem">${vdEsc(email)}</div></td><td>${vdEsc(unids)}</td><td class="mono">${x.length}</td><td class="mono"${rv ? ' style="color:#E0A852"' : ''}>${rv}</td><td class="mono">${fmtMoeda(soma(x))}</td></tr>`;
   });
   document.getElementById('vdFuncResumoWrap').innerHTML = funcs.length ? tf + '</tbody></table>' : '<div class="empty-state">Nenhuma venda lancada neste mes</div>';
   const ff = document.getElementById('vdFiltroFunc'), atual = ff.value;
@@ -1787,17 +1794,17 @@ function vendasFiltradas() {
 function renderListaVendas() {
   const lista = vendasFiltradas();
   if (!lista.length) { document.getElementById('vdListaWrap').innerHTML = '<div class="empty-state">Nenhuma venda lancada neste mes</div>'; return; }
-  let h = '<table><thead><tr><th>Data</th><th>Unidade</th><th>Aluno</th><th>Tipo</th><th>Plano</th><th>Pagamento</th><th>Valor</th><th>Funcionario</th><th>Status</th><th></th></tr></thead><tbody>';
+  let h = '<table><thead><tr><th>Data</th><th>Unidade</th><th>Aluno</th><th>Plano</th><th>Pagamento</th><th>Valor</th><th>Funcionario</th><th>Status</th><th></th></tr></thead><tbody>';
   lista.forEach(v => {
     const nota = [...(v.divergencias || []), v.observacao ? 'Obs: ' + v.observacao : ''].filter(Boolean).join(' | ');
     h += `<tr>
       <td class="mono">${(v.data || '').split('-').reverse().slice(0, 2).join('/')}</td>
-      <td>${vdEsc(v.unidade)}</td><td>${vdEsc(v.aluno || '—')}</td><td>${VD_TIPO[v.tipo] || '—'}</td><td>${vdEsc(v.plano || '—')}</td>
+      <td>${vdEsc(v.unidade)}</td><td>${vdEsc(v.aluno || '—')}</td><td>${vdEsc(v.plano || '—')}</td>
       <td>${vdForma(v)}</td><td class="mono">${fmtMoeda(v.valor)}</td><td title="${vdEsc(v.funcionario_email)}">${vdEsc(v.funcionario_nome)}</td>
       <td><span class="vd-tag ${v.status}">${VD_STATUS[v.status] || v.status}</span></td>
       <td>${v.tem_comprovante ? `<button class="vd-link" onclick="verComprovante('${v.id}')">ver</button>` : ''}</td>
     </tr>`;
-    if (nota && v.status !== 'confere') h += `<tr><td></td><td colspan="9" style="color:#E0A852;font-size:0.75rem;padding-top:0">${vdEsc(nota)}</td></tr>`;
+    if (nota && v.status !== 'confere') h += `<tr><td></td><td colspan="8" style="color:#E0A852;font-size:0.75rem;padding-top:0">${vdEsc(nota)}</td></tr>`;
   });
   document.getElementById('vdListaWrap').innerHTML = h + '</tbody></table>';
 }
@@ -1816,7 +1823,7 @@ async function verComprovante(id) {
     const linha = (k, a, b) => `<tr><td style="color:var(--gray)">${k}</td><td class="mono">${vdEsc(a ?? '—')}</td><td class="mono">${vdEsc(b ?? '—')}</td></tr>`;
     m.innerHTML = `<div class="box"><img src="${imagem}" alt="Comprovante">
       <div style="flex:1;min-width:260px">
-        <div class="section-title" style="margin-top:0">${vdEsc(v.aluno || v.plano || '')} ${VD_TIPO[v.tipo] ? '· ' + VD_TIPO[v.tipo].toUpperCase() : ''}</div>
+        <div class="section-title" style="margin-top:0">${vdEsc(v.aluno ? v.aluno + ' · ' + (v.plano || '') : v.plano || '')}</div>
         <table><thead><tr><th></th><th>Lancado</th><th>Comprovante</th></tr></thead><tbody>
           ${linha('Valor', fmtMoeda(v.valor), l.valor != null ? fmtMoeda(l.valor) : null)}
           ${linha('Forma', v.forma, l.forma)}
@@ -1849,9 +1856,9 @@ async function excluirVenda(id) {
 }
 
 function exportarVendasCSV() {
-  const cols = ['data', 'unidade', 'aluno', 'tipo', 'plano', 'forma', 'parcelas', 'valor', 'funcionario_nome', 'funcionario_email', 'status', 'observacao'];
+  const cols = ['data', 'unidade', 'aluno', 'plano', 'forma', 'parcelas', 'valor', 'funcionario_nome', 'funcionario_email', 'status', 'observacao'];
   const linhas = [cols.join(';')].concat(vendasFiltradas().map(v => cols.map(c => {
-    let x = v[c] ?? ''; if (c === 'tipo') x = VD_TIPO[x] || x; if (c === 'valor') x = String(x).replace('.', ',');
+    let x = v[c] ?? ''; if (c === 'valor') x = String(x).replace('.', ',');
     return '"' + String(x).replace(/"/g, '""') + '"';
   }).join(';')));
   const a = document.createElement('a');
