@@ -632,12 +632,16 @@ tr.total-row td { color: var(--gold); }
     <div class="period-label" id="vendasLabel">---</div>
     <div class="kpi-row">
       <div class="kpi-card"><div class="kpi-label">Vendido no mes</div><div class="kpi-value" id="vdTotal">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Entra neste mes</div><div class="kpi-value" id="vdEntra">--</div><div style="color:var(--gray);font-size:0.7rem;margin-top:0.3rem">credito: parcela a cada 30 dias · debito: dia seguinte · pix: no dia</div></div>
       <div class="kpi-card"><div class="kpi-label">Planos vendidos</div><div class="kpi-value" id="vdQtd">--</div></div>
       <div class="kpi-card"><div class="kpi-label">Credito / Debito / Pix</div><div class="kpi-value" id="vdFormas" style="font-size:1rem">--</div></div>
       <div class="kpi-card"><div class="kpi-label">Para revisar</div><div class="kpi-value" id="vdRevisar">--</div></div>
     </div>
     <div class="section-title">POR UNIDADE</div>
     <div id="vdUnidadesWrap"><div class="empty-state">---</div></div>
+    <div class="section-title">A RECEBER NOS PROXIMOS MESES</div>
+    <div style="color:var(--gray);font-size:0.82rem;margin-bottom:0.8rem">Parcelas de credito e debitos ja vendidos que ainda vao entrar.</div>
+    <div id="vdProximosWrap"><div class="empty-state">---</div></div>
     <div class="section-title">POR PLANO</div>
     <div id="vdPlanosWrap"><div class="empty-state">---</div></div>
     <div class="section-title">POR FUNCIONARIO</div>
@@ -1709,6 +1713,25 @@ document.querySelectorAll('.tab').forEach(tab => {
 // --- VENDAS (app dos funcionarios: bjj-vendas-blacksheep.web.app) ---
 const VENDAS_API = 'https://us-central1-bjj-blacksheep.cloudfunctions.net/vendas';
 let vendasMes = [];
+let vendasJanela = []; // vendas dos 12 meses anteriores + o mes, pras parcelas que caem no mes
+
+// quando cada venda vira dinheiro: credito 1a parcela 30 dias depois e uma a cada
+// 30 dias; debito no dia seguinte; pix no dia. Centavos que sobram vao na 1a parcela.
+function vdRecebimentos(v) {
+  const dia = (iso, n) => { const d = new Date(iso + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+  if (!v.data || !(v.valor > 0)) return [];
+  if (v.forma === 'pix') return [{ data: v.data, valor: v.valor }];
+  if (v.forma === 'debito') return [{ data: dia(v.data, 1), valor: v.valor }];
+  const n = Math.max(1, parseInt(v.parcelas, 10) || 1), cents = Math.round(v.valor * 100), base = Math.floor(cents / n);
+  return Array.from({ length: n }, (_, k) => ({ data: dia(v.data, 30 * (k + 1)), valor: (k === 0 ? cents - base * (n - 1) : base) / 100 }));
+}
+function vdEntraNoMes(lista, periodo) {
+  return lista.reduce((a, v) => a + vdRecebimentos(v).filter(p => p.data.slice(0, 7) === periodo).reduce((b, p) => b + p.valor, 0), 0);
+}
+function vdMesMenos(periodo, n) {
+  const [y, m] = periodo.split('-').map(Number); const d = new Date(Date.UTC(y, m - 1 - n, 1));
+  return d.toISOString().slice(0, 7);
+}
 let vendasEu = null;
 
 async function vendasApi(body) {
@@ -1742,8 +1765,12 @@ async function carregarVendas() {
   showLoading();
   try {
     if (!vendasEu) vendasEu = await vendasApi({ action: 'eu' });
-    const r = await vendasApi({ action: 'listar', periodo });
+    const [r, jan] = await Promise.all([
+      vendasApi({ action: 'listar', periodo }),
+      vendasApi({ action: 'listarIntervalo', de: vdMesMenos(periodo, 13), ate: periodo }),
+    ]);
     vendasMes = r.vendas || [];
+    vendasJanela = jan.vendas || [];
     renderVendas();
     if (vendasEu.owner) { document.getElementById('vdFuncionarios').style.display = ''; carregarFuncionarios(); }
   } catch (e) {
@@ -1756,6 +1783,8 @@ function renderVendas() {
   const vs = vendasMes;
   const soma = arr => arr.reduce((a, v) => a + (v.valor || 0), 0);
   document.getElementById('vdTotal').textContent = fmtMoeda(soma(vs));
+  const periodoVd = document.getElementById('mesSelector').value;
+  document.getElementById('vdEntra').textContent = fmtMoeda(vdEntraNoMes(vendasJanela, periodoVd));
   document.getElementById('vdQtd').textContent = fmtNum(vs.length);
 
   // plano e texto livre: agrupa ignorando maiusculas, acentos e espacos sobrando
@@ -1772,14 +1801,28 @@ function renderVendas() {
   const elRev = document.getElementById('vdRevisar');
   elRev.textContent = rev; elRev.style.color = rev ? '#E0A852' : '';
 
-  let tab = '<table><thead><tr><th>Unidade</th><th>Planos</th><th>Credito</th><th>Debito</th><th>Pix</th><th>Total</th></tr></thead><tbody>';
+  let tab = '<table><thead><tr><th>Unidade</th><th>Planos</th><th>Credito</th><th>Debito</th><th>Pix</th><th>Vendido</th><th>Entra no mes</th></tr></thead><tbody>';
   UNIDADES.forEach(u => {
     const x = vs.filter(v => v.unidade === u);
     const t = f => soma(x.filter(v => v.forma === f));
-    tab += `<tr><td>${u}</td><td class="mono">${x.length}</td><td class="mono">${fmtMoeda(t('credito'))}</td><td class="mono">${fmtMoeda(t('debito'))}</td><td class="mono">${fmtMoeda(t('pix'))}</td><td class="mono">${fmtMoeda(soma(x))}</td></tr>`;
+    tab += `<tr><td>${u}</td><td class="mono">${x.length}</td><td class="mono">${fmtMoeda(t('credito'))}</td><td class="mono">${fmtMoeda(t('debito'))}</td><td class="mono">${fmtMoeda(t('pix'))}</td><td class="mono">${fmtMoeda(soma(x))}</td><td class="mono">${fmtMoeda(vdEntraNoMes(vendasJanela.filter(v => v.unidade === u), periodoVd))}</td></tr>`;
   });
-  tab += `<tr class="total-row"><td>TOTAL</td><td class="mono">${vs.length}</td><td class="mono">${fmtMoeda(pf('credito'))}</td><td class="mono">${fmtMoeda(pf('debito'))}</td><td class="mono">${fmtMoeda(pf('pix'))}</td><td class="mono">${fmtMoeda(soma(vs))}</td></tr></tbody></table>`;
+  tab += `<tr class="total-row"><td>TOTAL</td><td class="mono">${vs.length}</td><td class="mono">${fmtMoeda(pf('credito'))}</td><td class="mono">${fmtMoeda(pf('debito'))}</td><td class="mono">${fmtMoeda(pf('pix'))}</td><td class="mono">${fmtMoeda(soma(vs))}</td><td class="mono">${fmtMoeda(vdEntraNoMes(vendasJanela, periodoVd))}</td></tr></tbody></table>`;
   document.getElementById('vdUnidadesWrap').innerHTML = tab;
+
+  // proximos meses: o que ja foi vendido (ate o mes escolhido) e ainda vai cair
+  const proximos = [];
+  for (let k = 1; k <= 12; k++) {
+    const p = vdMesMenos(periodoVd, -k);
+    const porU = UNIDADES.map(u => vdEntraNoMes(vendasJanela.filter(v => v.unidade === u), p));
+    const tot = porU.reduce((a, b) => a + b, 0);
+    if (tot > 0) proximos.push({ p, porU, tot });
+  }
+  document.getElementById('vdProximosWrap').innerHTML = proximos.length
+    ? '<table><thead><tr><th>Mes</th>' + UNIDADES.map(u => `<th>${u}</th>`).join('') + '<th>Total</th></tr></thead><tbody>' +
+      proximos.map(x => `<tr><td>${MESES_ABREV[x.p.slice(5)]}/${x.p.slice(2, 4)}</td>${x.porU.map(v => `<td class="mono">${v ? fmtMoeda(v) : '\u2014'}</td>`).join('')}<td class="mono">${fmtMoeda(x.tot)}</td></tr>`).join('') +
+      `<tr class="total-row"><td>TOTAL</td>${UNIDADES.map((u, i) => `<td class="mono">${fmtMoeda(proximos.reduce((a, x) => a + x.porU[i], 0))}</td>`).join('')}<td class="mono">${fmtMoeda(proximos.reduce((a, x) => a + x.tot, 0))}</td></tr></tbody></table>`
+    : '<div class="empty-state">Nada a receber nos proximos meses</div>';
 
   // quem lancou: agrupa pelo email (o nome pode repetir)
   const porFunc = {};
