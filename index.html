@@ -487,10 +487,9 @@ tr.total-row td { color: var(--gold); }
   <div id="mesAtual" class="tab-content active">
     <div class="period-label" id="periodLabel">---</div>
     <div class="kpi-row" id="kpiRow">
-      <div class="kpi-card"><div class="kpi-label">Faturamento Plataformas</div><div class="kpi-value" id="kpiFaturamento">--</div></div>
-      <div class="kpi-card"><div class="kpi-label">Receita Gympass</div><div class="kpi-value" id="kpiGympass">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Total do Mes</div><div class="kpi-value" id="kpiFaturamento">--</div></div>
       <div class="kpi-card"><div class="kpi-label">Receita Totalpass</div><div class="kpi-value" id="kpiTotalpass">--</div></div>
-      <div class="kpi-card"><div class="kpi-label">Check-ins Gympass</div><div class="kpi-value" id="kpiCheckins">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Receita Gympass</div><div class="kpi-value" id="kpiGympass">--</div></div>
       <div class="kpi-card"><div class="kpi-label">Receita Planos Fechados</div><div class="kpi-value" id="kpiPlanos">--</div></div>
     </div>
     <div class="unit-grid" id="unitGrid"></div>
@@ -512,6 +511,8 @@ tr.total-row td { color: var(--gold); }
     <div class="kpi-row" id="filtroKpiRow"></div>
     <div class="unit-grid" id="filtroUnitGrid"></div>
 
+    <div class="section-title">EVOLUCAO DA RECEITA NO ANO</div>
+    <div id="historicoGraficoWrap"><div class="empty-state">---</div></div>
     <div class="section-title">RECEITA GYMPASS POR UNIDADE</div>
     <div id="historicoGympassWrap"><div class="empty-state">Clique para carregar dados do historico</div></div>
     <div class="section-title">RECEITA TOTALPASS POR UNIDADE</div>
@@ -927,18 +928,17 @@ function renderMesAtual(resp) {
   // KPIs
   const receitaGympass = gympass.total_receita || 0;
   const receitaTotalpass = totalpass.total_receita || 0;
-  const faturamento = receitaGympass + receitaTotalpass;
-  const checkins = gympass.total_checkins;
   // "Planos fechados" e a receita de plano direto lancada por unidade
   // (planos_receita). A contagem nominal vinha do grupo do WhatsApp e nao e
   // mais alimentada desde maio, o que deixava este KPI vazio mesmo com o mes
   // lancado e conferido.
   const receitaPlanos = (data.planos_receita && data.planos_receita.total_receita) || 0;
+  // o total do mes e a rede inteira: plataformas mais os planos diretos
+  const faturamento = receitaGympass + receitaTotalpass + receitaPlanos;
 
   document.getElementById('kpiFaturamento').textContent = fmtMoeda(faturamento);
   document.getElementById('kpiGympass').textContent = fmtMoeda(receitaGympass);
   document.getElementById('kpiTotalpass').textContent = fmtMoeda(receitaTotalpass);
-  document.getElementById('kpiCheckins').textContent = fmtNum(checkins);
   document.getElementById('kpiPlanos').textContent = receitaPlanos ? fmtMoeda(receitaPlanos) : '\u2014';
 
   // Unit cards
@@ -1149,7 +1149,87 @@ async function carregarHistorico() {
   hideLoading();
 }
 
+// Grafico de linhas do ano: total e as tres fontes, mes a mes. SVG puro com
+// viewBox, entao acompanha a largura da tela sem depender de biblioteca.
+const GRAFICO_SERIES = [
+  { key: 'total',     nome: 'TOTAL',     cor: '#D4FF00', largura: 2.6 },
+  { key: 'totalpass', nome: 'TOTALPASS', cor: '#5AA9E6', largura: 1.8 },
+  { key: 'gympass',   nome: 'GYMPASS',   cor: '#E0A852', largura: 1.8 },
+  { key: 'planos',    nome: 'PLANOS',    cor: '#52C07A', largura: 1.8 }
+];
+
+function pontosDoAno(meses) {
+  return meses.map(m => {
+    const d = dadosHistorico[m]?.data;
+    const gympass = d?.gympass?.total_receita || 0;
+    const totalpass = d?.totalpass?.total_receita || 0;
+    const planos = d?.planos_receita?.total_receita || 0;
+    return { mes: m, gympass, totalpass, planos, total: gympass + totalpass + planos };
+  }).filter(p => p.total > 0);
+}
+
+function renderGraficoAno(meses) {
+  const wrap = document.getElementById('historicoGraficoWrap');
+  if (!wrap) return;
+  const pts = pontosDoAno(meses);
+  if (pts.length < 2) {
+    wrap.innerHTML = '<div class="empty-state">Sem meses suficientes para o grafico</div>';
+    return;
+  }
+
+  const W = 1000, H = 380;
+  const mEsq = 78, mDir = 132, mTopo = 18, mBase = 34;
+  const passo = 100000;
+  const maxReal = Math.max(...pts.map(p => p.total));
+  const yMax = Math.ceil(maxReal / passo) * passo;
+  const px = i => mEsq + (i * (W - mEsq - mDir)) / (pts.length - 1);
+  const py = v => H - mBase - (v / yMax) * (H - mBase - mTopo);
+  const emMil = v => (v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Evolucao da receita mensal por fonte" style="display:block;overflow:visible">`;
+
+  // grade e eixo Y
+  for (let v = 0; v <= yMax; v += passo) {
+    const y = py(v);
+    svg += `<line x1="${mEsq}" x2="${W - mDir}" y1="${y}" y2="${y}" stroke="${v === 0 ? 'rgba(245,245,240,0.35)' : 'rgba(245,245,240,0.09)'}" stroke-width="1"/>`;
+    svg += `<text x="${mEsq - 8}" y="${y}" text-anchor="end" dominant-baseline="middle" font-size="12" fill="#888880">${v === 0 ? '0' : emMil(v) + ' mil'}</text>`;
+  }
+
+  // meses
+  pts.forEach((p, i) => {
+    svg += `<text x="${px(i)}" y="${H - 12}" text-anchor="middle" font-size="12" fill="#888880">${MESES_ABREV[p.mes.split('-')[1]]}</text>`;
+  });
+
+  // linhas e pontos
+  GRAFICO_SERIES.forEach(s => {
+    const d = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${px(i).toFixed(1)},${py(p[s.key]).toFixed(1)}`).join(' ');
+    svg += `<path d="${d}" fill="none" stroke="${s.cor}" stroke-width="${s.largura}" stroke-linecap="round" stroke-linejoin="round"/>`;
+    pts.forEach((p, i) => {
+      svg += `<circle cx="${px(i).toFixed(1)}" cy="${py(p[s.key]).toFixed(1)}" r="7" fill="transparent"><title>${MESES_ABREV[p.mes.split('-')[1]]} — ${s.nome}: ${fmtMoeda(p[s.key])}</title></circle>`;
+      svg += `<circle cx="${px(i).toFixed(1)}" cy="${py(p[s.key]).toFixed(1)}" r="${s.largura}" fill="${s.cor}" pointer-events="none"/>`;
+    });
+  });
+
+  // rotulo no fim de cada linha, afastado para nao encostar
+  const ultimo = pts[pts.length - 1];
+  const fins = GRAFICO_SERIES
+    .map(s => ({ s, y: py(ultimo[s.key]) }))
+    .sort((a, b) => a.y - b.y);
+  for (let i = 1; i < fins.length; i++) {
+    if (fins[i].y - fins[i - 1].y < 15) fins[i].y = fins[i - 1].y + 15;
+  }
+  fins.forEach(f => {
+    svg += `<text x="${W - mDir + 10}" y="${f.y}" dominant-baseline="middle" font-size="11" fill="${f.s.cor}">${f.s.nome}</text>`;
+    svg += `<text x="${W - mDir + 10}" y="${f.y + 13}" dominant-baseline="middle" font-size="11" fill="#888880">${fmtMoeda(ultimo[f.s.key])}</text>`;
+  });
+
+  svg += '</svg>';
+  wrap.innerHTML = svg;
+}
+
 function renderHistorico(meses) {
+  renderGraficoAno(meses);
+
   const headerCols = meses.map(m => {
     const mm = m.split('-')[1];
     return `<th>${MESES_ABREV[mm]} ${m.split('-')[0]}</th>`;
