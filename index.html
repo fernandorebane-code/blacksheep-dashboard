@@ -389,6 +389,18 @@ tr.total-row td { color: var(--gold); }
   display: flex;
 }
 
+/* Vendas */
+.vd-sel { background:var(--surface2);color:var(--white);border:1px solid var(--border);padding:0.5rem 0.8rem;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;min-width:150px; }
+.vd-tag { font-size:0.65rem;font-weight:600;letter-spacing:0.05em;padding:2px 6px;text-transform:uppercase;white-space:nowrap; }
+.vd-tag.confere { background:rgba(82,192,122,.15);color:var(--green); }
+.vd-tag.divergente { background:rgba(224,168,82,.15);color:#E0A852; }
+.vd-tag.sem_comprovante { background:rgba(136,136,128,.15);color:var(--gray); }
+.vd-link { color:var(--gold);cursor:pointer;text-decoration:underline;font-size:0.78rem;background:none;border:none;font-family:inherit; }
+#vdModal { display:none;position:fixed;inset:0;background:rgba(10,10,10,.92);z-index:300;align-items:center;justify-content:center;padding:1rem; }
+#vdModal.show { display:flex; }
+#vdModal .box { background:var(--surface);border:1px solid var(--border);max-width:900px;width:100%;max-height:92vh;overflow:auto;display:flex;gap:1.2rem;padding:1.2rem;flex-wrap:wrap; }
+#vdModal img { max-width:420px;width:100%;max-height:80vh;object-fit:contain; }
+
 /* Empty state */
 .empty-state {
   text-align: center;
@@ -481,6 +493,7 @@ tr.total-row td { color: var(--gold); }
     <button class="tab" data-tab="indicadores">INDICADORES</button>
     <button class="tab" data-tab="alunos">ALUNOS</button>
     <button class="tab" data-tab="detalhes">DETALHES</button>
+    <button class="tab" data-tab="vendas">VENDAS</button>
   </div>
 
   <!-- TAB 1: MES ATUAL -->
@@ -613,6 +626,43 @@ tr.total-row td { color: var(--gold); }
     <div class="section-title">PLANOS</div>
     <div id="planosTableWrap"><div class="empty-state">Sem dados</div></div>
   </div>
+
+  <!-- TAB 6: VENDAS (lancadas pelos funcionarios no app de vendas) -->
+  <div id="vendas" class="tab-content">
+    <div class="period-label" id="vendasLabel">---</div>
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-label">Vendido no mes</div><div class="kpi-value" id="vdTotal">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Planos vendidos</div><div class="kpi-value" id="vdQtd">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Anual / Mensal / Mes teste</div><div class="kpi-value" id="vdTipos" style="font-size:1rem">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Credito / Debito / Pix</div><div class="kpi-value" id="vdFormas" style="font-size:1rem">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Para revisar</div><div class="kpi-value" id="vdRevisar">--</div></div>
+    </div>
+    <div class="section-title">POR UNIDADE</div>
+    <div id="vdUnidadesWrap"><div class="empty-state">---</div></div>
+    <div class="section-title">POR FUNCIONARIO</div>
+    <div id="vdFuncResumoWrap"><div class="empty-state">---</div></div>
+    <div class="section-title">LANCAMENTOS</div>
+    <div style="margin-bottom:0.8rem;display:flex;gap:0.8rem;flex-wrap:wrap">
+      <select id="vdFiltroUnidade" class="vd-sel"><option value="">TODAS AS UNIDADES</option></select>
+      <select id="vdFiltroFunc" class="vd-sel"><option value="">TODOS OS FUNCIONARIOS</option></select>
+      <select id="vdFiltroStatus" class="vd-sel"><option value="">TODOS</option><option value="divergente">PARA REVISAR</option><option value="confere">CONFERE</option><option value="sem_comprovante">SEM COMPROVANTE</option></select>
+      <button class="btn-update" onclick="exportarVendasCSV()">EXPORTAR CSV</button>
+    </div>
+    <div id="vdListaWrap" class="table-wrap"><div class="empty-state">---</div></div>
+    <div id="vdFuncionarios" style="display:none">
+      <div class="section-title">FUNCIONARIOS (APP DE VENDAS)</div>
+      <div style="color:var(--gray);font-size:0.82rem;margin-bottom:0.8rem">Quem pode lancar em <a href="https://bjj-vendas-blacksheep.web.app" target="_blank" style="color:var(--gold)">bjj-vendas-blacksheep.web.app</a>. O funcionario cria a conta no app em "Primeiro acesso" e aparece aqui pra voce aprovar. Se preferir, cadastre direto abaixo com uma senha inicial.</div>
+      <div id="vdPendentes"></div>
+      <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.8rem">
+        <input id="vdNovoNome" class="vd-sel" placeholder="Nome">
+        <input id="vdNovoEmail" class="vd-sel" placeholder="Email" type="email">
+        <select id="vdNovaUnidade" class="vd-sel"><option value="">Unidade (opcional)</option></select>
+        <input id="vdNovaSenha" class="vd-sel" placeholder="Senha inicial (6+)">
+        <button class="btn-update" onclick="addFuncionario()">ADICIONAR</button>
+      </div>
+      <div id="vdFuncLista"></div>
+    </div>
+  </div>
 </div>
 </div>
 
@@ -679,6 +729,18 @@ function showApp(user) {
   // Init dashboard
   initSelector();
   abrirNoMesMaisRecenteComDados();
+  avisarPedidosVendas();
+}
+
+// mostra no nome da aba quantos funcionarios estao pedindo acesso ao app de vendas
+async function avisarPedidosVendas() {
+  try {
+    vendasEu = vendasEu || await vendasApi({ action: 'eu' });
+    if (!vendasEu.owner) return;
+    const { usuarios } = await vendasApi({ action: 'usuarios' });
+    const n = usuarios.filter(u => u.pendente).length;
+    if (n) document.querySelector('.tab[data-tab="vendas"]').textContent = `VENDAS (${n})`;
+  } catch (e) {}
 }
 
 async function doLogin() {
@@ -846,7 +908,10 @@ function initSelector() {
     sel.appendChild(opt);
   }
   sel.value = mesAtualStr();
-  sel.addEventListener('change', () => carregarPeriodo(sel.value));
+  sel.addEventListener('change', () => {
+    carregarPeriodo(sel.value);
+    if (document.getElementById('vendas').classList.contains('active')) carregarVendas();
+  });
 }
 
 // --- STATUS DOTS ---
@@ -1636,8 +1701,198 @@ document.querySelectorAll('.tab').forEach(tab => {
     if (target === 'historico') carregarHistorico();
     if (target === 'indicadores') carregarIndicadores();
     if (target === 'alunos') carregarAlunos();
+    if (target === 'vendas') carregarVendas();
   });
 });
+
+// --- VENDAS (app dos funcionarios: bjj-vendas-blacksheep.web.app) ---
+const VENDAS_API = 'https://us-central1-bjj-blacksheep.cloudfunctions.net/vendas';
+let vendasMes = [];
+let vendasEu = null;
+
+async function vendasApi(body) {
+  const token = await auth.currentUser.getIdToken();
+  const r = await fetch(VENDAS_API, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify(body) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || 'Erro ' + r.status);
+  return j;
+}
+function vdEsc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function vdForma(v) { return v.forma === 'credito' ? 'Credito ' + v.parcelas + 'x' : v.forma === 'debito' ? 'Debito' : 'Pix'; }
+const VD_TIPO = { anual: 'Anual', mensal: 'Mensal', mes_teste: 'Mes teste' };
+const VD_STATUS = { confere: 'confere', divergente: 'revisar', sem_comprovante: 'sem comprov.' };
+
+async function carregarVendas() {
+  const periodo = document.getElementById('mesSelector').value;
+  document.getElementById('vendasLabel').textContent = `VENDAS ${nomeDoMes(periodo)} ${periodo.split('-')[0]}`;
+  const fu = document.getElementById('vdFiltroUnidade');
+  if (fu.options.length === 1) UNIDADES.forEach(u => { fu.add(new Option(u.toUpperCase(), u)); document.getElementById('vdNovaUnidade').add(new Option(u, u)); });
+  showLoading();
+  try {
+    if (!vendasEu) vendasEu = await vendasApi({ action: 'eu' });
+    const r = await vendasApi({ action: 'listar', periodo });
+    vendasMes = r.vendas || [];
+    renderVendas();
+    if (vendasEu.owner) { document.getElementById('vdFuncionarios').style.display = ''; carregarFuncionarios(); }
+  } catch (e) {
+    document.getElementById('vdListaWrap').innerHTML = `<div class="empty-state">${vdEsc(e.message)}</div>`;
+  }
+  hideLoading();
+}
+
+function renderVendas() {
+  const vs = vendasMes;
+  const soma = arr => arr.reduce((a, v) => a + (v.valor || 0), 0);
+  document.getElementById('vdTotal').textContent = fmtMoeda(soma(vs));
+  document.getElementById('vdQtd').textContent = fmtNum(vs.length);
+  const nt = (arr, t) => arr.filter(v => v.tipo === t).length;
+  document.getElementById('vdTipos').textContent = `${nt(vs, 'anual')} / ${nt(vs, 'mensal')} / ${nt(vs, 'mes_teste')}`;
+  const pf = f => soma(vs.filter(v => v.forma === f));
+  document.getElementById('vdFormas').textContent = `${fmtMoeda(pf('credito'))} / ${fmtMoeda(pf('debito'))} / ${fmtMoeda(pf('pix'))}`;
+  const rev = vs.filter(v => v.status === 'divergente').length;
+  const elRev = document.getElementById('vdRevisar');
+  elRev.textContent = rev; elRev.style.color = rev ? '#E0A852' : '';
+
+  let tab = '<table><thead><tr><th>Unidade</th><th>Planos</th><th>Anual</th><th>Mensal</th><th>Mes teste</th><th>Credito</th><th>Debito</th><th>Pix</th><th>Total</th></tr></thead><tbody>';
+  UNIDADES.forEach(u => {
+    const x = vs.filter(v => v.unidade === u);
+    const t = f => soma(x.filter(v => v.forma === f));
+    tab += `<tr><td>${u}</td><td class="mono">${x.length}</td><td class="mono">${nt(x, 'anual')}</td><td class="mono">${nt(x, 'mensal')}</td><td class="mono">${nt(x, 'mes_teste')}</td><td class="mono">${fmtMoeda(t('credito'))}</td><td class="mono">${fmtMoeda(t('debito'))}</td><td class="mono">${fmtMoeda(t('pix'))}</td><td class="mono">${fmtMoeda(soma(x))}</td></tr>`;
+  });
+  tab += `<tr class="total-row"><td>TOTAL</td><td class="mono">${vs.length}</td><td class="mono">${nt(vs, 'anual')}</td><td class="mono">${nt(vs, 'mensal')}</td><td class="mono">${nt(vs, 'mes_teste')}</td><td class="mono">${fmtMoeda(pf('credito'))}</td><td class="mono">${fmtMoeda(pf('debito'))}</td><td class="mono">${fmtMoeda(pf('pix'))}</td><td class="mono">${fmtMoeda(soma(vs))}</td></tr></tbody></table>`;
+  document.getElementById('vdUnidadesWrap').innerHTML = tab;
+
+  // quem lancou: agrupa pelo email (o nome pode repetir)
+  const porFunc = {};
+  vs.forEach(v => { (porFunc[v.funcionario_email] = porFunc[v.funcionario_email] || { nome: v.funcionario_nome, lista: [] }).lista.push(v); });
+  const funcs = Object.entries(porFunc).sort((a, b) => soma(b[1].lista) - soma(a[1].lista));
+  let tf = '<table><thead><tr><th>Funcionario</th><th>Unidades</th><th>Planos</th><th>Anual</th><th>Mensal</th><th>Mes teste</th><th>Para revisar</th><th>Total</th></tr></thead><tbody>';
+  funcs.forEach(([email, f]) => {
+    const x = f.lista, unids = [...new Set(x.map(v => v.unidade))].join(', ');
+    const rv = x.filter(v => v.status === 'divergente').length;
+    tf += `<tr><td title="${vdEsc(email)}">${vdEsc(f.nome)}<div style="color:var(--gray);font-size:0.72rem">${vdEsc(email)}</div></td><td>${vdEsc(unids)}</td><td class="mono">${x.length}</td><td class="mono">${nt(x, 'anual')}</td><td class="mono">${nt(x, 'mensal')}</td><td class="mono">${nt(x, 'mes_teste')}</td><td class="mono"${rv ? ' style="color:#E0A852"' : ''}>${rv}</td><td class="mono">${fmtMoeda(soma(x))}</td></tr>`;
+  });
+  document.getElementById('vdFuncResumoWrap').innerHTML = funcs.length ? tf + '</tbody></table>' : '<div class="empty-state">Nenhuma venda lancada neste mes</div>';
+  const ff = document.getElementById('vdFiltroFunc'), atual = ff.value;
+  ff.innerHTML = '<option value="">TODOS OS FUNCIONARIOS</option>' + funcs.map(([email, f]) => `<option value="${vdEsc(email)}">${vdEsc(f.nome).toUpperCase()}</option>`).join('');
+  if (porFunc[atual]) ff.value = atual;
+  renderListaVendas();
+}
+
+function vendasFiltradas() {
+  const fu = document.getElementById('vdFiltroUnidade').value, fs = document.getElementById('vdFiltroStatus').value, ff = document.getElementById('vdFiltroFunc').value;
+  return vendasMes.filter(v => (!fu || v.unidade === fu) && (!fs || v.status === fs) && (!ff || v.funcionario_email === ff));
+}
+
+function renderListaVendas() {
+  const lista = vendasFiltradas();
+  if (!lista.length) { document.getElementById('vdListaWrap').innerHTML = '<div class="empty-state">Nenhuma venda lancada neste mes</div>'; return; }
+  let h = '<table><thead><tr><th>Data</th><th>Unidade</th><th>Aluno</th><th>Tipo</th><th>Plano</th><th>Pagamento</th><th>Valor</th><th>Funcionario</th><th>Status</th><th></th></tr></thead><tbody>';
+  lista.forEach(v => {
+    const nota = [...(v.divergencias || []), v.observacao ? 'Obs: ' + v.observacao : ''].filter(Boolean).join(' | ');
+    h += `<tr>
+      <td class="mono">${(v.data || '').split('-').reverse().slice(0, 2).join('/')}</td>
+      <td>${vdEsc(v.unidade)}</td><td>${vdEsc(v.aluno || '—')}</td><td>${VD_TIPO[v.tipo] || '—'}</td><td>${vdEsc(v.plano || '—')}</td>
+      <td>${vdForma(v)}</td><td class="mono">${fmtMoeda(v.valor)}</td><td title="${vdEsc(v.funcionario_email)}">${vdEsc(v.funcionario_nome)}</td>
+      <td><span class="vd-tag ${v.status}">${VD_STATUS[v.status] || v.status}</span></td>
+      <td>${v.tem_comprovante ? `<button class="vd-link" onclick="verComprovante('${v.id}')">ver</button>` : ''}</td>
+    </tr>`;
+    if (nota && v.status !== 'confere') h += `<tr><td></td><td colspan="9" style="color:#E0A852;font-size:0.75rem;padding-top:0">${vdEsc(nota)}</td></tr>`;
+  });
+  document.getElementById('vdListaWrap').innerHTML = h + '</tbody></table>';
+}
+document.getElementById('vdFiltroUnidade').addEventListener('change', renderListaVendas);
+document.getElementById('vdFiltroStatus').addEventListener('change', renderListaVendas);
+document.getElementById('vdFiltroFunc').addEventListener('change', renderListaVendas);
+
+async function verComprovante(id) {
+  const v = vendasMes.find(x => x.id === id); if (!v) return;
+  let m = document.getElementById('vdModal');
+  if (!m) { m = document.createElement('div'); m.id = 'vdModal'; m.onclick = e => { if (e.target === m) m.classList.remove('show'); }; document.body.appendChild(m); }
+  m.innerHTML = '<div class="box"><div class="empty-state">Carregando...</div></div>'; m.classList.add('show');
+  try {
+    const { imagem } = await vendasApi({ action: 'comprovante', id });
+    const l = v.leitura || {};
+    const linha = (k, a, b) => `<tr><td style="color:var(--gray)">${k}</td><td class="mono">${vdEsc(a ?? '—')}</td><td class="mono">${vdEsc(b ?? '—')}</td></tr>`;
+    m.innerHTML = `<div class="box"><img src="${imagem}" alt="Comprovante">
+      <div style="flex:1;min-width:260px">
+        <div class="section-title" style="margin-top:0">${vdEsc(v.aluno || v.plano || '')} ${VD_TIPO[v.tipo] ? '· ' + VD_TIPO[v.tipo].toUpperCase() : ''}</div>
+        <table><thead><tr><th></th><th>Lancado</th><th>Comprovante</th></tr></thead><tbody>
+          ${linha('Valor', fmtMoeda(v.valor), l.valor != null ? fmtMoeda(l.valor) : null)}
+          ${linha('Forma', v.forma, l.forma)}
+          ${linha('Parcelas', v.parcelas + 'x', l.parcelas != null ? l.parcelas + 'x' : null)}
+          ${linha('Data', v.data, l.data)}
+          ${linha('NSU / Aut.', '', [l.nsu, l.autorizacao].filter(Boolean).join(' / ') || null)}
+          ${linha('Bandeira', '', l.bandeira)}
+        </tbody></table>
+        ${(v.divergencias || []).length ? `<div style="color:#E0A852;font-size:0.82rem;margin-top:0.8rem">${v.divergencias.map(vdEsc).join('<br>')}</div>` : ''}
+        <div style="font-size:0.82rem;margin-top:0.8rem">Lancado por <strong>${vdEsc(v.funcionario_nome)}</strong> <span class="mono" style="color:var(--gray)">${vdEsc(v.funcionario_email)}</span> em ${vdEsc((v.data || '').split('-').reverse().join('/'))}${v.criado_em ? ' as ' + new Date(v.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : ''}</div>
+        ${v.observacao ? `<div style="font-size:0.82rem;margin-top:0.6rem">Obs do funcionario: ${vdEsc(v.observacao)}</div>` : ''}
+        <div style="display:flex;gap:0.6rem;margin-top:1rem;flex-wrap:wrap">
+          ${v.status === 'divergente' ? `<button class="btn-update" onclick="marcarConferido('${id}')">MARCAR COMO CONFERIDO</button>` : ''}
+          ${vendasEu && vendasEu.owner ? `<button class="btn-logout" onclick="excluirVenda('${id}')">EXCLUIR</button>` : ''}
+          <button class="btn-logout" onclick="document.getElementById('vdModal').classList.remove('show')">FECHAR</button>
+        </div>
+      </div></div>`;
+  } catch (e) { m.innerHTML = `<div class="box"><div class="empty-state">${vdEsc(e.message)}</div></div>`; }
+}
+async function marcarConferido(id) {
+  await vendasApi({ action: 'conferido', id });
+  const v = vendasMes.find(x => x.id === id); if (v) v.status = 'confere';
+  document.getElementById('vdModal').classList.remove('show'); renderVendas();
+}
+async function excluirVenda(id) {
+  if (!confirm('Excluir este lancamento?')) return;
+  await vendasApi({ action: 'excluir', id });
+  vendasMes = vendasMes.filter(x => x.id !== id);
+  document.getElementById('vdModal').classList.remove('show'); renderVendas();
+}
+
+function exportarVendasCSV() {
+  const cols = ['data', 'unidade', 'aluno', 'tipo', 'plano', 'forma', 'parcelas', 'valor', 'funcionario_nome', 'funcionario_email', 'status', 'observacao'];
+  const linhas = [cols.join(';')].concat(vendasFiltradas().map(v => cols.map(c => {
+    let x = v[c] ?? ''; if (c === 'tipo') x = VD_TIPO[x] || x; if (c === 'valor') x = String(x).replace('.', ',');
+    return '"' + String(x).replace(/"/g, '""') + '"';
+  }).join(';')));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿' + linhas.join('\n')], { type: 'text/csv;charset=utf-8' }));
+  a.download = `vendas_${document.getElementById('mesSelector').value}.csv`; a.click();
+}
+
+async function carregarFuncionarios() {
+  try {
+    const { usuarios } = await vendasApi({ action: 'usuarios' });
+    const pend = usuarios.filter(u => u.pendente);
+    document.getElementById('vdPendentes').innerHTML = pend.length ? `<div style="background:var(--gold-dim);border:1px solid var(--gold);padding:0.8rem 1rem;margin-bottom:1rem">
+      <div style="color:var(--gold);font-weight:600;font-size:0.85rem;margin-bottom:0.5rem">${pend.length} PEDIDO${pend.length > 1 ? 'S' : ''} DE ACESSO AGUARDANDO</div>
+      ${pend.map(u => `<div style="display:flex;justify-content:space-between;align-items:center;gap:0.8rem;padding:0.4rem 0;flex-wrap:wrap">
+        <span><strong>${vdEsc(u.nome)}</strong> <span class="mono" style="color:var(--gray)">${vdEsc(u.email)}</span> · ${vdEsc(u.unidade || 'sem unidade')}</span>
+        <span style="display:flex;gap:0.5rem"><button class="btn-update" onclick="ativarFuncionario('${vdEsc(u.email)}', true)">APROVAR</button><button class="btn-logout" onclick="ativarFuncionario('${vdEsc(u.email)}', false)">RECUSAR</button></span>
+      </div>`).join('')}</div>` : '';
+    const tabV = document.querySelector('.tab[data-tab="vendas"]');
+    if (tabV) tabV.textContent = pend.length ? `VENDAS (${pend.length})` : 'VENDAS';
+    const aprovados = usuarios.filter(u => !u.pendente);
+    if (!aprovados.length) { document.getElementById('vdFuncLista').innerHTML = '<div class="empty-state">Nenhum funcionario aprovado ainda</div>'; return; }
+    document.getElementById('vdFuncLista').innerHTML = '<table><thead><tr><th>Nome</th><th>Email</th><th>Unidade</th><th>Status</th><th></th></tr></thead><tbody>' +
+      aprovados.sort((a, b) => (a.nome || '').localeCompare(b.nome || '')).map(u => `<tr${u.ativo === false ? ' style="opacity:.5"' : ''}>
+        <td>${vdEsc(u.nome)}</td><td class="mono">${vdEsc(u.email)}</td><td>${vdEsc(u.unidade || '—')}</td>
+        <td>${u.ativo === false ? 'desativado' : 'ativo'}</td>
+        <td><button class="vd-link" onclick="ativarFuncionario('${vdEsc(u.email)}', ${u.ativo === false})">${u.ativo === false ? 'reativar' : 'desativar'}</button></td></tr>`).join('') + '</tbody></table>';
+  } catch (e) { document.getElementById('vdFuncLista').innerHTML = `<div class="empty-state">${vdEsc(e.message)}</div>`; }
+}
+async function addFuncionario() {
+  const body = { action: 'addUsuario', nome: document.getElementById('vdNovoNome').value, email: document.getElementById('vdNovoEmail').value,
+    unidade: document.getElementById('vdNovaUnidade').value, senha: document.getElementById('vdNovaSenha').value };
+  try {
+    const r = await vendasApi(body);
+    alert(r.criado ? 'Funcionario criado. Passe o email e a senha inicial pra ele.' : 'Esse email ja tinha conta: liberado pra lancar com a senha que ja usa.');
+    ['vdNovoNome', 'vdNovoEmail', 'vdNovaSenha'].forEach(id => document.getElementById(id).value = '');
+    carregarFuncionarios();
+  } catch (e) { alert(e.message); }
+}
+async function ativarFuncionario(email, ativo) {
+  await vendasApi({ action: 'ativarUsuario', email, ativo }); carregarFuncionarios();
+}
 
 // --- RENDER ALUNOS ---
 async function carregarAlunos() {
