@@ -1722,8 +1722,20 @@ function vdEsc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&am
 function vdForma(v) { return v.forma === 'credito' ? 'Credito ' + v.parcelas + 'x' : v.forma === 'debito' ? 'Debito' : 'Pix'; }
 const VD_STATUS = { confere: 'confere', divergente: 'revisar', sem_comprovante: 'sem comprov.' };
 
+let vendasAbriuMesAtual = false;
 async function carregarVendas() {
-  const periodo = document.getElementById('mesSelector').value;
+  // o seletor abre no ultimo mes com dados do Gympass, que pode ser o mes passado;
+  // vendas sao lancadas no dia, entao na primeira vez a aba vai pro mes corrente
+  const sel = document.getElementById('mesSelector');
+  if (!vendasAbriuMesAtual) {
+    vendasAbriuMesAtual = true;
+    if (sel.value !== mesAtualStr() && [...sel.options].some(o => o.value === mesAtualStr())) {
+      sel.value = mesAtualStr();
+      sel.dispatchEvent(new Event('change'));
+      return;
+    }
+  }
+  const periodo = sel.value;
   document.getElementById('vendasLabel').textContent = `VENDAS ${nomeDoMes(periodo)} ${periodo.split('-')[0]}`;
   const fu = document.getElementById('vdFiltroUnidade');
   if (fu.options.length === 1) UNIDADES.forEach(u => { fu.add(new Option(u.toUpperCase(), u)); document.getElementById('vdNovaUnidade').add(new Option(u, u)); });
