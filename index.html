@@ -661,7 +661,6 @@ tr.total-row td { color: var(--gold); }
       <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.8rem">
         <input id="vdNovoNome" class="vd-sel" placeholder="Nome">
         <input id="vdNovoEmail" class="vd-sel" placeholder="Email" type="email">
-        <select id="vdNovaUnidade" class="vd-sel"><option value="">Unidade (opcional)</option></select>
         <input id="vdNovaSenha" class="vd-sel" placeholder="Senha inicial (6+)">
         <button class="btn-update" onclick="addFuncionario()">ADICIONAR</button>
       </div>
@@ -1761,7 +1760,7 @@ async function carregarVendas() {
   const periodo = sel.value;
   document.getElementById('vendasLabel').textContent = `VENDAS ${nomeDoMes(periodo)} ${periodo.split('-')[0]}`;
   const fu = document.getElementById('vdFiltroUnidade');
-  if (fu.options.length === 1) UNIDADES.forEach(u => { fu.add(new Option(u.toUpperCase(), u)); document.getElementById('vdNovaUnidade').add(new Option(u, u)); });
+  if (fu.options.length === 1) UNIDADES.forEach(u => fu.add(new Option(u.toUpperCase(), u)));
   showLoading();
   try {
     if (!vendasEu) vendasEu = await vendasApi({ action: 'eu' });
@@ -1928,23 +1927,23 @@ async function carregarFuncionarios() {
     document.getElementById('vdPendentes').innerHTML = pend.length ? `<div style="background:var(--gold-dim);border:1px solid var(--gold);padding:0.8rem 1rem;margin-bottom:1rem">
       <div style="color:var(--gold);font-weight:600;font-size:0.85rem;margin-bottom:0.5rem">${pend.length} PEDIDO${pend.length > 1 ? 'S' : ''} DE ACESSO AGUARDANDO</div>
       ${pend.map(u => `<div style="display:flex;justify-content:space-between;align-items:center;gap:0.8rem;padding:0.4rem 0;flex-wrap:wrap">
-        <span><strong>${vdEsc(u.nome)}</strong> <span class="mono" style="color:var(--gray)">${vdEsc(u.email)}</span> · ${vdEsc(u.unidade || 'sem unidade')}</span>
+        <span><strong>${vdEsc(u.nome)}</strong> <span class="mono" style="color:var(--gray)">${vdEsc(u.email)}</span></span>
         <span style="display:flex;gap:0.5rem"><button class="btn-update" onclick="ativarFuncionario('${vdEsc(u.email)}', true)">APROVAR</button><button class="btn-logout" onclick="ativarFuncionario('${vdEsc(u.email)}', false)">RECUSAR</button></span>
       </div>`).join('')}</div>` : '';
     const tabV = document.querySelector('.tab[data-tab="vendas"]');
     if (tabV) tabV.textContent = pend.length ? `VENDAS (${pend.length})` : 'VENDAS';
     const aprovados = usuarios.filter(u => !u.pendente);
     if (!aprovados.length) { document.getElementById('vdFuncLista').innerHTML = '<div class="empty-state">Nenhum funcionario aprovado ainda</div>'; return; }
-    document.getElementById('vdFuncLista').innerHTML = '<table><thead><tr><th>Nome</th><th>Email</th><th>Unidade</th><th>Status</th><th></th></tr></thead><tbody>' +
+    document.getElementById('vdFuncLista').innerHTML = '<table><thead><tr><th>Nome</th><th>Email</th><th>Status</th><th></th></tr></thead><tbody>' +
       aprovados.sort((a, b) => (a.nome || '').localeCompare(b.nome || '')).map(u => `<tr${u.ativo === false ? ' style="opacity:.5"' : ''}>
-        <td>${vdEsc(u.nome)}</td><td class="mono">${vdEsc(u.email)}</td><td>${vdEsc(u.unidade || '—')}</td>
+        <td>${vdEsc(u.nome)}</td><td class="mono">${vdEsc(u.email)}</td>
         <td>${u.ativo === false ? 'desativado' : 'ativo'}</td>
         <td><button class="vd-link" onclick="ativarFuncionario('${vdEsc(u.email)}', ${u.ativo === false})">${u.ativo === false ? 'reativar' : 'desativar'}</button></td></tr>`).join('') + '</tbody></table>';
   } catch (e) { document.getElementById('vdFuncLista').innerHTML = `<div class="empty-state">${vdEsc(e.message)}</div>`; }
 }
 async function addFuncionario() {
   const body = { action: 'addUsuario', nome: document.getElementById('vdNovoNome').value, email: document.getElementById('vdNovoEmail').value,
-    unidade: document.getElementById('vdNovaUnidade').value, senha: document.getElementById('vdNovaSenha').value };
+    senha: document.getElementById('vdNovaSenha').value };
   try {
     const r = await vendasApi(body);
     alert(r.criado ? 'Funcionario criado. Passe o email e a senha inicial pra ele.' : 'Esse email ja tinha conta: liberado pra lancar com a senha que ja usa.');
