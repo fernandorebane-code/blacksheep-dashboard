@@ -1,0 +1,166 @@
+{
+ "competidor": "time",
+ "publicado": false,
+ "resultados": {
+  "tm_eu-sofro-mas-vou": {
+   "w_tfum8an": {
+    "faltou": null,
+    "v": 18
+   }
+  },
+  "tm_barba-careca-e-cabeluda": {
+   "w_tfum8an": {
+    "faltou": null,
+    "v": 8
+   }
+  },
+  "tm_anilhas-apocalipticas": {
+   "w_tfum8an": {
+    "faltou": null,
+    "v": 10
+   }
+  }
+ },
+ "unidades": [],
+ "nome": "CT Storm Championship",
+ "data": "7 de novembro de 2026",
+ "dec": 5,
+ "categorias": [
+  "RX",
+  "Scale"
+ ],
+ "p1": 100,
+ "wods": [
+  {
+   "id": "w_tfum8an",
+   "nome": "WOD 01",
+   "tipo": "reps",
+   "cap": null,
+   "desc": "AMRAP 12’ \n\n30 DB Snatch Syncro (2 atletas) \n30 OHL Lunges Syncro (2 atletas) \n10 BBJ – 20 – 30 Syncro (2 atletas) \n\nDB - RX 22/16 — SC 16/10",
+   "categorias": [],
+   "ordem": 1,
+   "pub": true
+  },
+  {
+   "id": "w_cnfx37k",
+   "nome": "WOD 02",
+   "tipo": "tempo",
+   "cap": null,
+   "desc": "50 Thrusters. 50/35.  SC 35/25\n50 HSPU.            SC- Push ups \n50 Pull-ups.    SC - Hang clean",
+   "categorias": [],
+   "ordem": 2,
+   "pub": true
+  },
+  {
+   "id": "w_c4vrzf2",
+   "nome": "WOD 03",
+   "tipo": "pontos",
+   "cap": null,
+   "desc": "",
+   "categorias": [],
+   "ordem": 3,
+   "pub": true
+  },
+  {
+   "id": "w_tobhk2n",
+   "nome": "WOD 04",
+   "tipo": "tempo",
+   "cap": null,
+   "desc": "4 ROUNDS\n\n12 T2B    -   SC      15 High knee \n5 BMU     -   SC     05 Burpees Target\n15 SNATCHES     50/35- SC35/25\n21 Wall Balls (2atletas).  20/14  SC 14/10",
+   "categorias": [],
+   "ordem": 4,
+   "pub": true
+  },
+  {
+   "id": "w_6qo51zy",
+   "nome": "WOD 05",
+   "tipo": "reps",
+   "cap": null,
+   "desc": "3’ MAX\n•⁠  ⁠Clean n’ Jerk.        RX 50/35. -  35/25",
+   "categorias": [],
+   "ordem": 5,
+   "pub": true
+  }
+ ],
+ "sistema": "posicao",
+ "atletas": [
+  {
+   "id": "tm_xuris",
+   "nome": "XURIS",
+   "categoria": "RX",
+   "unidade": "",
+   "integrantes": "João Paulo, Karina, Vini Melo"
+  },
+  {
+   "id": "tm_team-turista",
+   "nome": "Team Turista",
+   "categoria": "RX",
+   "unidade": "",
+   "integrantes": "André, Janaína, Rafaela"
+  },
+  {
+   "id": "tm_as-mashas-e-o-urso",
+   "nome": "As Mashas e o Urso",
+   "categoria": "RX",
+   "unidade": "",
+   "integrantes": "Abdon, Cibele, Grazi"
+  },
+  {
+   "id": "tm_48-do-segundo-tempo",
+   "nome": "48 do segundo tempo",
+   "categoria": "RX",
+   "unidade": "",
+   "integrantes": "Angelica, Aline, Aldrin"
+  },
+  {
+   "id": "tm_3x-mais-cansados",
+   "nome": "3x mais cansados",
+   "categoria": "RX",
+   "unidade": "",
+   "integrantes": "Juliane, Jonathan, Aline"
+  },
+  {
+   "id": "tm_os-rxs",
+   "nome": "Os RXs",
+   "categoria": "Scale",
+   "unidade": "",
+   "integrantes": "Babi, Gui, Luna"
+  },
+  {
+   "id": "tm_anilhas-apocalipticas",
+   "nome": "Anilhas Apocalípticas",
+   "categoria": "Scale",
+   "unidade": "",
+   "integrantes": "Gisele Nascimento, Pedro Portes, Viviana"
+  },
+  {
+   "id": "tm_barba-careca-e-cabeluda",
+   "nome": "Barba, Careca e Cabeluda",
+   "categoria": "Scale",
+   "unidade": "",
+   "integrantes": "Fernando, Sidnei, Maini"
+  },
+  {
+   "id": "tm_eu-sofro-mas-vou",
+   "nome": "Eu Sofro, mas vou",
+   "categoria": "Scale",
+   "unidade": "",
+   "integrantes": "Elisabete, Mauricio, Sheila"
+  },
+  {
+   "id": "tm_mais-master",
+   "nome": "Mais Master",
+   "categoria": "Scale",
+   "unidade": "",
+   "integrantes": "Renan, Juliana, Silvio"
+  },
+  {
+   "id": "tm_tck-team",
+   "nome": "TCK TEAM",
+   "categoria": "Scale",
+   "unidade": "",
+   "integrantes": "Thiago, Carol, Keyti"
+  }
+ ],
+ "local": "CT Storm"
+}
