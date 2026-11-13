@@ -394,6 +394,7 @@ tr.total-row td { color: var(--gold); }
 .vd-tag { font-size:0.65rem;font-weight:600;letter-spacing:0.05em;padding:2px 6px;text-transform:uppercase;white-space:nowrap; }
 .vd-tag.confere { background:rgba(82,192,122,.15);color:var(--green); }
 .vd-tag.divergente { background:rgba(224,168,82,.15);color:#E0A852; }
+.vd-tag.com_comprovante { background:rgba(82,192,122,.15);color:var(--green); }
 .vd-tag.sem_comprovante { background:rgba(136,136,128,.15);color:var(--gray); }
 .vd-link { color:var(--gold);cursor:pointer;text-decoration:underline;font-size:0.78rem;background:none;border:none;font-family:inherit; }
 #vdModal { display:none;position:fixed;inset:0;background:rgba(10,10,10,.92);z-index:300;align-items:center;justify-content:center;padding:1rem; }
@@ -650,7 +651,7 @@ tr.total-row td { color: var(--gold); }
     <div style="margin-bottom:0.8rem;display:flex;gap:0.8rem;flex-wrap:wrap">
       <select id="vdFiltroUnidade" class="vd-sel"><option value="">TODAS AS UNIDADES</option></select>
       <select id="vdFiltroFunc" class="vd-sel"><option value="">TODOS OS FUNCIONARIOS</option></select>
-      <select id="vdFiltroStatus" class="vd-sel"><option value="">TODOS</option><option value="divergente">PARA REVISAR</option><option value="confere">CONFERE</option><option value="sem_comprovante">SEM COMPROVANTE</option></select>
+      <select id="vdFiltroStatus" class="vd-sel"><option value="">TODOS</option><option value="divergente">PARA REVISAR</option><option value="com_comprovante">COM COMPROVANTE</option><option value="confere">CONFERE</option><option value="sem_comprovante">SEM COMPROVANTE</option></select>
       <button class="btn-update" onclick="exportarVendasCSV()">EXPORTAR CSV</button>
     </div>
     <div id="vdListaWrap" class="table-wrap"><div class="empty-state">---</div></div>
@@ -1742,7 +1743,7 @@ async function vendasApi(body) {
 }
 function vdEsc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function vdForma(v) { return v.forma === 'credito' ? 'Credito ' + v.parcelas + 'x' : v.forma === 'debito' ? 'Debito' : 'Pix'; }
-const VD_STATUS = { confere: 'confere', divergente: 'revisar', sem_comprovante: 'sem comprov.' };
+const VD_STATUS = { com_comprovante: 'comprovante', confere: 'confere', divergente: 'revisar', sem_comprovante: 'sem comprov.' };
 
 let vendasAbriuMesAtual = false;
 async function carregarVendas(silencioso) {
@@ -1872,7 +1873,7 @@ function renderListaVendas() {
     const nota = [...(v.divergencias || []), v.observacao ? 'Obs: ' + v.observacao : ''].filter(Boolean).join(' | ');
     h += `<tr>
       <td class="mono">${(v.data || '').split('-').reverse().slice(0, 2).join('/')}</td>
-      <td>${vdEsc(v.unidade)}</td><td>${vdEsc(v.aluno || '—')}</td><td>${vdEsc(v.plano || '—')}</td>
+      <td>${vdEsc(v.unidade)}</td><td>${vdEsc(v.aluno || '—')}${v.aluno_email ? `<div style="font-size:0.72rem;color:var(--gray)">${vdEsc(v.aluno_email)}</div>` : ''}</td><td>${vdEsc(v.plano || '—')}</td>
       <td>${vdForma(v)}</td><td class="mono">${fmtMoeda(v.valor)}</td><td title="${vdEsc(v.funcionario_email)}">${vdEsc(v.funcionario_nome)}</td>
       <td><span class="vd-tag ${v.status}">${VD_STATUS[v.status] || v.status}</span></td>
       <td>${v.tem_comprovante ? `<button class="vd-link" onclick="verComprovante('${v.id}')">ver</button>` : ''}</td>
@@ -1896,7 +1897,7 @@ async function verComprovante(id) {
     const linha = (k, a, b) => `<tr><td style="color:var(--gray)">${k}</td><td class="mono">${vdEsc(a ?? '—')}</td><td class="mono">${vdEsc(b ?? '—')}</td></tr>`;
     m.innerHTML = `<div class="box"><img src="${imagem}" alt="Comprovante">
       <div style="flex:1;min-width:260px">
-        <div class="section-title" style="margin-top:0">${vdEsc(v.aluno ? v.aluno + ' · ' + (v.plano || '') : v.plano || '')}</div>
+        <div class="section-title" style="margin-top:0">${vdEsc(v.aluno ? v.aluno + ' · ' + (v.plano || '') : v.plano || '')}</div>${v.aluno_email ? `<div style="color:var(--gray);font-size:0.8rem;margin:-6px 0 8px">${vdEsc(v.aluno_email)}</div>` : ''}
         <table><thead><tr><th></th><th>Lancado</th><th>Comprovante</th></tr></thead><tbody>
           ${linha('Valor', fmtMoeda(v.valor), l.valor != null ? fmtMoeda(l.valor) : null)}
           ${linha('Forma', v.forma, l.forma)}
@@ -1929,7 +1930,7 @@ async function excluirVenda(id) {
 }
 
 function exportarVendasCSV() {
-  const cols = ['data', 'unidade', 'aluno', 'plano', 'forma', 'parcelas', 'valor', 'funcionario_nome', 'funcionario_email', 'status', 'observacao'];
+  const cols = ['data', 'unidade', 'aluno', 'aluno_email', 'plano', 'forma', 'parcelas', 'valor', 'funcionario_nome', 'funcionario_email', 'status', 'observacao'];
   const linhas = [cols.join(';')].concat(vendasFiltradas().map(v => cols.map(c => {
     let x = v[c] ?? ''; if (c === 'valor') x = String(x).replace('.', ',');
     return '"' + String(x).replace(/"/g, '""') + '"';
