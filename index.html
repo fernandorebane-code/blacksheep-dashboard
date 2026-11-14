@@ -395,6 +395,7 @@ tr.total-row td { color: var(--gold); }
 .vd-tag.confere { background:rgba(82,192,122,.15);color:var(--green); }
 .vd-tag.divergente { background:rgba(224,168,82,.15);color:#E0A852; }
 .vd-tag.com_comprovante { background:rgba(82,192,122,.15);color:var(--green); }
+.vd-tag.nao_lido { background:rgba(136,136,128,.15);color:var(--gray); }
 .vd-tag.sem_comprovante { background:rgba(136,136,128,.15);color:var(--gray); }
 .vd-link { color:var(--gold);cursor:pointer;text-decoration:underline;font-size:0.78rem;background:none;border:none;font-family:inherit; }
 #vdModal { display:none;position:fixed;inset:0;background:rgba(10,10,10,.92);z-index:300;align-items:center;justify-content:center;padding:1rem; }
@@ -651,7 +652,7 @@ tr.total-row td { color: var(--gold); }
     <div style="margin-bottom:0.8rem;display:flex;gap:0.8rem;flex-wrap:wrap">
       <select id="vdFiltroUnidade" class="vd-sel"><option value="">TODAS AS UNIDADES</option></select>
       <select id="vdFiltroFunc" class="vd-sel"><option value="">TODOS OS FUNCIONARIOS</option></select>
-      <select id="vdFiltroStatus" class="vd-sel"><option value="">TODOS</option><option value="divergente">PARA REVISAR</option><option value="com_comprovante">COM COMPROVANTE</option><option value="confere">CONFERE</option><option value="sem_comprovante">SEM COMPROVANTE</option></select>
+      <select id="vdFiltroStatus" class="vd-sel"><option value="">TODOS</option><option value="divergente">PARA REVISAR</option><option value="nao_lido">NÃO LIDO</option><option value="com_comprovante">CONFERINDO</option><option value="confere">CONFERE</option><option value="sem_comprovante">SEM COMPROVANTE</option></select>
       <button class="btn-update" onclick="exportarVendasCSV()">EXPORTAR CSV</button>
     </div>
     <div id="vdListaWrap" class="table-wrap"><div class="empty-state">---</div></div>
@@ -1743,7 +1744,7 @@ async function vendasApi(body) {
 }
 function vdEsc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function vdForma(v) { return v.forma === 'credito' ? 'Credito ' + v.parcelas + 'x' : v.forma === 'debito' ? 'Debito' : 'Pix'; }
-const VD_STATUS = { com_comprovante: 'comprovante', confere: 'confere', divergente: 'revisar', sem_comprovante: 'sem comprov.' };
+const VD_STATUS = { com_comprovante: 'conferindo...', nao_lido: 'não lido', confere: 'confere', divergente: 'revisar', sem_comprovante: 'sem comprov.' };
 
 let vendasAbriuMesAtual = false;
 async function carregarVendas(silencioso) {
@@ -1870,7 +1871,7 @@ function renderListaVendas() {
   if (!lista.length) { document.getElementById('vdListaWrap').innerHTML = '<div class="empty-state">Nenhuma venda lancada neste mes</div>'; return; }
   let h = '<table><thead><tr><th>Data</th><th>Unidade</th><th>Aluno</th><th>Plano</th><th>Pagamento</th><th>Valor</th><th>Funcionario</th><th>Status</th><th></th></tr></thead><tbody>';
   lista.forEach(v => {
-    const nota = [...(v.divergencias || []), v.observacao ? 'Obs: ' + v.observacao : ''].filter(Boolean).join(' | ');
+    const nota = [...(v.divergencias || []), v.observacao ? 'Obs: ' + v.observacao : '', v.valor_original ? `Corrigido (lançado ${fmtMoeda(v.valor_original)})` : ''].filter(Boolean).join(' | ');
     h += `<tr>
       <td class="mono">${(v.data || '').split('-').reverse().slice(0, 2).join('/')}</td>
       <td>${vdEsc(v.unidade)}</td><td>${vdEsc(v.aluno || '—')}${v.aluno_email ? `<div style="font-size:0.72rem;color:var(--gray)">${vdEsc(v.aluno_email)}</div>` : ''}</td><td>${vdEsc(v.plano || '—')}</td>
@@ -1878,7 +1879,7 @@ function renderListaVendas() {
       <td><span class="vd-tag ${v.status}">${VD_STATUS[v.status] || v.status}</span></td>
       <td>${v.tem_comprovante ? `<button class="vd-link" onclick="verComprovante('${v.id}')">ver</button>` : ''}</td>
     </tr>`;
-    if (nota && v.status !== 'confere') h += `<tr><td></td><td colspan="8" style="color:#E0A852;font-size:0.75rem;padding-top:0">${vdEsc(nota)}</td></tr>`;
+    if (nota && (v.status !== 'confere' || v.valor_original)) h += `<tr><td></td><td colspan="8" style="color:#E0A852;font-size:0.75rem;padding-top:0">${vdEsc(nota)}</td></tr>`;
   });
   document.getElementById('vdListaWrap').innerHTML = h + '</tbody></table>';
 }
