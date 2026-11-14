@@ -653,6 +653,7 @@ tr.total-row td { color: var(--gold); }
       <select id="vdFiltroUnidade" class="vd-sel"><option value="">TODAS AS UNIDADES</option></select>
       <select id="vdFiltroFunc" class="vd-sel"><option value="">TODOS OS FUNCIONARIOS</option></select>
       <select id="vdFiltroStatus" class="vd-sel"><option value="">TODOS</option><option value="divergente">PARA REVISAR</option><option value="nao_lido">NÃO LIDO</option><option value="com_comprovante">CONFERINDO</option><option value="confere">CONFERE</option><option value="sem_comprovante">SEM COMPROVANTE</option></select>
+      <select id="vdFiltroMb" class="vd-sel"><option value="">MILLBODY: TODOS</option><option value="pendente">MILLBODY: PENDENTE</option><option value="subiu">MILLBODY: SUBIU</option><option value="sem_plano">MILLBODY: NÃO SOBE</option></select>
       <button class="btn-update" onclick="exportarVendasCSV()">EXPORTAR CSV</button>
     </div>
     <div id="vdListaWrap" class="table-wrap"><div class="empty-state">---</div></div>
@@ -1744,6 +1745,26 @@ async function vendasApi(body) {
 }
 function vdEsc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function vdForma(v) { return v.forma === 'credito' ? 'Credito ' + v.parcelas + 'x' : v.forma === 'debito' ? 'Debito' : 'Pix'; }
+const VD_MB = { subiu: ['✓ Millbody', '#4CAF50'], ja_tinha: ['✓ Millbody (já tinha)', '#4CAF50'], pendente: ['⚠ Millbody pendente', '#E0A852'], sem_plano: ['Millbody: não sobe', 'var(--gray)'], desligado: ['Millbody desligado', 'var(--gray)'] };
+const vdMbStatus = v => v.millbody ? (v.millbody.status === 'ja_tinha' ? 'subiu' : v.millbody.status) : '';
+function vdMbTag(v) {
+  if (!v.millbody) return '';
+  const [txt, cor] = VD_MB[v.millbody.status] || [v.millbody.status, 'var(--gray)'];
+  const tit = [v.millbody.motivo, v.millbody.aluno_nome ? 'Aluno: ' + v.millbody.aluno_nome : '', v.millbody.plano_nome ? 'Plano: ' + v.millbody.plano_nome : ''].filter(Boolean).join(' · ');
+  const clic = v.millbody.status === 'pendente' ? ` onclick="millbodyTentar('${v.id}')" style="cursor:pointer;text-decoration:underline dotted;` : ' style="';
+  return `<div title="${vdEsc(tit)}"${clic}font-size:0.72rem;color:${cor}">${txt}</div>`;
+}
+async function millbodyTentar(id) {
+  const v = vendasMes.find(x => x.id === id); if (!v) return;
+  const motivo = (v.millbody && v.millbody.motivo) || '';
+  const em = prompt(`${motivo}\n\nConfira o email do aluno (o mesmo do cadastro no Millbody) e clique OK para tentar de novo:`, v.aluno_email || '');
+  if (em === null) return;
+  try {
+    const r = await vendasApi({ action: 'millbodyTentar', id, aluno_email: em.trim() });
+    v.aluno_email = em.trim().toLowerCase(); v.millbody = r.millbody; renderVendas();
+    alert(r.millbody.status === 'subiu' ? 'Plano adicionado no Millbody.' : r.millbody.status === 'ja_tinha' ? 'O aluno já tinha esse plano no Millbody.' : 'Ainda pendente: ' + (r.millbody.motivo || ''));
+  } catch (e) { alert(e.message); }
+}
 const VD_STATUS = { com_comprovante: 'conferindo...', nao_lido: 'não lido', confere: 'confere', divergente: 'revisar', sem_comprovante: 'sem comprov.' };
 
 let vendasAbriuMesAtual = false;
@@ -1862,8 +1883,8 @@ function renderVendas() {
 }
 
 function vendasFiltradas() {
-  const fu = document.getElementById('vdFiltroUnidade').value, fs = document.getElementById('vdFiltroStatus').value, ff = document.getElementById('vdFiltroFunc').value;
-  return vendasMes.filter(v => (!fu || v.unidade === fu) && (!fs || v.status === fs) && (!ff || v.funcionario_email === ff));
+  const fu = document.getElementById('vdFiltroUnidade').value, fs = document.getElementById('vdFiltroStatus').value, ff = document.getElementById('vdFiltroFunc').value, fm = document.getElementById('vdFiltroMb').value;
+  return vendasMes.filter(v => (!fu || v.unidade === fu) && (!fs || v.status === fs) && (!ff || v.funcionario_email === ff) && (!fm || vdMbStatus(v) === fm));
 }
 
 function renderListaVendas() {
@@ -1874,7 +1895,7 @@ function renderListaVendas() {
     const nota = [...(v.divergencias || []), v.observacao ? 'Obs: ' + v.observacao : '', v.valor_original ? `Corrigido (lançado ${fmtMoeda(v.valor_original)})` : ''].filter(Boolean).join(' | ');
     h += `<tr>
       <td class="mono">${(v.data || '').split('-').reverse().slice(0, 2).join('/')}</td>
-      <td>${vdEsc(v.unidade)}</td><td>${vdEsc(v.aluno || '—')}${v.aluno_email ? `<div style="font-size:0.72rem;color:var(--gray)">${vdEsc(v.aluno_email)}</div>` : ''}</td><td>${vdEsc(v.plano || '—')}</td>
+      <td>${vdEsc(v.unidade)}</td><td>${vdEsc(v.aluno || '—')}${v.aluno_email ? `<div style="font-size:0.72rem;color:var(--gray)">${vdEsc(v.aluno_email)}</div>` : ''}${vdMbTag(v)}</td><td>${vdEsc(v.plano || '—')}</td>
       <td>${vdForma(v)}</td><td class="mono">${fmtMoeda(v.valor)}</td><td title="${vdEsc(v.funcionario_email)}">${vdEsc(v.funcionario_nome)}</td>
       <td><span class="vd-tag ${v.status}">${VD_STATUS[v.status] || v.status}</span></td>
       <td>${v.tem_comprovante ? `<button class="vd-link" onclick="verComprovante('${v.id}')">ver</button>` : ''}</td>
@@ -1886,6 +1907,7 @@ function renderListaVendas() {
 document.getElementById('vdFiltroUnidade').addEventListener('change', renderListaVendas);
 document.getElementById('vdFiltroStatus').addEventListener('change', renderListaVendas);
 document.getElementById('vdFiltroFunc').addEventListener('change', renderListaVendas);
+document.getElementById('vdFiltroMb').addEventListener('change', renderListaVendas);
 
 async function verComprovante(id) {
   const v = vendasMes.find(x => x.id === id); if (!v) return;
