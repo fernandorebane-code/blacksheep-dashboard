@@ -1794,6 +1794,7 @@ async function carregarVendas(silencioso) {
     ]);
     vdVersao = ver.versao;
     vendasMes = r.vendas || [];
+    vdRecemConferida = null;
     vendasJanela = jan.vendas || [];
     renderVendas();
     if (vendasEu.owner) { document.getElementById('vdFuncionarios').style.display = ''; carregarFuncionarios(); }
@@ -1882,14 +1883,19 @@ function renderVendas() {
   renderListaVendas();
 }
 
+// A venda que acabou de ser conferida deixa de bater com o filtro PARA REVISAR
+// e sumia da lista na hora, antes de dar pra ver que ficou verde. Ela fica ate
+// trocar o filtro ou recarregar a aba.
+let vdRecemConferida = null;
+
 function vendasFiltradas() {
   const fu = document.getElementById('vdFiltroUnidade').value, fs = document.getElementById('vdFiltroStatus').value, ff = document.getElementById('vdFiltroFunc').value, fm = document.getElementById('vdFiltroMb').value;
-  return vendasMes.filter(v => (!fu || v.unidade === fu) && (!fs || v.status === fs) && (!ff || v.funcionario_email === ff) && (!fm || vdMbStatus(v) === fm));
+  return vendasMes.filter(v => v.id === vdRecemConferida || ((!fu || v.unidade === fu) && (!fs || v.status === fs) && (!ff || v.funcionario_email === ff) && (!fm || vdMbStatus(v) === fm)));
 }
 
 function renderListaVendas() {
   const lista = vendasFiltradas();
-  if (!lista.length) { document.getElementById('vdListaWrap').innerHTML = '<div class="empty-state">Nenhuma venda lancada neste mes</div>'; return; }
+  if (!lista.length) { document.getElementById('vdListaWrap').innerHTML = `<div class="empty-state">${vendasMes.length ? 'Nenhuma venda com esses filtros' : 'Nenhuma venda lancada neste mes'}</div>`; return; }
   let h = '<table><thead><tr><th>Data</th><th>Unidade</th><th>Aluno</th><th>Plano</th><th>Pagamento</th><th>Valor</th><th>Funcionario</th><th>Status</th><th></th></tr></thead><tbody>';
   lista.forEach(v => {
     const nota = [...(v.divergencias || []), v.observacao ? 'Obs: ' + v.observacao : '', v.valor_original ? `Corrigido (lançado ${fmtMoeda(v.valor_original)})` : ''].filter(Boolean).join(' | ');
@@ -1904,10 +1910,8 @@ function renderListaVendas() {
   });
   document.getElementById('vdListaWrap').innerHTML = h + '</tbody></table>';
 }
-document.getElementById('vdFiltroUnidade').addEventListener('change', renderListaVendas);
-document.getElementById('vdFiltroStatus').addEventListener('change', renderListaVendas);
-document.getElementById('vdFiltroFunc').addEventListener('change', renderListaVendas);
-document.getElementById('vdFiltroMb').addEventListener('change', renderListaVendas);
+['vdFiltroUnidade', 'vdFiltroStatus', 'vdFiltroFunc', 'vdFiltroMb'].forEach(id =>
+  document.getElementById(id).addEventListener('change', () => { vdRecemConferida = null; renderListaVendas(); }));
 
 async function verComprovante(id) {
   const v = vendasMes.find(x => x.id === id); if (!v) return;
@@ -1933,7 +1937,7 @@ async function verComprovante(id) {
         <div style="font-size:0.82rem;margin-top:0.8rem">Lancado por <strong>${vdEsc(v.funcionario_nome)}</strong> <span class="mono" style="color:var(--gray)">${vdEsc(v.funcionario_email)}</span> em ${vdEsc((v.data || '').split('-').reverse().join('/'))}${v.criado_em ? ' as ' + new Date(v.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : ''}</div>
         ${v.observacao ? `<div style="font-size:0.82rem;margin-top:0.6rem">Obs do funcionario: ${vdEsc(v.observacao)}</div>` : ''}
         <div style="display:flex;gap:0.6rem;margin-top:1rem;flex-wrap:wrap">
-          ${v.status === 'divergente' ? `<button class="btn-update" onclick="marcarConferido('${id}')">MARCAR COMO CONFERIDO</button>` : ''}
+          ${['divergente', 'nao_lido'].includes(v.status) ? `<button class="btn-update" onclick="marcarConferido('${id}')">MARCAR COMO CONFERIDO</button>` : ''}
           ${vendasEu && vendasEu.owner ? `<button class="btn-logout" onclick="excluirVenda('${id}')">EXCLUIR</button>` : ''}
           <button class="btn-logout" onclick="document.getElementById('vdModal').classList.remove('show')">FECHAR</button>
         </div>
@@ -1941,13 +1945,16 @@ async function verComprovante(id) {
   } catch (e) { m.innerHTML = `<div class="box"><div class="empty-state">${vdEsc(e.message)}</div></div>`; }
 }
 async function marcarConferido(id) {
-  await vendasApi({ action: 'conferido', id });
+  try { await vendasApi({ action: 'conferido', id }); }
+  catch (e) { alert('Nao deu pra marcar como conferido: ' + e.message); return; }
   const v = vendasMes.find(x => x.id === id); if (v) v.status = 'confere';
+  vdRecemConferida = id;
   document.getElementById('vdModal').classList.remove('show'); renderVendas();
 }
 async function excluirVenda(id) {
   if (!confirm('Excluir este lancamento?')) return;
-  await vendasApi({ action: 'excluir', id });
+  try { await vendasApi({ action: 'excluir', id }); }
+  catch (e) { alert('Nao deu pra excluir: ' + e.message); return; }
   vendasMes = vendasMes.filter(x => x.id !== id);
   document.getElementById('vdModal').classList.remove('show'); renderVendas();
 }
