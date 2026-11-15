@@ -653,7 +653,7 @@ tr.total-row td { color: var(--gold); }
       <select id="vdFiltroUnidade" class="vd-sel"><option value="">TODAS AS UNIDADES</option></select>
       <select id="vdFiltroFunc" class="vd-sel"><option value="">TODOS OS FUNCIONARIOS</option></select>
       <select id="vdFiltroStatus" class="vd-sel"><option value="">TODOS</option><option value="divergente">PARA REVISAR</option><option value="nao_lido">NÃO LIDO</option><option value="com_comprovante">CONFERINDO</option><option value="confere">CONFERE</option><option value="sem_comprovante">SEM COMPROVANTE</option></select>
-      <select id="vdFiltroMb" class="vd-sel"><option value="">MILLBODY: TODOS</option><option value="pendente">MILLBODY: PENDENTE</option><option value="subiu">MILLBODY: SUBIU</option><option value="sem_plano">MILLBODY: NÃO SOBE</option></select>
+      <select id="vdFiltroMb" class="vd-sel"><option value="">MILLBODY: TODOS</option><option value="pendente">MILLBODY: PENDENTE</option><option value="subiu">MILLBODY: SUBIU</option><option value="franquia">FRANQUIA (ALPHA)</option><option value="sem_plano">MILLBODY: NÃO SOBE</option></select>
       <button class="btn-update" onclick="exportarVendasCSV()">EXPORTAR CSV</button>
     </div>
     <div id="vdListaWrap" class="table-wrap"><div class="empty-state">---</div></div>
@@ -1745,7 +1745,7 @@ async function vendasApi(body) {
 }
 function vdEsc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function vdForma(v) { return v.forma === 'credito' ? 'Credito ' + v.parcelas + 'x' : v.forma === 'debito' ? 'Debito' : 'Pix'; }
-const VD_MB = { subiu: ['✓ Millbody', '#4CAF50'], ja_tinha: ['✓ Millbody (já tinha)', '#4CAF50'], pendente: ['⚠ Millbody pendente', '#E0A852'], sem_plano: ['Millbody: não sobe', 'var(--gray)'], desligado: ['Millbody desligado', 'var(--gray)'] };
+const VD_MB = { subiu: ['✓ Millbody', '#4CAF50'], ja_tinha: ['✓ Millbody (já tinha)', '#4CAF50'], pendente: ['⚠ Millbody pendente', '#E0A852'], sem_plano: ['Millbody: não sobe', 'var(--gray)'], desligado: ['Millbody desligado', 'var(--gray)'], franquia: ['⚑ Franquia — lançar no painel Alphaville', '#9B6DC7'] };
 const vdMbStatus = v => v.millbody ? (v.millbody.status === 'ja_tinha' ? 'subiu' : v.millbody.status) : '';
 function vdMbTag(v) {
   if (!v.millbody) return '';
