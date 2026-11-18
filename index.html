@@ -1745,6 +1745,25 @@ async function vendasApi(body) {
 }
 function vdEsc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function vdForma(v) { return v.forma === 'credito' ? 'Credito ' + v.parcelas + 'x' : v.forma === 'debito' ? 'Debito' : 'Pix'; }
+// Nome padrão do plano: palavra-chave + unidade da venda ("Semestral" em Moema = "Semestral Moema").
+// Drop in / Dropin / DROP-IN são a mesma coisa; com número de aulas vira pacote.
+function vdPlanoNome(v) {
+  const t = String(v.plano || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+  if (!t) return '(sem plano)';
+  const u = v.unidade || '';
+  const n = Number((t.match(/(\d+)\s*aulas?/) || t.match(/(?:pacote|drop ?-?in)\s*(\d+)/) || [])[1]) || 0;
+  const drop = /drop ?-?in/.test(t);
+  if (drop && !n) return 'Drop-in';
+  if (n || /pacote|aulas/.test(t)) { const q = n || ({ 325: 5, 500: 10, 900: 20 })[Number(v.valor)]; return q ? 'Pacote ' + q + ' aulas' : 'Pacote'; }
+  if (/teste/.test(t)) return 'Mês teste ' + u;
+  if (/home ?work/.test(t)) return 'Homework';
+  if (/anual/.test(t)) return 'Anual ' + u;
+  if (/semestral/.test(t)) return 'Semestral ' + u;
+  if (/trimestral/.test(t)) return 'Trimestral ' + u;
+  if (/mensal/.test(t)) return 'Mensal ' + u;
+  if (/bjj/.test(t)) return 'BJJ ' + u;
+  return v.plano;
+}
 const VD_MB = { subiu: ['✓ Millbody', '#4CAF50'], ja_tinha: ['✓ Millbody (já tinha)', '#4CAF50'], pendente: ['⚠ Millbody pendente', '#E0A852'], sem_plano: ['Millbody: não sobe', 'var(--gray)'], desligado: ['Millbody desligado', 'var(--gray)'], franquia: ['⚑ Franquia — lançar no painel Alphaville', '#9B6DC7'] };
 const vdMbStatus = v => v.millbody ? (v.millbody.status === 'ja_tinha' ? 'subiu' : v.millbody.status) : '';
 function vdMbTag(v) {
@@ -1832,7 +1851,7 @@ function renderVendas() {
   // plano e texto livre: agrupa ignorando maiusculas, acentos e espacos sobrando
   const chavePlano = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
   const porPlano = {};
-  vs.forEach(v => { const k = chavePlano(v.plano) || '(sem plano)'; (porPlano[k] = porPlano[k] || { nome: v.plano || '(sem plano)', lista: [] }).lista.push(v); });
+  vs.forEach(v => { const nm = vdPlanoNome(v); const k = chavePlano(nm) || '(sem plano)'; (porPlano[k] = porPlano[k] || { nome: nm, lista: [] }).lista.push(v); });
   const planos = Object.values(porPlano).sort((a, b) => b.lista.length - a.lista.length || soma(b.lista) - soma(a.lista));
   document.getElementById('vdPlanosWrap').innerHTML = planos.length ? '<table><thead><tr><th>Plano</th><th>Vendidos</th><th>Total</th><th>Ticket medio</th></tr></thead><tbody>' +
     planos.map(p => `<tr><td>${vdEsc(p.nome)}</td><td class="mono">${p.lista.length}</td><td class="mono">${fmtMoeda(soma(p.lista))}</td><td class="mono">${fmtMoeda(soma(p.lista) / p.lista.length)}</td></tr>`).join('') + '</tbody></table>'
@@ -1901,7 +1920,7 @@ function renderListaVendas() {
     const nota = [...(v.divergencias || []), v.observacao ? 'Obs: ' + v.observacao : '', v.valor_original ? `Corrigido (lançado ${fmtMoeda(v.valor_original)})` : ''].filter(Boolean).join(' | ');
     h += `<tr>
       <td class="mono">${(v.data || '').split('-').reverse().slice(0, 2).join('/')}</td>
-      <td>${vdEsc(v.unidade)}</td><td>${vdEsc(v.aluno || '—')}${v.aluno_email ? `<div style="font-size:0.72rem;color:var(--gray)">${vdEsc(v.aluno_email)}</div>` : ''}${vdMbTag(v)}</td><td>${vdEsc(v.plano || '—')}</td>
+      <td>${vdEsc(v.unidade)}</td><td>${vdEsc(v.aluno || '—')}${v.aluno_email ? `<div style="font-size:0.72rem;color:var(--gray)">${vdEsc(v.aluno_email)}</div>` : ''}${vdMbTag(v)}</td><td>${vdEsc(vdPlanoNome(v))}${v.plano && vdPlanoNome(v) !== v.plano ? `<div style="font-size:0.72rem;color:var(--gray)">digitado: ${vdEsc(v.plano)}</div>` : ''}</td>
       <td>${vdForma(v)}</td><td class="mono">${fmtMoeda(v.valor)}</td><td title="${vdEsc(v.funcionario_email)}">${vdEsc(v.funcionario_nome)}</td>
       <td><span class="vd-tag ${v.status}">${VD_STATUS[v.status] || v.status}</span></td>
       <td>${v.tem_comprovante ? `<button class="vd-link" onclick="verComprovante('${v.id}')">ver</button>` : ''}</td>
@@ -1924,7 +1943,7 @@ async function verComprovante(id) {
     const linha = (k, a, b) => `<tr><td style="color:var(--gray)">${k}</td><td class="mono">${vdEsc(a ?? '—')}</td><td class="mono">${vdEsc(b ?? '—')}</td></tr>`;
     m.innerHTML = `<div class="box"><img src="${imagem}" alt="Comprovante">
       <div style="flex:1;min-width:260px">
-        <div class="section-title" style="margin-top:0">${vdEsc(v.aluno ? v.aluno + ' · ' + (v.plano || '') : v.plano || '')}</div>${v.aluno_email ? `<div style="color:var(--gray);font-size:0.8rem;margin:-6px 0 8px">${vdEsc(v.aluno_email)}</div>` : ''}
+        <div class="section-title" style="margin-top:0">${vdEsc(v.aluno ? v.aluno + ' · ' + vdPlanoNome(v) : vdPlanoNome(v))}</div>${v.aluno_email ? `<div style="color:var(--gray);font-size:0.8rem;margin:-6px 0 8px">${vdEsc(v.aluno_email)}</div>` : ''}
         <table><thead><tr><th></th><th>Lancado</th><th>Comprovante</th></tr></thead><tbody>
           ${linha('Valor', fmtMoeda(v.valor), l.valor != null ? fmtMoeda(l.valor) : null)}
           ${linha('Forma', v.forma, l.forma)}
