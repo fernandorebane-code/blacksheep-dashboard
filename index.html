@@ -1771,7 +1771,8 @@ function vdMbTag(v) {
   const [txt, cor] = VD_MB[v.millbody.status] || [v.millbody.status, 'var(--gray)'];
   const tit = [v.millbody.motivo, v.millbody.aluno_nome ? 'Aluno: ' + v.millbody.aluno_nome : '', v.millbody.plano_nome ? 'Plano: ' + v.millbody.plano_nome : ''].filter(Boolean).join(' · ');
   const clic = v.millbody.status === 'pendente' ? ` onclick="millbodyTentar('${v.id}')" style="cursor:pointer;text-decoration:underline dotted;` : ' style="';
-  return `<div title="${vdEsc(tit)}"${clic}font-size:0.72rem;color:${cor}">${txt}</div>`;
+  const emCorr = v.millbody.email_millbody ? `<div style="font-size:0.68rem;color:var(--gray)">email no Millbody: ${vdEsc(v.millbody.email_millbody)}</div>` : '';
+  return `<div title="${vdEsc(tit)}"${clic}font-size:0.72rem;color:${cor}">${txt}</div>${emCorr}`;
 }
 async function millbodyTentar(id) {
   const v = vendasMes.find(x => x.id === id); if (!v) return;
