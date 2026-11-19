@@ -690,6 +690,7 @@ body.so-personal .status-dots, body.so-personal .header-right .btn-update, body.
 
     <div class="section-title">ACERTO: QUEM DEVE A QUEM</div>
     <div style="color:var(--gray);font-size:0.82rem;margin-bottom:0.8rem">Igual a planilha CONTAS BS: quem pagou fica com +, de quem era a despesa fica com −. D5 divide pelas 5 unidades sem Alphaville, D6 pelas 6. Saldo positivo = tem a receber. A soma tem que dar zero.</div>
+    <div style="margin-bottom:0.6rem;font-size:0.82rem;color:var(--gray)">Saldo acumulado desde <select id="pgDesde" class="vd-sel" onchange="pgMudarDesde()"></select> <span style="font-size:0.75rem">(os meses antes disso ja foram acertados na planilha)</span></div>
     <div id="pgAcertoWrap" class="table-wrap"><div class="empty-state">---</div></div>
     <div id="pgTransfWrap" style="margin-top:0.8rem"></div>
 
@@ -2211,7 +2212,8 @@ function renderPagamentos() {
   const sinal = v => `<td class="mono" style="color:${v > 0.004 ? 'var(--green)' : v < -0.004 ? 'var(--red)' : 'var(--gray)'}"><strong>${Math.abs(v) > 0.004 ? (v > 0 ? '+' : '−') + fmtMoeda(Math.abs(v)) : '—'}</strong></td>`;
 
   // acerto: mes e acumulado (tudo lancado no app ate este mes)
-  const sm = pgSaldos(pgMes), sa = pgSaldos(pgTodos);
+  const desde = pgDesde(periodo);
+  const sm = pgSaldos(pgMes), sa = pgSaldos(pgTodos.filter(p => p.periodo >= desde));
   const ents = pgEntidades().filter(e => UNIDADES.includes(e) || Math.abs(sa[e].pagou) + Math.abs(sa[e].deve) > 0.004);
   let h = '<table><thead><tr><th></th><th>Pagou no mes</th><th>Parte dela no mes</th><th>Saldo do mes</th><th>Saldo acumulado</th></tr></thead><tbody>';
   let tm = 0, ta = 0;
@@ -2255,6 +2257,19 @@ function renderPagamentos() {
   pgRenderLista();
 }
 
+// acumulado so a partir de um mes (o que veio antes foi acertado na planilha CONTAS BS)
+function pgDesde(periodo) {
+  let d = '2026-11';
+  try { d = localStorage.getItem('pgDesde') || d; } catch (e) {}
+  if (d > periodo) d = periodo;
+  const s = document.getElementById('pgDesde');
+  s.innerHTML = '';
+  for (let k = 11; k >= 0; k--) { const m = vdMesMenos(periodo, k); s.add(new Option(`${nomeDoMes(m)} ${m.slice(0, 4)}`, m)); }
+  if (![...s.options].some(o => o.value === d)) s.add(new Option(`${nomeDoMes(d)} ${d.slice(0, 4)}`, d), 0);
+  s.value = d;
+  return d;
+}
+function pgMudarDesde() { try { localStorage.setItem('pgDesde', document.getElementById('pgDesde').value); } catch (e) {} renderPagamentos(); }
 function pgFiltrados() {
   const q = document.getElementById('pgFiltroQuem').value, c = document.getElementById('pgFiltroCat').value, s = document.getElementById('pgFiltroStatus').value;
   return pgMes.filter(p => (!q || p.pagou === q || (p.partes || []).some(x => pgEspalhar(x.de, 1)[q])) && (!c || p.categoria === c) && (!s || p.status === s));
