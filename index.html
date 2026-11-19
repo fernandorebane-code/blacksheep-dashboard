@@ -496,6 +496,7 @@ tr.total-row td { color: var(--gold); }
     <button class="tab" data-tab="alunos">ALUNOS</button>
     <button class="tab" data-tab="detalhes">DETALHES</button>
     <button class="tab" data-tab="vendas">VENDAS</button>
+    <button class="tab" data-tab="pagamentos">PAGAMENTOS</button>
   </div>
 
   <!-- TAB 1: MES ATUAL -->
@@ -668,6 +669,44 @@ tr.total-row td { color: var(--gold); }
         <button class="btn-update" onclick="addFuncionario()">ADICIONAR</button>
       </div>
       <div id="vdFuncLista"></div>
+    </div>
+  </div>
+
+  <!-- TAB 7: PAGAMENTOS (lancados no app de pagamentos: custo mensal + acerto entre unidades e socios) -->
+  <div id="pagamentos" class="tab-content">
+    <div class="period-label" id="pgLabel">---</div>
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-label">Custo das unidades no mes</div><div class="kpi-value" id="pgCusto">--</div><div style="color:var(--gray);font-size:0.7rem;margin-top:0.3rem">sem divisao de lucro, acertos e despesas pessoais de socio</div></div>
+      <div class="kpi-card"><div class="kpi-label">Total pago no mes</div><div class="kpi-value" id="pgPago">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Lancamentos</div><div class="kpi-value" id="pgQtd">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Para conferir</div><div class="kpi-value" id="pgConferir">--</div></div>
+    </div>
+
+    <div class="section-title">ACERTO: QUEM DEVE A QUEM</div>
+    <div style="color:var(--gray);font-size:0.82rem;margin-bottom:0.8rem">Igual a planilha CONTAS BS: quem pagou fica com +, de quem era a despesa fica com −. D5 divide pelas 5 unidades sem Alphaville, D6 pelas 6. Saldo positivo = tem a receber. A soma tem que dar zero.</div>
+    <div id="pgAcertoWrap" class="table-wrap"><div class="empty-state">---</div></div>
+    <div id="pgTransfWrap" style="margin-top:0.8rem"></div>
+
+    <div class="section-title">CUSTO POR CATEGORIA E UNIDADE</div>
+    <div style="color:var(--gray);font-size:0.82rem;margin-bottom:0.8rem">Custo dividido entra na cota de cada unidade (D5 = 1/5 menos Alphaville; D6 = 1/6).</div>
+    <div id="pgMatrizWrap" class="table-wrap"><div class="empty-state">---</div></div>
+    <div class="section-title">CUSTO DOS ULTIMOS 6 MESES</div>
+    <div id="pgHistWrap" class="table-wrap"><div class="empty-state">---</div></div>
+
+    <div class="section-title">LANCAMENTOS</div>
+    <div style="margin-bottom:0.8rem;display:flex;gap:0.8rem;flex-wrap:wrap">
+      <select id="pgFiltroQuem" class="vd-sel"><option value="">TODAS AS UNIDADES / SOCIOS</option></select>
+      <select id="pgFiltroCat" class="vd-sel"><option value="">TODAS AS CATEGORIAS</option></select>
+      <select id="pgFiltroStatus" class="vd-sel"><option value="">TODOS</option><option value="conferir">PARA CONFERIR</option><option value="ok">OK</option></select>
+      <button class="btn-update" onclick="pgExportarCSV()">EXPORTAR CSV</button>
+    </div>
+    <div id="pgListaWrap" class="table-wrap"><div class="empty-state">---</div></div>
+
+    <div id="pgUsuarios" style="display:none">
+      <div class="section-title">QUEM LANCA (APP DE PAGAMENTOS)</div>
+      <div style="color:var(--gray);font-size:0.82rem;margin-bottom:0.8rem">Lancamentos em <a href="https://bjj-pagamentos-blacksheep.web.app" target="_blank" style="color:var(--gold)">bjj-pagamentos-blacksheep.web.app</a>. A pessoa cria a conta no app em "Primeiro acesso" (ou entra com a mesma conta do app de vendas e pede acesso) e aparece aqui pra voce aprovar.</div>
+      <div id="pgPendentes"></div>
+      <div id="pgUsuLista"></div>
     </div>
   </div>
 </div>
@@ -918,6 +957,7 @@ function initSelector() {
   sel.addEventListener('change', () => {
     carregarPeriodo(sel.value);
     if (document.getElementById('vendas').classList.contains('active')) carregarVendas();
+    if (document.getElementById('pagamentos').classList.contains('active')) carregarPagamentos();
   });
 }
 
@@ -1709,6 +1749,7 @@ document.querySelectorAll('.tab').forEach(tab => {
     if (target === 'indicadores') carregarIndicadores();
     if (target === 'alunos') carregarAlunos();
     if (target === 'vendas') carregarVendas();
+    if (target === 'pagamentos') carregarPagamentos();
   });
 });
 
@@ -2024,6 +2065,238 @@ async function addFuncionario() {
 async function ativarFuncionario(email, ativo) {
   await vendasApi({ action: 'ativarUsuario', email, ativo }); carregarFuncionarios();
 }
+
+
+// --- PAGAMENTOS (app bjj-pagamentos-blacksheep.web.app; substitui o grupo "Pagamentos crossfit") ---
+// Cada lancamento: pagou (unidade ou socio) + partes [{de, valor}] (de = unidade, socio, D5 ou D6).
+// Acerto (partidas dobradas): pagou +valor, cada parte -valor (D5/D6 espalhado). Soma sempre zero.
+// Custo da unidade: so partes de unidade/D5/D6 e fora das categorias que nao sao custo.
+const PG_API = 'https://us-central1-bjj-blacksheep.cloudfunctions.net/pagamentos';
+const PG_NAO_CUSTO = ['Divisão de lucro', 'Pessoal do sócio', 'Acerto entre unidades'];
+let pgEu = null, pgTodos = [], pgMes = [], pgSocios = [], pgCats = [], pgVersao = null;
+async function pgApi(body) {
+  const token = await auth.currentUser.getIdToken();
+  const r = await fetch(PG_API, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify(body) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || 'Erro ' + r.status);
+  return j;
+}
+// quanto de uma parte cai em cada unidade/socio
+function pgEspalhar(de, valor) {
+  if (de === 'D6') return Object.fromEntries(UNIDADES.map(u => [u, valor / 6]));
+  if (de === 'D5') return Object.fromEntries(UNIDADES.filter(u => u !== 'Alphaville').map(u => [u, valor / 5]));
+  return { [de]: valor };
+}
+function pgEntidades() { return [...UNIDADES, ...pgSocios]; }
+function pgSaldos(lista) {
+  const s = Object.fromEntries(pgEntidades().map(e => [e, { pagou: 0, deve: 0 }]));
+  lista.forEach(p => {
+    if (s[p.pagou]) s[p.pagou].pagou += p.valor;
+    (p.partes || []).forEach(x => Object.entries(pgEspalhar(x.de, x.valor)).forEach(([e, v]) => { if (s[e]) s[e].deve += v; }));
+  });
+  return s;
+}
+function pgCustoPorUnidade(lista) {
+  const t = Object.fromEntries(UNIDADES.map(u => [u, 0]));
+  lista.filter(p => !PG_NAO_CUSTO.includes(p.categoria)).forEach(p => (p.partes || []).forEach(x => {
+    if (pgSocios.includes(x.de)) return;
+    Object.entries(pgEspalhar(x.de, x.valor)).forEach(([u, v]) => { if (u in t) t[u] += v; });
+  }));
+  return t;
+}
+function pgDeQuem(p) {
+  const nome = d => d === 'D5' ? 'D5 (÷5)' : d === 'D6' ? 'D6 (÷6)' : d;
+  if ((p.partes || []).length === 1) return p.partes[0].de === p.pagou ? '<span style="color:var(--gray)">dela mesma</span>' : vdEsc(nome(p.partes[0].de));
+  return (p.partes || []).map(x => `${vdEsc(nome(x.de))} ${fmtMoeda(x.valor)}`).join('<br>');
+}
+
+async function carregarPagamentos(silencioso) {
+  const periodo = document.getElementById('mesSelector').value;
+  document.getElementById('pgLabel').textContent = `PAGAMENTOS ${nomeDoMes(periodo)} ${periodo.split('-')[0]}`;
+  if (!silencioso) showLoading();
+  try {
+    if (!pgEu) pgEu = await pgApi({ action: 'eu' });
+    const [r, ver] = await Promise.all([pgApi({ action: 'listar', ate: periodo }), pgApi({ action: 'versao' })]);
+    pgVersao = ver.versao;
+    pgTodos = r.pagamentos || []; pgSocios = r.socios || []; pgCats = r.categorias || [];
+    pgMes = pgTodos.filter(p => p.periodo === periodo);
+    const fq = document.getElementById('pgFiltroQuem');
+    if (fq.options.length === 1) pgEntidades().forEach(e => fq.add(new Option(e.toUpperCase(), e)));
+    const fc = document.getElementById('pgFiltroCat');
+    if (fc.options.length === 1) pgCats.forEach(c => fc.add(new Option(c.toUpperCase(), c)));
+    renderPagamentos();
+    if (pgEu.owner) { document.getElementById('pgUsuarios').style.display = ''; pgCarregarUsuarios(); }
+  } catch (e) {
+    document.getElementById('pgListaWrap').innerHTML = `<div class="empty-state">${vdEsc(e.message)}</div>`;
+  }
+  if (!silencioso) hideLoading();
+}
+
+function renderPagamentos() {
+  const periodo = document.getElementById('mesSelector').value;
+  const soma = arr => arr.reduce((a, p) => a + (p.valor || 0), 0);
+  const custoMes = pgCustoPorUnidade(pgMes);
+  document.getElementById('pgCusto').textContent = fmtMoeda(Object.values(custoMes).reduce((a, b) => a + b, 0));
+  document.getElementById('pgPago').textContent = fmtMoeda(soma(pgMes));
+  document.getElementById('pgQtd').textContent = fmtNum(pgMes.length);
+  document.getElementById('pgConferir').textContent = fmtNum(pgMes.filter(p => p.status === 'conferir').length);
+  const cel = v => `<td class="mono">${Math.abs(v) > 0.004 ? fmtMoeda(v) : '<span style="color:var(--gray)">—</span>'}</td>`;
+  const sinal = v => `<td class="mono" style="color:${v > 0.004 ? 'var(--green)' : v < -0.004 ? 'var(--red)' : 'var(--gray)'}"><strong>${Math.abs(v) > 0.004 ? (v > 0 ? '+' : '−') + fmtMoeda(Math.abs(v)) : '—'}</strong></td>`;
+
+  // acerto: mes e acumulado (tudo lancado no app ate este mes)
+  const sm = pgSaldos(pgMes), sa = pgSaldos(pgTodos);
+  const ents = pgEntidades().filter(e => UNIDADES.includes(e) || Math.abs(sa[e].pagou) + Math.abs(sa[e].deve) > 0.004);
+  let h = '<table><thead><tr><th></th><th>Pagou no mes</th><th>Parte dela no mes</th><th>Saldo do mes</th><th>Saldo acumulado</th></tr></thead><tbody>';
+  let tm = 0, ta = 0;
+  ents.forEach(e => {
+    const m = sm[e].pagou - sm[e].deve, a = sa[e].pagou - sa[e].deve; tm += m; ta += a;
+    h += `<tr><td>${pgSocios.includes(e) ? vdEsc(e) + ' <span style="color:var(--gray);font-size:0.7rem">socio</span>' : vdEsc(e)}</td>${cel(sm[e].pagou)}${cel(sm[e].deve)}${sinal(m)}${sinal(a)}</tr>`;
+  });
+  const zero = v => Math.abs(v) < 0.05 ? '<span style="color:var(--green)">0 ✓</span>' : `<span style="color:var(--red)">${fmtMoeda(v)} ✗</span>`;
+  h += `<tr style="border-top:2px solid var(--gold)"><td><strong>SOMA</strong></td><td></td><td></td><td class="mono">${zero(tm)}</td><td class="mono">${zero(ta)}</td></tr>`;
+  document.getElementById('pgAcertoWrap').innerHTML = pgTodos.length ? h + '</tbody></table>' : '<div class="empty-state">Nenhum pagamento lancado ainda</div>';
+
+  // menor numero de transferencias pra zerar o acumulado
+  const cred = ents.map(e => ({ e, v: sa[e].pagou - sa[e].deve })).filter(x => x.v > 0.5).sort((a, b) => b.v - a.v);
+  const deb = ents.map(e => ({ e, v: sa[e].deve - sa[e].pagou })).filter(x => x.v > 0.5).sort((a, b) => b.v - a.v);
+  const tr = [];
+  for (let i = 0, j = 0; i < deb.length && j < cred.length;) {
+    const v = Math.min(deb[i].v, cred[j].v); tr.push(`${vdEsc(deb[i].e)} paga ${fmtMoeda(v)} para ${vdEsc(cred[j].e)}`);
+    deb[i].v -= v; cred[j].v -= v; if (deb[i].v < 0.5) i++; if (cred[j].v < 0.5) j++;
+  }
+  document.getElementById('pgTransfWrap').innerHTML = tr.length ? `<div style="background:var(--gold-dim);border:1px solid var(--border);padding:0.8rem 1rem">
+    <div style="color:var(--gold);font-weight:600;font-size:0.8rem;margin-bottom:0.4rem">PRA ZERAR O ACUMULADO</div>${tr.map(t => `<div style="font-size:0.88rem;padding:2px 0">${t}</div>`).join('')}
+    <div style="color:var(--gray);font-size:0.75rem;margin-top:0.4rem">Quando acertar, lance no app como "Acerto entre unidades" (ex: "Berrini pagou Pinheiros acerto").</div></div>` : '';
+
+  // custo: categoria x unidade
+  const custos = pgMes.filter(p => !PG_NAO_CUSTO.includes(p.categoria));
+  const cats = pgCats.filter(k => !PG_NAO_CUSTO.includes(k) && custos.some(p => p.categoria === k));
+  if (!cats.length) document.getElementById('pgMatrizWrap').innerHTML = '<div class="empty-state">Nenhum custo lancado neste mes</div>';
+  else {
+    let m = `<table><thead><tr><th>Categoria</th>${UNIDADES.map(u => `<th>${u}</th>`).join('')}<th>Total</th></tr></thead><tbody>`;
+    cats.forEach(k => { const t = pgCustoPorUnidade(custos.filter(p => p.categoria === k)), tot = Object.values(t).reduce((a, b) => a + b, 0);
+      m += `<tr><td>${vdEsc(k)}</td>${UNIDADES.map(u => cel(t[u])).join('')}<td class="mono"><strong>${fmtMoeda(tot)}</strong></td></tr>`; });
+    m += `<tr style="border-top:2px solid var(--gold)"><td><strong>TOTAL</strong></td>${UNIDADES.map(u => `<td class="mono"><strong>${fmtMoeda(custoMes[u])}</strong></td>`).join('')}<td class="mono"><strong>${fmtMoeda(Object.values(custoMes).reduce((a, b) => a + b, 0))}</strong></td></tr>`;
+    document.getElementById('pgMatrizWrap').innerHTML = m + '</tbody></table>';
+  }
+  let hh = `<table><thead><tr><th>Mes</th>${UNIDADES.map(u => `<th>${u}</th>`).join('')}<th>Total</th></tr></thead><tbody>`;
+  for (let k = 5; k >= 0; k--) {
+    const p = vdMesMenos(periodo, k), t = pgCustoPorUnidade(pgTodos.filter(x => x.periodo === p));
+    hh += `<tr${k === 0 ? ' style="color:var(--gold)"' : ''}><td>${nomeDoMes(p)} ${p.slice(2, 4)}</td>${UNIDADES.map(u => cel(t[u])).join('')}<td class="mono"><strong>${fmtMoeda(Object.values(t).reduce((a, b) => a + b, 0))}</strong></td></tr>`;
+  }
+  document.getElementById('pgHistWrap').innerHTML = hh + '</tbody></table>';
+  pgRenderLista();
+}
+
+function pgFiltrados() {
+  const q = document.getElementById('pgFiltroQuem').value, c = document.getElementById('pgFiltroCat').value, s = document.getElementById('pgFiltroStatus').value;
+  return pgMes.filter(p => (!q || p.pagou === q || (p.partes || []).some(x => pgEspalhar(x.de, 1)[q])) && (!c || p.categoria === c) && (!s || p.status === s));
+}
+function pgRenderLista() {
+  const lista = pgFiltrados();
+  if (!lista.length) { document.getElementById('pgListaWrap').innerHTML = '<div class="empty-state">Nenhum lancamento</div>'; return; }
+  const pode = p => pgEu && (pgEu.owner || p.lancado_por_email === pgEu.email);
+  const opts = (arr, atual) => arr.map(x => `<option value="${vdEsc(x)}"${x === atual ? ' selected' : ''}>${vdEsc(x)}</option>`).join('');
+  let h = '<table><thead><tr><th>Data</th><th>O que</th><th>Pagou</th><th>De quem</th><th>Categoria</th><th>Valor</th><th>Lancado por</th><th></th></tr></thead><tbody>';
+  lista.forEach(p => {
+    const ed = pode(p), div = p.divergencias || [];
+    const umaParte = (p.partes || []).length === 1;
+    h += `<tr><td class="mono">${vdEsc((p.data || '').split('-').reverse().slice(0, 2).join('/'))}</td>
+      <td>${vdEsc(p.descricao)}${p.texto && p.texto !== p.descricao ? `<div style="color:var(--gray);font-size:0.75rem">“${vdEsc(p.texto)}”</div>` : ''}
+        ${p.status === 'conferir' ? `<span class="vd-tag divergente" title="${vdEsc(div.join(' | '))}">conferir</span><div style="color:#E0A852;font-size:0.72rem">${vdEsc(div.join(' · '))}</div>` : ''}</td>
+      <td>${ed ? `<select class="vd-sel" style="min-width:0" onchange="pgEditar('${p.id}', { pagou: this.value })">${opts(pgEntidades(), p.pagou)}</select>` : vdEsc(p.pagou)}</td>
+      <td>${ed && umaParte ? `<select class="vd-sel" style="min-width:0" onchange="pgEditar('${p.id}', { partes: [{ de: this.value, valor: ${p.valor} }] })">${opts(['D6', 'D5', ...pgEntidades()], p.partes[0].de)}</select>` : pgDeQuem(p)}</td>
+      <td>${ed ? `<select class="vd-sel" style="min-width:0" onchange="pgEditar('${p.id}', { categoria: this.value })">${opts(pgCats, p.categoria)}</select>` : vdEsc(p.categoria)}</td>
+      <td class="mono">${fmtMoeda(p.valor)}</td>
+      <td>${vdEsc(p.lancado_por_nome || p.lancado_por_email)}</td>
+      <td style="white-space:nowrap">${p.tem_arquivo ? `<button class="vd-link" onclick="pgVerArquivo('${p.id}')">ver</button> ` : ''}${p.status === 'conferir' ? `<button class="vd-link" onclick="pgConferido('${p.id}')">conferido</button> ` : ''}${ed ? `<button class="vd-link" onclick="pgExcluir('${p.id}')">excluir</button>` : ''}</td></tr>`;
+  });
+  document.getElementById('pgListaWrap').innerHTML = h + '</tbody></table>';
+}
+['pgFiltroQuem', 'pgFiltroCat', 'pgFiltroStatus'].forEach(id => document.getElementById(id).addEventListener('change', pgRenderLista));
+
+async function pgEditar(id, campos) {
+  try { await pgApi({ action: 'editar', id, campos }); await carregarPagamentos(true); }
+  catch (e) { alert(e.message); renderPagamentos(); }
+}
+async function pgConferido(id) {
+  try { await pgApi({ action: 'conferido', id }); await carregarPagamentos(true); } catch (e) { alert(e.message); }
+}
+async function pgExcluir(id) {
+  if (!confirm('Excluir este pagamento?')) return;
+  try { await pgApi({ action: 'excluir', id }); document.getElementById('vdModal')?.classList.remove('show'); await carregarPagamentos(true); } catch (e) { alert(e.message); }
+}
+async function pgVerArquivo(id) {
+  const p = pgMes.find(x => x.id === id); if (!p) return;
+  let m = document.getElementById('vdModal');
+  if (!m) { m = document.createElement('div'); m.id = 'vdModal'; m.onclick = e => { if (e.target === m) m.classList.remove('show'); }; document.body.appendChild(m); }
+  m.innerHTML = '<div class="box"><div class="empty-state">Carregando...</div></div>'; m.classList.add('show');
+  try {
+    const { arquivo, tipo } = await pgApi({ action: 'arquivo', id });
+    const l = p.leitura || {};
+    const linha = (k, v) => `<tr><td style="color:var(--gray)">${k}</td><td>${vdEsc(v ?? '—')}</td></tr>`;
+    const doc = tipo === 'application/pdf' ? `<iframe src="${arquivo}" style="width:420px;max-width:100%;height:78vh;border:0;background:#fff"></iframe>` : `<img src="${arquivo}" alt="Comprovante">`;
+    m.innerHTML = `<div class="box">${doc}
+      <div style="flex:1;min-width:260px">
+        <div class="section-title" style="margin-top:0">${vdEsc(p.descricao)}</div>
+        <table><tbody>
+          ${linha('Escrito', p.texto)}${linha('Pagou', p.pagou)}${linha('Valor', fmtMoeda(p.valor))}${linha('Data', (p.data || '').split('-').reverse().join('/'))}
+          ${linha('Recebeu (comprovante)', l.beneficiario)}${linha('Saiu de (comprovante)', l.pagador_comprovante)}${linha('Valor no comprovante', l.valor != null ? fmtMoeda(l.valor) : null)}
+          ${linha('Lancado por', p.lancado_por_nome)}
+        </tbody></table>
+        ${(l.duvidas || []).length ? `<div style="color:#E0A852;font-size:0.8rem;margin-top:0.6rem">IA: ${l.duvidas.map(vdEsc).join('<br>')}</div>` : ''}
+        <div style="margin-top:1rem;display:flex;gap:0.6rem"><button class="btn-update" onclick="document.getElementById('vdModal').classList.remove('show')">FECHAR</button></div>
+      </div></div>`;
+  } catch (e) { m.innerHTML = `<div class="box"><div class="empty-state">${vdEsc(e.message)}</div></div>`; }
+}
+function pgExportarCSV() {
+  const cols = ['data', 'texto', 'descricao', 'pagou', 'de_quem', 'categoria', 'valor', 'status', 'lancado_por_nome'];
+  const linhas = [cols.join(';')].concat(pgFiltrados().map(p => cols.map(c => {
+    let x = c === 'de_quem' ? (p.partes || []).map(y => y.de + ' ' + String(y.valor).replace('.', ',')).join(' + ') : p[c] ?? '';
+    if (c === 'valor') x = String(x).replace('.', ',');
+    return '"' + String(x).replace(/"/g, '""') + '"';
+  }).join(';')));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿' + linhas.join('\n')], { type: 'text/csv;charset=utf-8' }));
+  a.download = `pagamentos_${document.getElementById('mesSelector').value}.csv`; a.click();
+}
+async function pgCarregarUsuarios() {
+  try {
+    const { usuarios } = await pgApi({ action: 'usuarios' });
+    const pend = usuarios.filter(u => u.pendente);
+    document.getElementById('pgPendentes').innerHTML = pend.length ? `<div style="background:var(--gold-dim);border:1px solid var(--gold);padding:0.8rem 1rem;margin-bottom:1rem">
+      <div style="color:var(--gold);font-weight:600;font-size:0.85rem;margin-bottom:0.5rem">${pend.length} PEDIDO${pend.length > 1 ? 'S' : ''} DE ACESSO AGUARDANDO</div>
+      ${pend.map(u => `<div style="display:flex;justify-content:space-between;align-items:center;gap:0.8rem;padding:0.4rem 0;flex-wrap:wrap">
+        <span><strong>${vdEsc(u.nome)}</strong> <span class="mono" style="color:var(--gray)">${vdEsc(u.email)}</span></span>
+        <span style="display:flex;gap:0.5rem"><button class="btn-update" onclick="pgAtivar('${vdEsc(u.email)}', true)">APROVAR</button><button class="btn-logout" onclick="pgAtivar('${vdEsc(u.email)}', false)">RECUSAR</button></span>
+      </div>`).join('')}</div>` : '';
+    document.querySelector('.tab[data-tab="pagamentos"]').textContent = pend.length ? `PAGAMENTOS (${pend.length})` : 'PAGAMENTOS';
+    const aprov = usuarios.filter(u => !u.pendente);
+    document.getElementById('pgUsuLista').innerHTML = !aprov.length ? '<div class="empty-state">Ninguem aprovado ainda (voce sempre pode lancar)</div>' :
+      '<table><thead><tr><th>Nome</th><th>Email</th><th>Status</th><th></th></tr></thead><tbody>' +
+      aprov.sort((a, b) => (a.nome || '').localeCompare(b.nome || '')).map(u => `<tr${!u.ativo ? ' style="opacity:.5"' : ''}>
+        <td>${vdEsc(u.nome)}</td><td class="mono">${vdEsc(u.email)}</td><td>${u.ativo ? 'ativo' : 'desativado'}</td>
+        <td><button class="vd-link" onclick="pgAtivar('${vdEsc(u.email)}', ${!u.ativo})">${u.ativo ? 'desativar' : 'reativar'}</button></td></tr>`).join('') + '</tbody></table>';
+  } catch (e) { document.getElementById('pgUsuLista').innerHTML = `<div class="empty-state">${vdEsc(e.message)}</div>`; }
+}
+async function pgAtivar(email, ativo) { try { await pgApi({ action: 'ativarUsuario', email, ativo }); pgCarregarUsuarios(); } catch (e) { alert(e.message); } }
+// pedidos de acesso no nome da aba + atualiza sozinho quando alguem lanca (1 leitura por minuto)
+async function pgChecarNovidade() {
+  if (document.visibilityState !== 'visible' || !currentUser) return;
+  try {
+    pgEu = pgEu || await pgApi({ action: 'eu' });
+    if (!pgEu.gestor) return;
+    const { versao } = await pgApi({ action: 'versao' });
+    if (pgVersao === null) { pgVersao = versao; if (pgEu.owner) pgCarregarUsuarios(); return; }
+    if (versao === pgVersao) return;
+    pgVersao = versao;
+    if (document.getElementById('pagamentos').classList.contains('active')) carregarPagamentos(true);
+    else if (pgEu.owner) pgCarregarUsuarios();
+  } catch (e) {}
+}
+setInterval(pgChecarNovidade, 60000);
+document.addEventListener('visibilitychange', pgChecarNovidade);
+setTimeout(pgChecarNovidade, 4000);
 
 // --- RENDER ALUNOS ---
 async function carregarAlunos() {
