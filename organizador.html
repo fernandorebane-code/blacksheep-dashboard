@@ -1337,7 +1337,8 @@ const ACESSO_POR_UID = false;
 async function naLista(colecao, chave) {
   try {
     const d = await db.collection(colecao).doc(String(chave)).get();
-    return d.exists && d.data().ativo !== false;
+    // manager do personal (perfil 'personal') só entra na aba PERSONAL do dashboard
+    return d.exists && d.data().ativo !== false && d.data().perfil !== 'personal';
   } catch (e) { console.error(e); return false; }
 }
 

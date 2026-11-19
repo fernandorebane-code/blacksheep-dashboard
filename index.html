@@ -456,6 +456,11 @@ tr.total-row td { color: var(--gold); }
 </head>
 <body>
 
+<style>
+/* manager do personal: some tudo que não é a aba PERSONAL */
+body.so-personal .tab:not([data-tab="personal"]), body.so-personal .tab-content:not(#personal),
+body.so-personal .status-dots, body.so-personal .header-right .btn-update, body.so-personal .header-right a.btn-update { display: none !important; }
+</style>
 <div id="loading"><span>CARREGANDO...</span></div>
 
 <!-- LOGIN SCREEN -->
@@ -744,6 +749,16 @@ tr.total-row td { color: var(--gold); }
       <div style="color:var(--gray);font-size:0.82rem;margin-bottom:0.8rem">O professor cria a conta no app em "Primeiro acesso" (ou entra com a mesma conta do app de vendas e pede acesso) e aparece aqui pra voce aprovar.</div>
       <div id="psPendentes"></div>
       <div id="psUsuLista"></div>
+
+      <div class="section-title">MANAGERS DO PERSONAL</div>
+      <div style="color:var(--gray);font-size:0.82rem;margin-bottom:0.8rem">Entram em dashboard.bjjblacksheepfit.com e veem SO esta aba (sem poder aprovar professor, marcar plano, fechar mes ou excluir check-in). As outras abas e os dados delas ficam bloqueados pra esse login.</div>
+      <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.8rem">
+        <input id="psMgrNome" class="vd-sel" placeholder="Nome">
+        <input id="psMgrEmail" class="vd-sel" placeholder="Email" type="email" style="min-width:220px">
+        <button class="btn-update" onclick="psAddManager()">CRIAR LOGIN</button>
+      </div>
+      <div id="psMgrMsg"></div>
+      <div id="psMgrLista"></div>
     </div>
   </div>
 </div>
@@ -771,6 +786,7 @@ const db = firebase.firestore();
 
 // --- AUTH ---
 let currentUser = null;
+let dashPerfil = null; // 'personal' = manager do personal: só a aba PERSONAL
 
 auth.onAuthStateChanged(async (user) => {
   if (user) {
@@ -792,6 +808,7 @@ auth.onAuthStateChanged(async (user) => {
 async function checkAuthorized(email) {
   try {
     const doc = await db.collection('dashboard_users').doc(email.toLowerCase()).get();
+    dashPerfil = doc.exists ? doc.data().perfil || null : null;
     return doc.exists && doc.data().ativo !== false;
   } catch (e) {
     console.error('Erro ao verificar autorizacao:', e);
@@ -809,6 +826,16 @@ function showApp(user) {
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('appWrapper').classList.add('visible');
   document.getElementById('userEmail').textContent = user.email;
+  document.body.classList.remove('so-personal');
+  // manager do personal: só a aba PERSONAL (as outras funções também recusam esse perfil)
+  if (dashPerfil === 'personal') {
+    document.body.classList.add('so-personal');
+    initSelector();
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'personal'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'personal'));
+    carregarPersonal();
+    return;
+  }
   // Init dashboard
   initSelector();
   abrirNoMesMaisRecenteComDados();
@@ -992,6 +1019,7 @@ function initSelector() {
   }
   sel.value = mesAtualStr();
   sel.addEventListener('change', () => {
+    if (dashPerfil === 'personal') return carregarPersonal();
     carregarPeriodo(sel.value);
     if (document.getElementById('vendas').classList.contains('active')) carregarVendas();
     if (document.getElementById('pagamentos').classList.contains('active')) carregarPagamentos();
@@ -2364,7 +2392,7 @@ async function carregarPersonal(silencioso, conferir) {
     document.getElementById('psConferidoEm').textContent = conferir ? `Conferido agora (${r.conferidos_agora} aluno${r.conferidos_agora === 1 ? '' : 's'})` : '';
     psRender();
     document.getElementById('psUsuarios').style.display = psEu.owner ? '' : 'none';
-    if (psEu.owner) psCarregarUsuarios();
+    if (psEu.owner) { psCarregarUsuarios(); psCarregarManagers(); }
   } catch (e) { document.getElementById('psProfWrap').innerHTML = `<div class="empty-state">${vdEsc(e.message)}</div>`; }
   if (!silencioso) hideLoading();
 }
@@ -2451,7 +2479,8 @@ function psExportarCSV() {
 }
 async function psCarregarUsuarios() {
   try {
-    const { usuarios } = await psApi({ action: 'usuarios' });
+    const [{ usuarios }, { managers }] = await Promise.all([psApi({ action: 'usuarios' }), psApi({ action: 'managers' })]);
+    const veDash = Object.fromEntries(managers.map(m => [m.email, m.ativo]));
     const pend = usuarios.filter(u => u.pendente);
     document.getElementById('psPendentes').innerHTML = pend.length ? `<div style="background:var(--gold-dim);border:1px solid var(--gold);padding:0.8rem 1rem;margin-bottom:1rem">
       <div style="color:var(--gold);font-weight:600;font-size:0.85rem;margin-bottom:0.5rem">${pend.length} PEDIDO${pend.length > 1 ? 'S' : ''} DE ACESSO AGUARDANDO</div>
@@ -2462,12 +2491,43 @@ async function psCarregarUsuarios() {
     document.querySelector('.tab[data-tab="personal"]').textContent = pend.length ? `PERSONAL (${pend.length})` : 'PERSONAL';
     const aprov = usuarios.filter(u => !u.pendente);
     document.getElementById('psUsuLista').innerHTML = !aprov.length ? '<div class="empty-state">Nenhum professor aprovado ainda</div>' :
-      '<table><thead><tr><th>Nome</th><th>Email</th><th>Status</th><th></th></tr></thead><tbody>' +
+      '<table><thead><tr><th>Nome</th><th>Email</th><th>App</th><th>Ve o controle de personal no dashboard</th></tr></thead><tbody>' +
       aprov.sort((a, b) => (a.nome || '').localeCompare(b.nome || '')).map(u => `<tr${!u.ativo ? ' style="opacity:.5"' : ''}>
-        <td>${vdEsc(u.nome)}</td><td class="mono">${vdEsc(u.email)}</td><td>${u.ativo ? 'ativo' : 'desativado'}</td>
-        <td><button class="vd-link" onclick="psAtivar('${vdEsc(u.email)}', ${!u.ativo})">${u.ativo ? 'desativar' : 'reativar'}</button></td></tr>`).join('') + '</tbody></table>';
+        <td>${vdEsc(u.nome)}</td><td class="mono">${vdEsc(u.email)}</td>
+        <td>${u.ativo ? 'ativo' : 'desativado'} · <button class="vd-link" onclick="psAtivar('${vdEsc(u.email)}', ${!u.ativo})">${u.ativo ? 'desativar' : 'reativar'}</button></td>
+        <td><label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.8rem"><input type="checkbox"${veDash[u.email] ? ' checked' : ''} onchange="psVerDash('${vdEsc(u.email)}', '${vdEsc(u.nome)}', this.checked)"> ${veDash[u.email] ? 'sim' : 'nao'}</label></td></tr>`).join('') + '</tbody></table>';
   } catch (e) { document.getElementById('psUsuLista').innerHTML = `<div class="empty-state">${vdEsc(e.message)}</div>`; }
 }
+async function psCarregarManagers() {
+  try {
+    const { managers } = await psApi({ action: 'managers' });
+    document.getElementById('psMgrLista').innerHTML = !managers.length ? '<div class="empty-state">Nenhum manager ainda</div>' :
+      '<table><thead><tr><th>Nome</th><th>Email</th><th>Status</th><th></th></tr></thead><tbody>' + managers.map(m => `<tr${!m.ativo ? ' style="opacity:.5"' : ''}>
+        <td>${vdEsc(m.nome)}</td><td class="mono">${vdEsc(m.email)}</td><td>${m.ativo ? 'ativo' : 'desativado'}</td>
+        <td><button class="vd-link" onclick="psAtivarManager('${vdEsc(m.email)}', ${!m.ativo})">${m.ativo ? 'desativar' : 'reativar'}</button></td></tr>`).join('') + '</tbody></table>';
+  } catch (e) { document.getElementById('psMgrLista').innerHTML = `<div class="empty-state">${vdEsc(e.message)}</div>`; }
+}
+async function psAddManager() {
+  const nome = document.getElementById('psMgrNome').value.trim(), email = document.getElementById('psMgrEmail').value.trim();
+  const msg = document.getElementById('psMgrMsg');
+  if (!nome || !email) { msg.innerHTML = '<div class="empty-state">Preencha nome e email</div>'; return; }
+  try {
+    const r = await psApi({ action: 'addManager', nome, email });
+    msg.innerHTML = r.link
+      ? `<div style="background:var(--gold-dim);border:1px solid var(--gold);padding:0.8rem 1rem;margin-bottom:1rem;font-size:0.85rem">Login criado. Mande este link pra ${vdEsc(nome)} criar a senha (vale por pouco tempo):<br><input class="vd-sel" style="width:100%;margin-top:0.5rem" readonly value="${vdEsc(r.link)}" onclick="this.select()"><br>Depois é so entrar em dashboard.bjjblacksheepfit.com com ${vdEsc(email)} e a senha.</div>`
+      : `<div style="background:var(--gold-dim);border:1px solid var(--gold);padding:0.8rem 1rem;margin-bottom:1rem;font-size:0.85rem">${vdEsc(email)} já tinha conta (a mesma dos apps de vendas/personal). Já pode entrar em dashboard.bjjblacksheepfit.com com a senha dele. Se não lembrar, usa "Esqueci minha senha".</div>`;
+    document.getElementById('psMgrNome').value = ''; document.getElementById('psMgrEmail').value = '';
+    psCarregarManagers();
+  } catch (e) { msg.innerHTML = `<div class="empty-state">${vdEsc(e.message)}</div>`; }
+}
+// liga/desliga o acesso de um professor ao dashboard (só a aba PERSONAL); usa a conta que ele já tem
+async function psVerDash(email, nome, ver) {
+  try {
+    if (ver) await psApi({ action: 'addManager', email, nome }); else await psApi({ action: 'ativarManager', email, ativo: false });
+    psCarregarUsuarios(); psCarregarManagers();
+  } catch (e) { alert(e.message); psCarregarUsuarios(); }
+}
+async function psAtivarManager(email, ativo) { try { await psApi({ action: 'ativarManager', email, ativo }); psCarregarManagers(); } catch (e) { alert(e.message); } }
 async function psAtivar(email, ativo) { try { await psApi({ action: 'ativarUsuario', email, ativo }); psCarregarUsuarios(); } catch (e) { alert(e.message); } }
 // pedidos de acesso no nome da aba + atualiza sozinho quando alguem faz check-in (1 leitura por minuto)
 async function psChecarNovidade() {
