@@ -497,6 +497,7 @@ tr.total-row td { color: var(--gold); }
     <button class="tab" data-tab="detalhes">DETALHES</button>
     <button class="tab" data-tab="vendas">VENDAS</button>
     <button class="tab" data-tab="pagamentos">PAGAMENTOS</button>
+    <button class="tab" data-tab="personal">PERSONAL</button>
   </div>
 
   <!-- TAB 1: MES ATUAL -->
@@ -707,6 +708,42 @@ tr.total-row td { color: var(--gold); }
       <div style="color:var(--gray);font-size:0.82rem;margin-bottom:0.8rem">Lancamentos em <a href="https://bjj-pagamentos-blacksheep.web.app" target="_blank" style="color:var(--gold)">bjj-pagamentos-blacksheep.web.app</a>. A pessoa cria a conta no app em "Primeiro acesso" (ou entra com a mesma conta do app de vendas e pede acesso) e aparece aqui pra voce aprovar.</div>
       <div id="pgPendentes"></div>
       <div id="pgUsuLista"></div>
+    </div>
+  </div>
+
+  <!-- TAB 8: PERSONAL (check-in das aulas de personal; R$30 de locacao por aula de aluno sem plano personal) -->
+  <div id="personal" class="tab-content">
+    <div class="period-label" id="psLabel">---</div>
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-label">Locacao a descontar</div><div class="kpi-value" id="psValor">--</div><div style="color:var(--gray);font-size:0.7rem;margin-top:0.3rem">R$30 por aula de aluno sem plano personal</div></div>
+      <div class="kpi-card"><div class="kpi-label">Aulas no mes</div><div class="kpi-value" id="psAulas">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Aulas sem plano</div><div class="kpi-value" id="psSem">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Alunos a conferir</div><div class="kpi-value" id="psConferir">--</div><div style="color:var(--gray);font-size:0.7rem;margin-top:0.3rem">nao achados no Millbody</div></div>
+    </div>
+    <div style="display:flex;gap:0.8rem;flex-wrap:wrap;align-items:center;margin-bottom:0.5rem">
+      <button class="btn-update" onclick="carregarPersonal(false, true)">CONFERIR PLANOS NO MILLBODY AGORA</button>
+      <span id="psConferidoEm" style="color:var(--gray);font-size:0.78rem"></span>
+    </div>
+    <div style="color:var(--gray);font-size:0.82rem;margin-bottom:0.8rem">O professor faz o check-in do aluno em cada aula no app <a href="https://bjj-personal-blacksheep.web.app" target="_blank" style="color:var(--gold)">bjj-personal-blacksheep.web.app</a>. Aula conta "com plano" se no dia o aluno tinha no Millbody um plano com PERSONAL no nome. Voce pode marcar a mao por aluno (vale so pro mes).</div>
+
+    <div class="section-title">A DESCONTAR POR PROFESSOR</div>
+    <div id="psProfWrap" class="table-wrap"><div class="empty-state">---</div></div>
+
+    <div class="section-title">ALUNOS</div>
+    <div style="margin-bottom:0.8rem;display:flex;gap:0.8rem;flex-wrap:wrap">
+      <select id="psFiltroProf" class="vd-sel" onchange="psRender()"><option value="">TODOS OS PROFESSORES</option></select>
+    </div>
+    <div id="psAlunosWrap" class="table-wrap"><div class="empty-state">---</div></div>
+
+    <div class="section-title">CHECK-INS DO MES</div>
+    <div style="margin-bottom:0.8rem"><button class="btn-update" onclick="psExportarCSV()">EXPORTAR CSV</button></div>
+    <div id="psAulasWrap" class="table-wrap"><div class="empty-state">---</div></div>
+
+    <div id="psUsuarios" style="display:none">
+      <div class="section-title">PROFESSORES (APP DE PERSONAL)</div>
+      <div style="color:var(--gray);font-size:0.82rem;margin-bottom:0.8rem">O professor cria a conta no app em "Primeiro acesso" (ou entra com a mesma conta do app de vendas e pede acesso) e aparece aqui pra voce aprovar.</div>
+      <div id="psPendentes"></div>
+      <div id="psUsuLista"></div>
     </div>
   </div>
 </div>
@@ -958,6 +995,7 @@ function initSelector() {
     carregarPeriodo(sel.value);
     if (document.getElementById('vendas').classList.contains('active')) carregarVendas();
     if (document.getElementById('pagamentos').classList.contains('active')) carregarPagamentos();
+    if (document.getElementById('personal').classList.contains('active')) carregarPersonal();
   });
 }
 
@@ -1750,6 +1788,7 @@ document.querySelectorAll('.tab').forEach(tab => {
     if (target === 'alunos') carregarAlunos();
     if (target === 'vendas') carregarVendas();
     if (target === 'pagamentos') carregarPagamentos();
+    if (target === 'personal') carregarPersonal();
   });
 });
 
@@ -2297,6 +2336,154 @@ async function pgChecarNovidade() {
 setInterval(pgChecarNovidade, 60000);
 document.addEventListener('visibilitychange', pgChecarNovidade);
 setTimeout(pgChecarNovidade, 4000);
+
+// --- PERSONAL (app bjj-personal-blacksheep.web.app; check-in das aulas de personal dos professores) ---
+// Regra do Fernando: aluno com plano PERSONAL no Millbody nao gera nada; sem plano = R$30 de locacao por aula,
+// descontado do professor no pagamento do fim do mes. A funcao ja devolve cada aula com cobra/motivo/valor.
+const PS_API = 'https://us-central1-bjj-blacksheep.cloudfunctions.net/personal';
+let psEu = null, psDados = null, psVersao = null;
+async function psApi(body) {
+  const token = await auth.currentUser.getIdToken();
+  const r = await fetch(PS_API, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify(body) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || 'Erro ' + r.status);
+  return j;
+}
+async function carregarPersonal(silencioso, conferir) {
+  const periodo = document.getElementById('mesSelector').value;
+  document.getElementById('psLabel').textContent = `PERSONAL ${nomeDoMes(periodo)} ${periodo.split('-')[0]}`;
+  if (!silencioso) showLoading();
+  try {
+    if (!psEu) psEu = await psApi({ action: 'eu' });
+    const [r, ver] = await Promise.all([psApi({ action: conferir ? 'conferir' : 'listar', mes: periodo }), psApi({ action: 'versao' })]);
+    psVersao = ver.versao; psDados = r;
+    const fp = document.getElementById('psFiltroProf'), atual = fp.value;
+    const profs = [...new Map(r.aulas.map(a => [a.professor_email, a.professor_nome])).entries()].sort((a, b) => a[1].localeCompare(b[1]));
+    fp.innerHTML = '<option value="">TODOS OS PROFESSORES</option>' + profs.map(([e, n]) => `<option value="${vdEsc(e)}">${vdEsc(n.toUpperCase())}</option>`).join('');
+    fp.value = profs.some(p => p[0] === atual) ? atual : '';
+    document.getElementById('psConferidoEm').textContent = conferir ? `Conferido agora (${r.conferidos_agora} aluno${r.conferidos_agora === 1 ? '' : 's'})` : '';
+    psRender();
+    document.getElementById('psUsuarios').style.display = psEu.owner ? '' : 'none';
+    if (psEu.owner) psCarregarUsuarios();
+  } catch (e) { document.getElementById('psProfWrap').innerHTML = `<div class="empty-state">${vdEsc(e.message)}</div>`; }
+  if (!silencioso) hideLoading();
+}
+function psStatusMb(a) {
+  const mb = a && a.millbody;
+  if (!mb) return '<span style="color:var(--gray)">ainda nao conferido</span>';
+  if (mb.status !== 'achou') return `<span style="color:var(--red)">${vdEsc(mb.motivo || 'nao achado')}</span>`;
+  const pl = (mb.planos_personal || []).filter(p => p.status !== 'canceled');
+  const emailDif = mb.email_millbody && mb.email_millbody !== a.email ? `<div style="font-size:0.68rem;color:var(--gray)">email no Millbody: ${vdEsc(mb.email_millbody)}</div>` : '';
+  return (pl.length ? pl.map(p => `${vdEsc(p.name)} <span class="mono" style="color:var(--gray)">${p.startDate.split('-').reverse().join('/')} a ${p.endDate ? p.endDate.split('-').reverse().join('/') : '...'}</span>`).join('<br>')
+    : '<span style="color:var(--amber)">sem plano personal</span>') + emailDif;
+}
+function psRender() {
+  const r = psDados; if (!r) return;
+  const periodo = r.mes, prof = document.getElementById('psFiltroProf').value;
+  const alunos = Object.fromEntries(r.alunos.map(a => [a.id, a]));
+  const aulas = r.aulas;
+  // KPIs (mes inteiro)
+  const sem = aulas.filter(a => a.cobra);
+  document.getElementById('psValor').textContent = fmtMoeda(sem.reduce((s, a) => s + a.valor, 0));
+  document.getElementById('psAulas').textContent = aulas.length;
+  document.getElementById('psSem').textContent = sem.length;
+  const idsComAula = [...new Set(aulas.map(a => a.aluno_id))];
+  document.getElementById('psConferir').textContent = idsComAula.filter(id => !alunos[id] || !alunos[id].millbody || alunos[id].millbody.status !== 'achou').length;
+
+  // por professor
+  const porProf = {};
+  aulas.forEach(a => {
+    const p = porProf[a.professor_email] = porProf[a.professor_email] || { nome: a.professor_nome, email: a.professor_email, aulas: 0, com: 0, sem: 0, valor: 0, alunos: new Set() };
+    p.aulas++; p.alunos.add(a.aluno_id); if (a.cobra) { p.sem++; p.valor += a.valor; } else p.com++;
+  });
+  const lp = Object.values(porProf).sort((a, b) => b.valor - a.valor || a.nome.localeCompare(b.nome));
+  document.getElementById('psProfWrap').innerHTML = !lp.length ? '<div class="empty-state">Nenhum check-in neste mes</div>' :
+    '<table><thead><tr><th>Professor</th><th>Alunos</th><th>Aulas</th><th>Com plano</th><th>Sem plano</th><th>Descontar</th><th>Mes</th></tr></thead><tbody>' +
+    lp.map(p => { const f = !!r.fechados[p.email]; return `<tr>
+      <td><button class="vd-link" style="font-size:0.85rem" onclick="document.getElementById('psFiltroProf').value='${vdEsc(p.email)}';psRender()">${vdEsc(p.nome)}</button></td>
+      <td class="mono">${p.alunos.size}</td><td class="mono">${p.aulas}</td><td class="mono" style="color:var(--green)">${p.com}</td><td class="mono" style="color:var(--amber)">${p.sem}</td>
+      <td class="mono" style="font-weight:600">${fmtMoeda(p.valor)}</td>
+      <td>${psEu.owner ? `<button class="vd-link" onclick="psFechar('${vdEsc(p.email)}', ${!f})">${f ? 'fechado · reabrir' : 'fechar mes'}</button>` : (f ? 'fechado' : 'aberto')}</td></tr>`; }).join('') +
+    `<tr style="font-weight:600"><td>TOTAL</td><td></td><td class="mono">${aulas.length}</td><td class="mono">${aulas.length - sem.length}</td><td class="mono">${sem.length}</td><td class="mono">${fmtMoeda(sem.reduce((s, a) => s + a.valor, 0))}</td><td></td></tr></tbody></table>`;
+
+  // alunos (do filtro)
+  const af = prof ? aulas.filter(a => a.professor_email === prof) : aulas;
+  const porAluno = {};
+  af.forEach(a => { const x = porAluno[a.aluno_id] = porAluno[a.aluno_id] || { id: a.aluno_id, nome: a.aluno_nome, prof: a.professor_nome, aulas: 0, sem: 0, valor: 0, motivos: new Set() }; x.aulas++; if (a.cobra) { x.sem++; x.valor += a.valor; } x.motivos.add(a.motivo); });
+  const la = Object.values(porAluno).sort((a, b) => a.prof.localeCompare(b.prof) || b.valor - a.valor || a.nome.localeCompare(b.nome));
+  document.getElementById('psAlunosWrap').innerHTML = !la.length ? '<div class="empty-state">Nenhum aluno com aula neste mes</div>' :
+    '<table><thead><tr><th>Professor</th><th>Aluno</th><th>Aulas</th><th>Sem plano</th><th>Descontar</th><th>Plano personal no Millbody</th><th>Voce marcou</th></tr></thead><tbody>' +
+    la.map(x => { const a = alunos[x.id] || {}; const aj = (a.ajustes || {})[periodo]; return `<tr>
+      <td>${vdEsc(x.prof)}</td><td><strong>${vdEsc(x.nome)}</strong><div class="mono" style="font-size:0.7rem;color:var(--gray)">${vdEsc(a.email || '')}</div></td>
+      <td class="mono">${x.aulas}</td><td class="mono" style="color:${x.sem ? 'var(--amber)' : 'var(--green)'}">${x.sem}</td><td class="mono" style="font-weight:600">${x.valor ? fmtMoeda(x.valor) : '-'}</td>
+      <td style="font-size:0.78rem">${psStatusMb(a)}</td>
+      <td>${psEu.owner ? `<select class="vd-sel" style="min-width:0" onchange="psAjustar('${x.id}', this.value)">
+        <option value=""${aj === undefined ? ' selected' : ''}>pelo Millbody</option><option value="sim"${aj === true ? ' selected' : ''}>tem plano (nao desconta)</option><option value="nao"${aj === false ? ' selected' : ''}>nao tem (desconta)</option></select>`
+        : (aj === true ? 'tem plano' : aj === false ? 'nao tem' : '-')}</td></tr>`; }).join('') + '</tbody></table>';
+
+  // check-ins
+  const ac = [...af].sort((a, b) => b.data.localeCompare(a.data) || a.professor_nome.localeCompare(b.professor_nome));
+  document.getElementById('psAulasWrap').innerHTML = !ac.length ? '<div class="empty-state">Nenhum check-in</div>' :
+    '<table><thead><tr><th>Dia</th><th>Professor</th><th>Aluno</th><th>Unidade</th><th>Situacao</th><th>Locacao</th>' + (psEu.owner ? '<th></th>' : '') + '</tr></thead><tbody>' +
+    ac.map(a => `<tr><td class="mono">${a.data.split('-').reverse().join('/')}</td><td>${vdEsc(a.professor_nome)}</td><td>${vdEsc(a.aluno_nome)}${a.dupla ? ' <span style="color:var(--gray);font-size:0.7rem">(dupla)</span>' : ''}</td><td>${vdEsc(a.unidade)}</td>
+      <td style="font-size:0.78rem;color:${a.cobra ? (a.pendente ? 'var(--red)' : 'var(--amber)') : 'var(--green)'}">${vdEsc(a.motivo)}</td><td class="mono">${a.valor ? fmtMoeda(a.valor) : '-'}</td>
+      ${psEu.owner ? `<td><button class="vd-link" style="color:var(--gray)" onclick="psExcluir('${a.id}')">excluir</button></td>` : ''}</tr>`).join('') + '</tbody></table>';
+}
+async function psAjustar(aluno_id, v) {
+  try { await psApi({ action: 'ajustar', aluno_id, mes: psDados.mes, tem_plano: v === 'sim' ? true : v === 'nao' ? false : null }); carregarPersonal(true); } catch (e) { alert(e.message); }
+}
+async function psFechar(professor_email, fechado) {
+  if (fechado && !confirm('Fechar o mes desse professor? Ele nao vai poder fazer nem excluir check-in deste mes.')) return;
+  try { await psApi({ action: 'fechar', mes: psDados.mes, professor_email, fechado }); carregarPersonal(true); } catch (e) { alert(e.message); }
+}
+async function psExcluir(id) {
+  const a = psDados.aulas.find(x => x.id === id);
+  if (!confirm(`Excluir o check-in de ${a.aluno_nome} (${a.professor_nome}) em ${a.data.split('-').reverse().join('/')}?`)) return;
+  try { await psApi({ action: 'excluir', id }); carregarPersonal(true); } catch (e) { alert(e.message); }
+}
+function psExportarCSV() {
+  if (!psDados) return;
+  const linhas = [['dia', 'professor', 'aluno', 'unidade', 'situacao', 'locacao']].concat(psDados.aulas.map(a => [a.data, a.professor_nome, a.aluno_nome, a.unidade, a.motivo, a.valor]));
+  const csv = linhas.map(l => l.map(c => `"${String(c ?? '').replace(/"/g, '""')}"`).join(';')).join('\n');
+  const el = document.createElement('a'); el.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv' })); el.download = `personal-${psDados.mes}.csv`; el.click();
+}
+async function psCarregarUsuarios() {
+  try {
+    const { usuarios } = await psApi({ action: 'usuarios' });
+    const pend = usuarios.filter(u => u.pendente);
+    document.getElementById('psPendentes').innerHTML = pend.length ? `<div style="background:var(--gold-dim);border:1px solid var(--gold);padding:0.8rem 1rem;margin-bottom:1rem">
+      <div style="color:var(--gold);font-weight:600;font-size:0.85rem;margin-bottom:0.5rem">${pend.length} PEDIDO${pend.length > 1 ? 'S' : ''} DE ACESSO AGUARDANDO</div>
+      ${pend.map(u => `<div style="display:flex;justify-content:space-between;align-items:center;gap:0.8rem;padding:0.4rem 0;flex-wrap:wrap">
+        <span><strong>${vdEsc(u.nome)}</strong> <span class="mono" style="color:var(--gray)">${vdEsc(u.email)}</span></span>
+        <span style="display:flex;gap:0.5rem"><button class="btn-update" onclick="psAtivar('${vdEsc(u.email)}', true)">APROVAR</button><button class="btn-logout" onclick="psAtivar('${vdEsc(u.email)}', false)">RECUSAR</button></span>
+      </div>`).join('')}</div>` : '';
+    document.querySelector('.tab[data-tab="personal"]').textContent = pend.length ? `PERSONAL (${pend.length})` : 'PERSONAL';
+    const aprov = usuarios.filter(u => !u.pendente);
+    document.getElementById('psUsuLista').innerHTML = !aprov.length ? '<div class="empty-state">Nenhum professor aprovado ainda</div>' :
+      '<table><thead><tr><th>Nome</th><th>Email</th><th>Status</th><th></th></tr></thead><tbody>' +
+      aprov.sort((a, b) => (a.nome || '').localeCompare(b.nome || '')).map(u => `<tr${!u.ativo ? ' style="opacity:.5"' : ''}>
+        <td>${vdEsc(u.nome)}</td><td class="mono">${vdEsc(u.email)}</td><td>${u.ativo ? 'ativo' : 'desativado'}</td>
+        <td><button class="vd-link" onclick="psAtivar('${vdEsc(u.email)}', ${!u.ativo})">${u.ativo ? 'desativar' : 'reativar'}</button></td></tr>`).join('') + '</tbody></table>';
+  } catch (e) { document.getElementById('psUsuLista').innerHTML = `<div class="empty-state">${vdEsc(e.message)}</div>`; }
+}
+async function psAtivar(email, ativo) { try { await psApi({ action: 'ativarUsuario', email, ativo }); psCarregarUsuarios(); } catch (e) { alert(e.message); } }
+// pedidos de acesso no nome da aba + atualiza sozinho quando alguem faz check-in (1 leitura por minuto)
+async function psChecarNovidade() {
+  if (document.visibilityState !== 'visible' || !currentUser) return;
+  try {
+    psEu = psEu || await psApi({ action: 'eu' });
+    if (!psEu.gestor) return;
+    const { versao } = await psApi({ action: 'versao' });
+    if (psVersao === null) { psVersao = versao; if (psEu.owner) psCarregarUsuarios(); return; }
+    if (versao === psVersao) return;
+    psVersao = versao;
+    if (document.getElementById('personal').classList.contains('active')) carregarPersonal(true);
+    else if (psEu.owner) psCarregarUsuarios();
+  } catch (e) {}
+}
+setInterval(psChecarNovidade, 60000);
+document.addEventListener('visibilitychange', psChecarNovidade);
+setTimeout(psChecarNovidade, 5000);
 
 // --- RENDER ALUNOS ---
 async function carregarAlunos() {
