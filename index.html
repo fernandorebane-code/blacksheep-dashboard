@@ -720,16 +720,16 @@ body.so-personal .status-dots, body.so-personal .header-right .btn-update, body.
   <div id="personal" class="tab-content">
     <div class="period-label" id="psLabel">---</div>
     <div class="kpi-row">
-      <div class="kpi-card"><div class="kpi-label">Aluguel de sala a descontar</div><div class="kpi-value" id="psValor">--</div><div style="color:var(--gray);font-size:0.7rem;margin-top:0.3rem">R$30 por aula de aluno sem plano personal</div></div>
+      <div class="kpi-card"><div class="kpi-label">Aluguel de sala a descontar</div><div class="kpi-value" id="psValor">--</div><div style="color:var(--gray);font-size:0.7rem;margin-top:0.3rem">R$30 por aula, pelas regras abaixo</div></div>
       <div class="kpi-card"><div class="kpi-label">Aulas no mes</div><div class="kpi-value" id="psAulas">--</div></div>
-      <div class="kpi-card"><div class="kpi-label">Aulas sem plano</div><div class="kpi-value" id="psSem">--</div></div>
-      <div class="kpi-card"><div class="kpi-label">Alunos a conferir</div><div class="kpi-value" id="psConferir">--</div><div style="color:var(--gray);font-size:0.7rem;margin-top:0.3rem">professor disse que tem plano e o Millbody nao confirma</div></div>
+      <div class="kpi-card"><div class="kpi-label">Aulas com locacao</div><div class="kpi-value" id="psSem">--</div></div>
+      <div class="kpi-card"><div class="kpi-label">Alunos a conferir</div><div class="kpi-value" id="psConferir">--</div><div style="color:var(--gray);font-size:0.7rem;margin-top:0.3rem">professor fixo com aluno nao achado no Millbody</div></div>
     </div>
     <div style="display:flex;gap:0.8rem;flex-wrap:wrap;align-items:center;margin-bottom:0.5rem">
       <button class="btn-update" onclick="carregarPersonal(false, true)">CONFERIR PLANOS NO MILLBODY AGORA</button>
       <span id="psConferidoEm" style="color:var(--gray);font-size:0.78rem"></span>
     </div>
-    <div style="color:var(--gray);font-size:0.82rem;margin-bottom:0.8rem">No cadastro do aluno o professor responde se ele tem plano personal no Box. NAO = professor paga R$30 de aluguel da sala por aula. SIM = o sistema confere no Millbody. O professor faz o check-in do aluno em cada aula no app <a href="https://bjj-personal-blacksheep.web.app" target="_blank" style="color:var(--gold)">bjj-personal-blacksheep.web.app</a>. Aula conta "com plano" se no dia o aluno tinha no Millbody um plano com PERSONAL no nome. Voce pode marcar a mao por aluno (vale so pro mes).</div>
+    <div style="color:var(--gray);font-size:0.82rem;margin-bottom:0.8rem">Regras da locacao de sala (R$30/aula): <strong>professor HORA-AULA</strong> paga em toda aula. <strong>Professor FIXO</strong> so paga por aluno de fora do box (sem plano ativo no Millbody e sem check-in no mes, Gympass/TotalPass inclusos). Aluno com <strong>PERSONAL MENSAL</strong> nunca gera locacao. Aluno <strong>isento</strong> (voce marca) tambem nao. Check-ins feitos no app <a href="https://bjj-personal-blacksheep.web.app" target="_blank" style="color:var(--gold)">bjj-personal-blacksheep.web.app</a>.</div>
 
     <div class="section-title">A DESCONTAR POR PROFESSOR</div>
     <div id="psProfWrap" class="table-wrap"><div class="empty-state">---</div></div>
@@ -2396,15 +2396,25 @@ async function carregarPersonal(silencioso, conferir) {
   } catch (e) { document.getElementById('psProfWrap').innerHTML = `<div class="empty-state">${vdEsc(e.message)}</div>`; }
   if (!silencioso) hideLoading();
 }
-function psStatusMb(a) {
-  if (a && a.tipo === 'aluguel') return '<span style="color:var(--gray)">nao consultado (professor disse que nao tem)</span>';
+function psStatusMb(a, periodo) {
   const mb = a && a.millbody;
   if (!mb) return '<span style="color:var(--gray)">ainda nao conferido</span>';
   if (mb.status !== 'achou') return `<span style="color:var(--red)">${vdEsc(mb.motivo || 'nao achado')}</span>`;
-  const pl = (mb.planos_personal || []).filter(p => p.status !== 'canceled');
+  const fim = periodo + '-31', ini = periodo + '-01';
+  const pl = (mb.planos || []).filter(p => p.status !== 'canceled' && p.startDate <= fim && (!p.endDate || p.endDate >= ini));
+  const ck = (mb.checkins || []).filter(d => d.slice(0, 7) === periodo).length;
   const emailDif = mb.email_millbody && mb.email_millbody !== a.email ? `<div style="font-size:0.68rem;color:var(--gray)">email no Millbody: ${vdEsc(mb.email_millbody)}</div>` : '';
-  return (pl.length ? pl.map(p => `${vdEsc(p.name)} <span class="mono" style="color:var(--gray)">${p.startDate.split('-').reverse().join('/')} a ${p.endDate ? p.endDate.split('-').reverse().join('/') : '...'}</span>`).join('<br>')
-    : '<span style="color:var(--amber)">sem plano personal</span>') + emailDif;
+  return (pl.length ? pl.map(p => `${vdEsc(p.name)} <span class="mono" style="color:var(--gray)">${p.startDate.split('-').reverse().join('/')} a ${p.endDate ? p.endDate.split('-').reverse().join('/') : '...'}</span>`).join('<br>') : '<span style="color:var(--amber)">sem plano no mes</span>')
+    + `<div style="color:${ck ? 'var(--green)' : 'var(--gray)'}">${ck} check-in${ck === 1 ? '' : 's'} no box no mes</div>` + emailDif;
+}
+function psSelRem(email, rem) {
+  if (!psEu.owner) return rem === 'fixo' ? 'fixo' : 'hora-aula';
+  return `<select class="vd-sel" style="min-width:0" onchange="psRemuneracao('${vdEsc(email)}', this.value)"><option value="hora_aula"${rem !== 'fixo' ? ' selected' : ''}>hora-aula (paga toda aula)</option><option value="fixo"${rem === 'fixo' ? ' selected' : ''}>fixo (so aluno de fora)</option></select>`;
+}
+async function psRemuneracao(email, remuneracao) { try { await psApi({ action: 'remuneracao', email, remuneracao }); carregarPersonal(true); } catch (e) { alert(e.message); } }
+async function psIsentar(aluno_id, isento, nome) {
+  if (isento && !confirm(`${nome} fica isento de locacao de sala (em todos os meses, ate voce desmarcar). Confirma?`)) return carregarPersonal(true);
+  try { await psApi({ action: 'isentar', aluno_id, isento }); carregarPersonal(true); } catch (e) { alert(e.message); }
 }
 function psRender() {
   const r = psDados; if (!r) return;
@@ -2427,13 +2437,14 @@ function psRender() {
   });
   const lp = Object.values(porProf).sort((a, b) => b.valor - a.valor || a.nome.localeCompare(b.nome));
   document.getElementById('psProfWrap').innerHTML = !lp.length ? '<div class="empty-state">Nenhum check-in neste mes</div>' :
-    '<table><thead><tr><th>Professor</th><th>Alunos</th><th>Aulas</th><th>Com plano</th><th>Sem plano</th><th>Descontar</th><th>Mes</th></tr></thead><tbody>' +
-    lp.map(p => { const f = !!r.fechados[p.email]; return `<tr>
+    '<table><thead><tr><th>Professor</th><th>Tipo</th><th>Alunos</th><th>Aulas</th><th>Sem locacao</th><th>Com locacao</th><th>Descontar</th><th>Mes</th></tr></thead><tbody>' +
+    lp.map(p => { const f = !!r.fechados[p.email]; const rem = (r.professores.find(x => x.email === p.email) || {}).remuneracao || 'hora_aula'; return `<tr>
       <td><button class="vd-link" style="font-size:0.85rem" onclick="document.getElementById('psFiltroProf').value='${vdEsc(p.email)}';psRender()">${vdEsc(p.nome)}</button></td>
+      <td>${psSelRem(p.email, rem)}</td>
       <td class="mono">${p.alunos.size}</td><td class="mono">${p.aulas}</td><td class="mono" style="color:var(--green)">${p.com}</td><td class="mono" style="color:var(--amber)">${p.sem}</td>
       <td class="mono" style="font-weight:600">${fmtMoeda(p.valor)}</td>
       <td>${psEu.owner ? `<button class="vd-link" onclick="psFechar('${vdEsc(p.email)}', ${!f})">${f ? 'fechado · reabrir' : 'fechar mes'}</button>` : (f ? 'fechado' : 'aberto')}</td></tr>`; }).join('') +
-    `<tr style="font-weight:600"><td>TOTAL</td><td></td><td class="mono">${aulas.length}</td><td class="mono">${aulas.length - sem.length}</td><td class="mono">${sem.length}</td><td class="mono">${fmtMoeda(sem.reduce((s, a) => s + a.valor, 0))}</td><td></td></tr></tbody></table>`;
+    `<tr style="font-weight:600"><td>TOTAL</td><td></td><td></td><td class="mono">${aulas.length}</td><td class="mono">${aulas.length - sem.length}</td><td class="mono">${sem.length}</td><td class="mono">${fmtMoeda(sem.reduce((s, a) => s + a.valor, 0))}</td><td></td></tr></tbody></table>`;
 
   // alunos (do filtro)
   const af = prof ? aulas.filter(a => a.professor_email === prof) : aulas;
@@ -2441,15 +2452,15 @@ function psRender() {
   af.forEach(a => { const x = porAluno[a.aluno_id] = porAluno[a.aluno_id] || { id: a.aluno_id, nome: a.aluno_nome, prof: a.professor_nome, aulas: 0, sem: 0, valor: 0, motivos: new Set() }; x.aulas++; if (a.cobra) { x.sem++; x.valor += a.valor; } x.motivos.add(a.motivo); });
   const la = Object.values(porAluno).sort((a, b) => a.prof.localeCompare(b.prof) || b.valor - a.valor || a.nome.localeCompare(b.nome));
   document.getElementById('psAlunosWrap').innerHTML = !la.length ? '<div class="empty-state">Nenhum aluno com aula neste mes</div>' :
-    '<table><thead><tr><th>Professor</th><th>Aluno</th><th>Aulas</th><th>Sem plano</th><th>Descontar</th><th>Professor disse</th><th>Plano personal no Millbody</th><th>Voce marcou</th></tr></thead><tbody>' +
+    '<table><thead><tr><th>Professor</th><th>Aluno</th><th>Aulas</th><th>Com locacao</th><th>Descontar</th><th>No Millbody</th><th>Isento</th><th>So neste mes</th></tr></thead><tbody>' +
     la.map(x => { const a = alunos[x.id] || {}; const aj = (a.ajustes || {})[periodo]; return `<tr>
       <td>${vdEsc(x.prof)}</td><td><strong>${vdEsc(x.nome)}</strong><div class="mono" style="font-size:0.7rem;color:var(--gray)">${vdEsc(a.email || '')}</div></td>
       <td class="mono">${x.aulas}</td><td class="mono" style="color:${x.sem ? 'var(--amber)' : 'var(--green)'}">${x.sem}</td><td class="mono" style="font-weight:600">${x.valor ? fmtMoeda(x.valor) : '-'}</td>
-      <td style="font-size:0.78rem">${a.tipo === 'aluguel' ? 'sem plano<br><span style="color:var(--gray)">paga aluguel</span>' : a.tipo === 'plano' ? '<span style="color:var(--green)">tem plano</span>' : '-'}</td>
-      <td style="font-size:0.78rem">${psStatusMb(a)}</td>
+      <td style="font-size:0.78rem">${psStatusMb(a, periodo)}</td>
+      <td>${psEu.owner ? `<label style="display:flex;gap:0.3rem;align-items:center;font-size:0.78rem;cursor:pointer"><input type="checkbox"${a.isento ? ' checked' : ''} onchange="psIsentar('${x.id}', this.checked, '${vdEsc(x.nome)}')"> ${a.isento ? 'sim' : 'nao'}</label>` : (a.isento ? 'sim' : '-')}</td>
       <td>${psEu.owner ? `<select class="vd-sel" style="min-width:0" onchange="psAjustar('${x.id}', this.value)">
-        <option value=""${aj === undefined ? ' selected' : ''}>pelo Millbody</option><option value="sim"${aj === true ? ' selected' : ''}>tem plano (nao desconta)</option><option value="nao"${aj === false ? ' selected' : ''}>nao tem (desconta)</option></select>`
-        : (aj === true ? 'tem plano' : aj === false ? 'nao tem' : '-')}</td></tr>`; }).join('') + '</tbody></table>';
+        <option value=""${aj === undefined ? ' selected' : ''}>pela regra</option><option value="sim"${aj === true ? ' selected' : ''}>nao desconta</option><option value="nao"${aj === false ? ' selected' : ''}>desconta</option></select>`
+        : (aj === true ? 'nao desconta' : aj === false ? 'desconta' : '-')}</td></tr>`; }).join('') + '</tbody></table>';
 
   // check-ins
   const ac = [...af].sort((a, b) => b.data.localeCompare(a.data) || a.professor_nome.localeCompare(b.professor_nome));
@@ -2491,9 +2502,9 @@ async function psCarregarUsuarios() {
     document.querySelector('.tab[data-tab="personal"]').textContent = pend.length ? `PERSONAL (${pend.length})` : 'PERSONAL';
     const aprov = usuarios.filter(u => !u.pendente);
     document.getElementById('psUsuLista').innerHTML = !aprov.length ? '<div class="empty-state">Nenhum professor aprovado ainda</div>' :
-      '<table><thead><tr><th>Nome</th><th>Email</th><th>App</th><th>Ve o controle de personal no dashboard</th></tr></thead><tbody>' +
+      '<table><thead><tr><th>Nome</th><th>Email</th><th>Tipo</th><th>App</th><th>Ve o controle de personal no dashboard</th></tr></thead><tbody>' +
       aprov.sort((a, b) => (a.nome || '').localeCompare(b.nome || '')).map(u => `<tr${!u.ativo ? ' style="opacity:.5"' : ''}>
-        <td>${vdEsc(u.nome)}</td><td class="mono">${vdEsc(u.email)}</td>
+        <td>${vdEsc(u.nome)}</td><td class="mono">${vdEsc(u.email)}</td><td>${psSelRem(u.email, u.remuneracao)}</td>
         <td>${u.ativo ? 'ativo' : 'desativado'} · <button class="vd-link" onclick="psAtivar('${vdEsc(u.email)}', ${!u.ativo})">${u.ativo ? 'desativar' : 'reativar'}</button></td>
         <td><label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.8rem"><input type="checkbox"${veDash[u.email] ? ' checked' : ''} onchange="psVerDash('${vdEsc(u.email)}', '${vdEsc(u.nome)}', this.checked)"> ${veDash[u.email] ? 'sim' : 'nao'}</label></td></tr>`).join('') + '</tbody></table>';
   } catch (e) { document.getElementById('psUsuLista').innerHTML = `<div class="empty-state">${vdEsc(e.message)}</div>`; }
