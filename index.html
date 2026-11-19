@@ -750,7 +750,7 @@ body.so-personal .status-dots, body.so-personal .header-right .btn-update, body.
       <div id="psPendentes"></div>
       <div id="psUsuLista"></div>
 
-      <div class="section-title">MANAGERS DO PERSONAL</div>
+      <div class="section-title">QUEM ENTRA NO DASHBOARD</div>
       <div style="color:var(--gray);font-size:0.82rem;margin-bottom:0.8rem">Entram em dashboard.bjjblacksheepfit.com e veem SO esta aba (sem poder aprovar professor, marcar plano, fechar mes ou excluir check-in). As outras abas e os dados delas ficam bloqueados pra esse login.</div>
       <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.8rem">
         <input id="psMgrNome" class="vd-sel" placeholder="Nome">
@@ -2502,8 +2502,10 @@ async function psCarregarManagers() {
   try {
     const { managers } = await psApi({ action: 'managers' });
     document.getElementById('psMgrLista').innerHTML = !managers.length ? '<div class="empty-state">Nenhum manager ainda</div>' :
-      '<table><thead><tr><th>Nome</th><th>Email</th><th>Status</th><th></th></tr></thead><tbody>' + managers.map(m => `<tr${!m.ativo ? ' style="opacity:.5"' : ''}>
-        <td>${vdEsc(m.nome)}</td><td class="mono">${vdEsc(m.email)}</td><td>${m.ativo ? 'ativo' : 'desativado'}</td>
+      '<table><thead><tr><th>Nome</th><th>Email</th><th>O que ve</th><th>Status</th><th></th></tr></thead><tbody>' + managers.sort((a, b) => b.ativo - a.ativo || a.nome.localeCompare(b.nome)).map(m => `<tr${!m.ativo ? ' style="opacity:.5"' : ''}>
+        <td>${vdEsc(m.nome)}</td><td class="mono">${vdEsc(m.email)}</td>
+        <td><select class="vd-sel" style="min-width:0" onchange="psPerfil('${vdEsc(m.email)}', this.value, this)"><option value="personal"${m.perfil === 'personal' ? ' selected' : ''}>so a aba PERSONAL</option><option value="total"${m.perfil === 'total' ? ' selected' : ''}>dashboard inteiro</option></select></td>
+        <td>${m.ativo ? 'ativo' : 'desativado'}</td>
         <td><button class="vd-link" onclick="psAtivarManager('${vdEsc(m.email)}', ${!m.ativo})">${m.ativo ? 'desativar' : 'reativar'}</button></td></tr>`).join('') + '</tbody></table>';
   } catch (e) { document.getElementById('psMgrLista').innerHTML = `<div class="empty-state">${vdEsc(e.message)}</div>`; }
 }
@@ -2526,6 +2528,10 @@ async function psVerDash(email, nome, ver) {
     if (ver) await psApi({ action: 'addManager', email, nome }); else await psApi({ action: 'ativarManager', email, ativo: false });
     psCarregarUsuarios(); psCarregarManagers();
   } catch (e) { alert(e.message); psCarregarUsuarios(); }
+}
+async function psPerfil(email, perfil, sel) {
+  if (perfil === 'total' && !confirm(`${email} vai ver o dashboard INTEIRO (financeiro, vendas, pagamentos). Confirma?`)) { sel.value = 'personal'; return; }
+  try { await psApi({ action: 'perfilDashboard', email, perfil }); psCarregarManagers(); psCarregarUsuarios(); } catch (e) { alert(e.message); psCarregarManagers(); }
 }
 async function psAtivarManager(email, ativo) { try { await psApi({ action: 'ativarManager', email, ativo }); psCarregarManagers(); } catch (e) { alert(e.message); } }
 async function psAtivar(email, ativo) { try { await psApi({ action: 'ativarUsuario', email, ativo }); psCarregarUsuarios(); } catch (e) { alert(e.message); } }
