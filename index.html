@@ -646,6 +646,11 @@ body.so-personal .status-dots, body.so-personal .header-right .btn-update, body.
       <div class="kpi-card"><div class="kpi-label">Credito / Debito / Pix</div><div class="kpi-value" id="vdFormas" style="font-size:1rem">--</div></div>
       <div class="kpi-card"><div class="kpi-label">Para revisar</div><div class="kpi-value" id="vdRevisar">--</div></div>
     </div>
+    <div id="vdMbAvisosWrap" style="display:none">
+      <div class="section-title">AVISOS DO MILLBODY</div>
+      <div style="color:var(--gray);font-size:0.82rem;margin-bottom:0.8rem">O que mexeu no Millbody sem passar pelo app de vendas. Renovacao de recorrente, Gympass e TotalPass nao entram aqui.</div>
+      <div id="vdMbAvisos"></div>
+    </div>
     <div class="section-title">POR UNIDADE</div>
     <div id="vdUnidadesWrap"><div class="empty-state">---</div></div>
     <div class="section-title">A RECEBER NOS PROXIMOS MESES</div>
@@ -1845,6 +1850,48 @@ function vdMesMenos(periodo, n) {
 }
 let vendasEu = null;
 
+// ── Avisos do Millbody: plano lancado na mao, apagado ou cancelado (millbody_eventos) ──
+let vdMbEventos = [];
+const VD_MB_EV = {
+  na_mao:    ['LANCADO NA MAO', '#E0A852', 'Apareceu no Millbody sem venda no app de vendas'],
+  apagado:   ['PLANO APAGADO', '#E05252', 'Saiu do historico do aluno — o aluno ficou sem o plano'],
+  cancelado: ['PLANO CANCELADO', '#E0A852', 'Cancelado, mas continua no historico do aluno'],
+};
+async function carregarMbAvisos() {
+  try { vdMbEventos = (await vendasApi({ action: 'millbodyEventos' })).eventos || []; }
+  catch (e) { vdMbEventos = []; }
+  renderMbAvisos();
+}
+function renderMbAvisos() {
+  const wrap = document.getElementById('vdMbAvisosWrap');
+  if (!wrap) return;
+  if (!vdMbEventos.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  document.getElementById('vdMbAvisos').innerHTML = vdMbEventos.map(e => {
+    const [txt, cor, dica] = VD_MB_EV[e.tipo] || [e.tipo, 'var(--gray)', ''];
+    const quando = e.em ? new Date(e.em).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+    const det = [
+      e.plano, e.inicio ? 'inicio ' + e.inicio.split('-').reverse().join('/') : '',
+      e.valor ? fmtMoeda(e.valor) : '', 'plano n. ' + e.user_plan_id,
+      e.venda_id ? 'tem venda no app' : '',
+    ].filter(Boolean).map(vdEsc).join(' · ');
+    return `<div style="border-left:3px solid ${cor};background:rgba(255,255,255,0.03);padding:0.7rem 0.9rem;margin-bottom:0.5rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+      <div style="flex:1;min-width:240px">
+        <div style="color:${cor};font-size:0.72rem;letter-spacing:0.08em">${txt}</div>
+        <div style="font-weight:600">${vdEsc(e.aluno_nome || '(aluno nao identificado)')}</div>
+        <div style="color:var(--gray);font-size:0.78rem">${det}</div>
+        <div style="color:var(--gray);font-size:0.72rem">${vdEsc(dica)}${quando ? ' · detectado ' + quando : ''}</div>
+      </div>
+      <button class="btn-update" onclick="mbAvisoVisto('${vdEsc(e.id)}')">JA VI</button>
+    </div>`;
+  }).join('');
+}
+async function mbAvisoVisto(id) {
+  try { await vendasApi({ action: 'millbodyEventoVisto', id }); } catch (e) { alert(e.message); return; }
+  vdMbEventos = vdMbEventos.filter(x => x.id !== id);
+  renderMbAvisos();
+}
+
 async function vendasApi(body) {
   const token = await auth.currentUser.getIdToken();
   const r = await fetch(VENDAS_API, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify(body) });
@@ -1926,7 +1973,7 @@ async function carregarVendas(silencioso) {
     vdRecemConferida = null;
     vendasJanela = jan.vendas || [];
     renderVendas();
-    if (vendasEu.owner) { document.getElementById('vdFuncionarios').style.display = ''; carregarFuncionarios(); }
+    if (vendasEu.owner) { document.getElementById('vdFuncionarios').style.display = ''; carregarFuncionarios(); carregarMbAvisos(); }
   } catch (e) {
     document.getElementById('vdListaWrap').innerHTML = `<div class="empty-state">${vdEsc(e.message)}</div>`;
   }
